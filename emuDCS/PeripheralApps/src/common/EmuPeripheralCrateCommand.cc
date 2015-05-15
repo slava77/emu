@@ -820,7 +820,14 @@ xoap::MessageReference EmuPeripheralCrateCommand::onConfigCalCFEB (xoap::Message
 	  dmbVector[dmb]->SetCfebCableDelay(feb_cable_delay);
 	  dmbVector[dmb]->setcbldly(dmbVector[dmb]->GetCableDelay());
 	  dmbVector[dmb]->calctrl_global();
+
+          //     ODMB-DCFEB specific configuration for calibration
+          if(dmbVector[dmb]->GetHardwareVersion()==2)
+          {
+               dmbVector[dmb]->odmb_calib_mode(1);
+          }
 	  //
+
 	  // Now check the DAQMB status.  Did the configuration "take"?
 	  std::cout << "After config: check status " << (chamberVector[dmb]->GetLabel()).c_str() << std::endl;
 	  usleep(50);

@@ -1122,20 +1122,37 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBComparator (x
     broadcastTMB->WriteRegister(0x74,broadcastTMB->FillTMBRegister(0x74));
     //
     broadcastTMB->EnableCLCTInputs(0x7f); //enable TMB's CLCT inputs
-    broadcastDMB->settrgsrc(0); //disable the DMB internal LCT & L1A
+    if(broadcastDMB) broadcastDMB->settrgsrc(0); //disable the DMB internal LCT & L1A
   }
-  int thresholdsetting =((calsetup-1)%20);   //35 Comparator threshold setting for each channel
-  int nstrip=(calsetup-1)/20;           //16 channels, total loop: 32*35=1120
-  highthreshold=nstrip/16;
-  dac=0.02+0.18*highthreshold;
-  nstrip=nstrip%16;
-  if (!thresholdsetting) {
-    broadcastDMB->buck_shift_comp_bc(nstrip);
-    if (!nstrip) broadcastDMB->set_cal_dac(dac,dac);
+
+  if(broadcastDMB) {
+    int thresholdsetting =((calsetup-1)%20);   //35 Comparator threshold setting for each channel
+    int nstrip=(calsetup-1)/20;           //16 channels, total loop: 32*35=1120
+    highthreshold=nstrip/16;
+    dac=0.02+0.18*highthreshold;
+    nstrip=nstrip%16;
+    if (!thresholdsetting) {
+       broadcastDMB->buck_shift_comp_bc(nstrip);
+       if (!nstrip) broadcastDMB->set_cal_dac(dac,dac);
+    }
+    threshold=0.003*thresholdsetting+0.01+ (0.19+0.007*thresholdsetting)*highthreshold;
+    broadcastDMB->set_comp_thresh_bc(threshold);
+    std::cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<std::endl;
   }
-  threshold=0.003*thresholdsetting+0.01+ (0.19+0.007*thresholdsetting)*highthreshold;
-  broadcastDMB->set_comp_thresh_bc(threshold);
-  std::cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<std::endl;
+  if(broadcastODMB) {
+    int thresholdsetting =((calsetup-1)%20);   //35 Comparator threshold setting for each channel
+    int nstrip=(calsetup-1)/20;           //16 channels, total loop: 32*35=1120
+    highthreshold=nstrip/16;
+    dac=0.02+0.18*highthreshold;
+    nstrip=nstrip%16;
+    if (!thresholdsetting) {
+       broadcastODMB->buck_shift_comp_bc(nstrip);
+       if (!nstrip) broadcastODMB->set_cal_dac(dac,dac);
+    }
+    threshold=0.003*thresholdsetting+0.01+ (0.19+0.007*thresholdsetting)*highthreshold;
+    broadcastODMB->set_comp_thresh_bc(threshold);
+    std::cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<std::endl;
+  }
   ::usleep(nsleep);
   //    fireEvent("Enable");
   //
@@ -1156,15 +1173,28 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBGains (xoap::
   calsetup++;
   //
   //implement the cal0 setup process:
-  std::cout << "DMB setup for CFEB Gain, calsetup= " <<calsetup<< std::endl;
-  //
-  //Start the setup process:
-  int gainsetting =((calsetup-1)%20);
-  int nstrip=(calsetup-1)/20;
-  if (!gainsetting) broadcastDMB->buck_shift_ext_bc(nstrip);
-  dac=0.1+0.25*gainsetting;
-  broadcastDMB->set_cal_dac(dac,dac);
-  std::cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<std::endl;
+  if ( broadcastDMB ){
+    std::cout << "DMB setup for CFEB Gain, calsetup= " <<calsetup<< std::endl;
+    //
+    //Start the setup process:
+    int gainsetting =((calsetup-1)%20);
+    int nstrip=(calsetup-1)/20;
+    if (!gainsetting) broadcastDMB->buck_shift_ext_bc(nstrip);
+    dac=0.1+0.25*gainsetting;
+    broadcastDMB->set_cal_dac(dac,dac);
+    std::cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<std::endl;
+  }
+  if ( broadcastODMB ){
+    std::cout << "ODMB setup for DCFEB Gain, calsetup= " <<calsetup<< std::endl;
+    //
+    //Start the setup process:
+    int gainsetting =((calsetup-1)%20);
+    int nstrip=(calsetup-1)/20;
+    if (!gainsetting) broadcastDMB->buck_shift_ext_bc(nstrip);
+    dac=0.1+0.25*gainsetting;
+    broadcastODMB->set_cal_dac(dac,dac);
+    std::cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<std::endl;
+  }
   ::usleep(nsleep);
   //    fireEvent("Enable");
   //
@@ -1186,14 +1216,26 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBCrossTalk (xo
   calsetup++;
   //
   //implement the cal0 setup process:
-  std::cout << "DMB setup for CFEB Time, calsetup= " <<calsetup<< std::endl;
-  //
-  //Start the setup process:
-  int timesetting =((calsetup-1)%10);
-  int nstrip=(calsetup-1)/10;
-  if (!timesetting) broadcastDMB->buck_shift_ext_bc(nstrip);
-  broadcastDMB->set_cal_tim_pulse(timesetting+5);
-  std::cout <<" The strip was set to: "<<nstrip<<" Time was set to: "<<timesetting <<std::endl;
+  if ( broadcastDMB ){
+    std::cout << "DMB setup for CFEB Time, calsetup= " <<calsetup<< std::endl;
+    //
+    //Start the setup process:
+    int timesetting =((calsetup-1)%10);
+    int nstrip=(calsetup-1)/10;
+    if (!timesetting) broadcastDMB->buck_shift_ext_bc(nstrip);
+    broadcastDMB->set_cal_tim_pulse(timesetting+5);
+    std::cout <<" The strip was set to: "<<nstrip<<" Time was set to: "<<timesetting <<std::endl;
+  }
+  if ( broadcastODMB ){
+    std::cout << "ODMB setup for DCFEB Time, calsetup= " <<calsetup<< std::endl;
+    //
+    //Start the setup process:
+    int timesetting =((calsetup-1)%10);
+    int nstrip=(calsetup-1)/10;
+    if (!timesetting) broadcastDMB->buck_shift_ext_bc(nstrip);
+    broadcastODMB->set_cal_tim_pulse(timesetting+5);
+    std::cout <<" The strip was set to: "<<nstrip<<" Time was set to: "<<timesetting <<std::endl;
+  }
   ::usleep(nsleep);
   //    fireEvent("Enable");
   //
@@ -1215,20 +1257,20 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
   calsetup++;
   //
   //implement the CFEB_Pedestal setup process:
-  std::cout << "DMB setup for CFEB Pedestal, calsetup= " <<calsetup<< std::endl;
-  //
-  // Start the setup process: Set all channel to normal, DAC to 0, No_pulse:
-  broadcastDMB->buck_shift_ext_bc(-1);
-  dac=0.0;
-  broadcastDMB->set_cal_dac(dac,dac);
-  std::cout <<" The strip was set to: -1, " <<" DAC was set to: "<<dac <<std::endl;
-  ::usleep(nsleep);
-  broadcastDMB->toggle_pedestal();
-  std::cout<<" Toggle DMB Pedestal switch, to disable the pulsing."<<std::endl;
-  ::usleep(nsleep);
-
+  if ( broadcastDMB ){
+    std::cout << "DMB setup for CFEB Pedestal, calsetup= " <<calsetup<< std::endl;
+    //
+    // Start the setup process: Set all channel to normal, DAC to 0, No_pulse:
+    broadcastDMB->buck_shift_ext_bc(-1);
+    dac=0.0;
+    broadcastDMB->set_cal_dac(dac,dac);
+    std::cout <<" The strip was set to: -1, " <<" DAC was set to: "<<dac <<std::endl;
+    ::usleep(nsleep);
+    broadcastDMB->toggle_pedestal();
+    std::cout<<" Toggle DMB Pedestal switch, to disable the pulsing."<<std::endl;
+  }
   if ( broadcastODMB ){
-    std::cout << "ODMB setup for CFEB Pedestal, calsetup= " <<calsetup<< std::endl;
+    std::cout << "ODMB setup for DCFEB Pedestal, calsetup= " <<calsetup<< std::endl;
     //
     // Start the setup process: Set all channel to normal, DAC to 0, No_pulse:
     broadcastODMB->buck_shift_ext_bc(-1);
@@ -1238,8 +1280,8 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
     ::usleep(nsleep);
     broadcastODMB->toggle_pedestal();
     std::cout<<" Toggle DMB Pedestal switch, to disable the pulsing."<<std::endl;
-    ::usleep(nsleep);    
   }
+  ::usleep(nsleep);    
 
   //    fireEvent("Enable");
   //
