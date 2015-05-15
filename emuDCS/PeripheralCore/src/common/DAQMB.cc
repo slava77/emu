@@ -1254,7 +1254,7 @@ void DAQMB::setcaldelay(int dword)
   }
   else if(hardware_version_==2)
   {
-     WriteRegister(CAL_DLY, dword);
+     odmb_set_Cal_delay(dword);
   }
   //
 }
@@ -3074,19 +3074,44 @@ for(CFEBItr cfebItr = cfebs_.begin(); cfebItr != cfebs_.end(); ++cfebItr)
 
 void DAQMB::set_cal_tim_pulse(int itim)
 {
-  //
-  //(*MyOutput_)<< "setting pulse timing to " << itim << std::endl; 
-  int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
-    | (calibration_l1acc_delay_ & 0x1F) << 4
-    | (itim & 0x1F) << 9
-    | (inject_delay_ & 0x1F) << 14;
-  int dword;
-  dword=(cal_delay_bits)&0xfffff;
-  //
-  setcaldelay(dword);
-  //
-  usleep(100);
-  //
+  if(hardware_version_<=1)
+  {
+    //
+    //(*MyOutput_)<< "setting pulse timing to " << itim << std::endl; 
+    int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
+      | (calibration_l1acc_delay_ & 0x1F) << 4
+      | (itim & 0x1F) << 9
+      | (inject_delay_ & 0x1F) << 14;
+    int dword;
+    dword=(cal_delay_bits)&0xfffff;
+    //
+    setcaldelay(dword);
+    //
+    usleep(100);
+    //
+  }
+  else
+  {
+     int depth;
+     int tfine;
+     tfine=itim % 8;
+     int order[8]={6,7,0,1,2,3,4,5};
+     for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb)
+     {
+         dcfeb_adc_finedelay(cfebs_[icfeb], order[tfine]);  
+         udelay(100000);
+         if((itim/8)==0)depth=62;
+         if((itim/8)==1)depth=61;
+         if((itim/8)==2)depth=60;
+         if((itim/8)==3)depth=59;
+         if((itim/8)==4)depth=58;
+         if((itim/8)==5)depth=57;
+         // printf(" itim=%d, depth=%d, tfine=%d \n",itim, depth, order[tfine]);
+         dcfeb_set_PipelineDepth(cfebs_[icfeb],  depth);
+         Pipeline_Restart(cfebs_[icfeb]);
+         udelay(100000);
+     }     
+  }
 
 }
 

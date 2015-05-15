@@ -840,7 +840,9 @@ public:
   inline void odmb_set_kill_mask(int kill) { WriteRegister(ODMB_KILL, kill); }
   inline int odmb_read_kill_mask() { return ReadRegister(ODMB_KILL); } 
   inline void odmb_mask_l1a_match(int mask_l1a) { WriteRegister(MASK_L1A, mask_l1a); }
+  inline void odmb_mask_pulse(int mask_pls) { WriteRegister(MASK_PLS, mask_pls); }
   inline int odmb_firmware_version() { return ReadRegister(read_FW_VERSION); }
+  inline void odmb_calib_mode(int mode) { WriteRegister(ODMB_MODE, mode); }
 
   //DCFEB FIFO operations
   inline void odmb_rst_dcfeb_fifo(const unsigned fifo_select){WriteRegister(ODMB_RST_FIFO, fifo_select & 0x7F);}
@@ -1082,6 +1084,7 @@ public:
   static const unsigned L1A_COUNTER = 0x33FC;
   static const unsigned L1A_MODE = 0x3400;
   static const unsigned MASK_L1A = 0x3408;
+  static const unsigned MASK_PLS = 0x340C;
   static const unsigned STORED_PACKETS_BASE = 0x340C;
   static const unsigned DDU_PACKETS = 0x34AC;
   static const unsigned QPLL_UNLOCKS = 0x34FC;
