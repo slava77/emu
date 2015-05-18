@@ -146,6 +146,7 @@ int emu::step::Test::getDDUInputFiberMask( int crateId, int dduSlot ){
     int inputNumber = utils::stringTo<int>( i->second );
     if ( 0 <= inputNumber && inputNumber <= 14 ) mask |= ( 0x0001 << inputNumber );
   }
+  // return 0x7fff & ~mask;
   return mask;
 }
 
@@ -188,6 +189,7 @@ void emu::step::Test::setUpDDU(emu::pc::Crate* crate)
     (crate)->ccb()->bc0();
     
     if ( pLogger_ ){
+      LOG4CPLUS_INFO( *pLogger_, "dduInputFiberMask     0x" << hex << ( dduInputFiberMask            & 0xffff ) << dec );
       LOG4CPLUS_INFO( *pLogger_, "Kill Fiber  is set to 0x" << hex << ( (*ddu)->readFlashKillFiber() & 0xffff ) << dec );
       LOG4CPLUS_INFO( *pLogger_, "GbEPrescale is set to 0x" << hex << ( (*ddu)->readGbEPrescale()    & 0xffff ) << dec );
       LOG4CPLUS_INFO( *pLogger_, "Fake L1A    is set to 0x" << hex << ( (*ddu)->readFakeL1()         & 0xffff ) << dec );
@@ -363,27 +365,9 @@ void emu::step::Test::setUpODMBPulsing( emu::pc::DAQMB *dmb, ODMBMode_t mode, OD
   }
   cout<<"Pulsing: addr ="<<addr<<"  data = "<<data<<endl;
   dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-  // Set OTMB_DLY  
-  //irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0001;
-  irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0002;
-  dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-  //    Set ALCT_DLY
-  irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001f;
+
   // Kill ODMB inputs
   irdwr = 3; addr = (0x00401c) | slot_number<<19; data = killInput;
-  dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-  //  Set LCT_L1A_DLY
-  irdwr = 3; addr = (0x004000)| slot_number<<19; data = 0x000e;//5;
-  dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-  //    Set INJ_DLY
-  // Set it to 0 explicitly as in some older firmware versions its default value is nonzero.
-  irdwr = 3; addr = (0x004010)| slot_number<<19; data = 0x0000;
-  dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-  // Set EXT_DLY      
-  irdwr = 3; addr = (0x004014)| slot_number<<19; data = 0x0000;
-  dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-  // Set CAL_LCT_DLY      
-  irdwr = 3; addr = (0x004018)| slot_number<<19; data = 0x000f;
   dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 }
 
@@ -505,44 +489,26 @@ void emu::step::Test::configureODMB( emu::pc::Crate* crate ) {
       irdwr = 3; addr = (0x00401c) | slot_number<<19; data = kill_None;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 
-      //  Set LCT_L1A_DLY
-      irdwr = 3; addr = (0x004000)| slot_number<<19; data = 0x001a; // P5 // 0x001a; B904
-      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-      
-      // Set OTMB_DLY
-      //irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0001;
-      irdwr = 3; addr = (0x004004)| slot_number<<19; data = 0x0002;
-      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-      
-      //    Set ALCT_DLY
-     //  irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001e; // ME+1/1/34
-      irdwr = 3; addr = (0x00400c)| slot_number<<19; data = 0x001f; // ME+1/1/35
-      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-
-      //    Set INJ_DLY
-      // Set it to 0 explicitly as in some older firmware versions its default value is nonzero.
-      irdwr = 3; addr = (0x004010)| slot_number<<19; data = 0x0000;
-      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-
       // ODMB configured to accept real triggers
+      // irdwr = 3; addr = emu::pc::DAQMB::ODMB_MODE | slot_number<<19; data = 0x0000;
       irdwr = 3; addr = (0x003000)| slot_number<<19; data = 0x0000;
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
       if (odmb_fw_vers >= 3) {
+        // addr = emu::pc::DAQMB::DATA_MUX | slot_number<<19;
         addr = (0x003300)| slot_number<<19;
         crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+        // addr = emu::pc::DAQMB::TRIG_MUX | slot_number<<19;
         addr = (0x003304)| slot_number<<19;
         crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+        // addr = emu::pc::DAQMB::LVMB_MUX | slot_number<<19;
         addr = (0x003308)| slot_number<<19;
         crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+        // addr = emu::pc::DAQMB::L1A_MODE | slot_number<<19;
         addr = (0x003400)| slot_number<<19;
         crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
         addr = (0x003404)| slot_number<<19;
         crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
       }
-
-      // Temporary fix to explicitly set crate id in ODMB
-      irdwr = 3; addr = (0x004020)| slot_number<<19; data = crate->CrateID();
-      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 
     } // if( (*dmb)->GetHardwareVersion() == 2 )
   } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
@@ -1504,17 +1470,7 @@ void emu::step::Test::enable_17(){
 	    (*dmb)->set_cal_tim_pulse( timesetting ); // Change pulse delay on DMB FPGA
 	  }
 	  else if ( (*dmb)->GetHardwareVersion() == 2 ){
-	    int slot_number  = (*dmb)->slot();
-	    char rcv[2];
-	    unsigned int addr;
-	    unsigned short int data = timesetting;
-	    int irdwr;
-	    // set ODMB EXT_DLY
-	    irdwr = 3;
-	    addr = (0x004014)| slot_number<<19;
-	    (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-	    // (*crate)->ccb()->l1aReset();
-	    // if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "Resync after setting ODMB EXT_DLY" ); }
+        (*dmb)->odmb_set_Ext_delay( timesetting ); // sets EXT_DLY
 	  }
 
 	  if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
@@ -1861,7 +1817,7 @@ void emu::step::Test::enable_19(){
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     (*crate)->ccb()->l1aReset();
     (*crate)->ccb()->bc0();
-
+    
     vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();
 
     for ( uint64_t iStrip = 0; iStrip < strips_per_run; ++iStrip ){
@@ -1873,13 +1829,13 @@ void emu::step::Test::enable_19(){
         (*dmb)->buck_shift();
         usleep(100000); // buck shifting takes a lot more time for DCFEBs
 
-	(*dmb)->restoreCFEBIdle(); // need to restore DCFEB JTAG after a buckshift
+        (*dmb)->restoreCFEBIdle(); // need to restore DCFEB JTAG after a buckshift
 
-	if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
+        if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
           usleep(100000); // buck shifting takes a lot more time for DCFEBs (should check this)
-          (*crate)->ccb()->l1aReset();
+          // (*crate)->ccb()->l1aReset();  // Resync causes one event to be lost. Also, the analyzer complains about OOS counters... And the test works without it.
           (*crate)->ccb()->bc0(); // needed after DCFEB buck shifting?
-	  usleep(100000);
+          usleep(100000);
         }
 
         if( (*dmb)->GetHardwareVersion() < 2 ) (*dmb)->settrgsrc(0); // disable DMB's own trigger, LCT	
@@ -1888,76 +1844,76 @@ void emu::step::Test::enable_19(){
       
       for ( uint64_t iAmp = 0; iAmp < dmb_tpamps_per_strip; ++iAmp ){
 	
-	// Why do we make vector with an entry for each DMB?  Aren't they all the same anyway?
-	vector<uint64_t> first_thresholds; // the first threshold for each DMB
-	for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-	  float dac = iAmp * dmb_tpamp_step + dmb_tpamp_first;
- 	  (*dmb)->set_dac( 0, dac * 5. / 4095. ); // DAQMB::set_dac( voltage of calib1 DAC, voltage of calib0 DAC )
-	  
- 	  if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
- 	    usleep(100000); // setting the dac lot more time for DCFEBs... (this should be checked again)
- 	  }
-	  
-	  // calculate first thresholds based on current dac value
-	  if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){
-	    first_thresholds.push_back( max( int64_t( 0 ), (int64_t)(dac * scale_turnoff_dcfeb / 16 - range_turnoff) ) );
-	  }else{
-	    first_thresholds.push_back( max( int64_t( 0 ), (int64_t)(dac * scale_turnoff / 16 - range_turnoff) ) );
-	  }
-	} // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
-	
-	
-	for ( uint64_t iThreshold = 0; iThreshold < threshs_per_tpamp; ++iThreshold ){
-	  
-	  uint64_t usWaitAfterPulse = 10; // for analog CFEBs; if any CFEB is digital, it will be set to a much larger value
-	  vector<uint64_t>::const_iterator first_threshold = first_thresholds.begin();
-	  for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-
-	    // set cfeb thresholds (for the entire test)
-	    float threshold = (float)( iThreshold * thresh_step + *first_threshold ) / 1000.;
-	    (*dmb)->set_comp_thresh( threshold );
-
- 	    if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
- 	      //usleep(500000); // set_comp_thresh takes a lot more time for DCFEBs...
-	      usleep(1000); // set_comp_thresh takes more time for DCFEBs...
- 	      //usWaitAfterPulse = 10000; // pulsing takes a lot more time for DCFEBs... (why not just change msec_between_pulses?)
- 	    }
-
-	    ++first_threshold;
-	  } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
-	  
-	  (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
-	  
-	  for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse ){
-	    // Dmb_cfeb_calibrate0 14 CFEB Calibrate Pre-Amp Gain
-	    // Dmb_cfeb_calibrate1 15 CFEB Trigger Pattern Calibration
-	    // Dmb_cfeb_calibrate2 16 CFEB Pedestal Calibration
-	    (*crate)->ccb()->GenerateDmbCfebCalib0(); // Generate “DMB_cfeb_calibrate[0]” 25 ns pulse
-	    usleep( usWaitAfterPulse + 1000*msec_between_pulses );
-	    progress_.increment();
-	    if (iPulse % events_per_thresh == 0) {
-	      if ( pLogger_ ){
-		stringstream ss;
-		ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
-		   << ", strip " << iStrip+1 << "/" << strips_per_run
-		   << ", amplitude " << iAmp+1 << "/" << dmb_tpamps_per_strip
-		   << ", threshold " << iThreshold+1 << "/" << threshs_per_tpamp
-		   << ", pulses " << iPulse << "/" << events_per_thresh << " (" << progress_.getCurrent() << " of " << nEvents_ << " in total)";
-		LOG4CPLUS_INFO( *pLogger_, ss.str() );
-	      }
-	    }
-	    // Find the time between the DMB's receiving CLCT pretrigger and L1A:
-	    // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
-	    //   PrintDmbValuesAndScopes( (*crate)->GetChamber( *dmb )->GetTMB(), *dmb, (*crate)->ccb(), (*crate)->mpc() );
-	    // } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
-
-	    if ( isToStop_ ) return;
-	    
-	    (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
-	    
-	  } // for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse )
-	  
-	} // for ( uint64_t iThreshold = 0; iThreshold < threshs_per_tpamp; ++iThreshold )
+        // Why do we make vector with an entry for each DMB?  Aren't they all the same anyway?
+        vector<uint64_t> first_thresholds; // the first threshold for each DMB
+        for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+          float dac = iAmp * dmb_tpamp_step + dmb_tpamp_first;
+          (*dmb)->set_dac( 0, dac * 5. / 4095. ); // DAQMB::set_dac( voltage of calib1 DAC, voltage of calib0 DAC )
+          
+          if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
+            usleep(100000); // setting the dac lot more time for DCFEBs... (this should be checked again)
+          }
+          
+          // calculate first thresholds based on current dac value
+          if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){
+            first_thresholds.push_back( max( int64_t( 0 ), (int64_t)(dac * scale_turnoff_dcfeb / 16 - range_turnoff) ) );
+          }else{
+            first_thresholds.push_back( max( int64_t( 0 ), (int64_t)(dac * scale_turnoff / 16 - range_turnoff) ) );
+          }
+        } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
+        
+        
+        for ( uint64_t iThreshold = 0; iThreshold < threshs_per_tpamp; ++iThreshold ){
+          
+          uint64_t usWaitAfterPulse = 10; // for analog CFEBs; if any CFEB is digital, it will be set to a much larger value
+          vector<uint64_t>::const_iterator first_threshold = first_thresholds.begin();
+          for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+            
+            // set cfeb thresholds (for the entire test)
+            float threshold = (float)( iThreshold * thresh_step + *first_threshold ) / 1000.;
+            (*dmb)->set_comp_thresh( threshold );
+            
+            if ( (*dmb)->cfebs().at( 0 ).GetHardwareVersion() == 2 ){ // All CFEBs should have the same HW version; get it from the first.
+              //usleep(500000); // set_comp_thresh takes a lot more time for DCFEBs...
+              usleep(1000); // set_comp_thresh takes more time for DCFEBs...
+              //usWaitAfterPulse = 10000; // pulsing takes a lot more time for DCFEBs... (why not just change msec_between_pulses?)
+            }
+            
+            ++first_threshold;
+          } // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb )
+          
+          (*crate)->ccb()->RedirectOutput( &noBuffer ); // ccb prints a line on each test pulse - waste it
+          
+          for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse ){
+            // Dmb_cfeb_calibrate0 14 CFEB Calibrate Pre-Amp Gain
+            // Dmb_cfeb_calibrate1 15 CFEB Trigger Pattern Calibration
+            // Dmb_cfeb_calibrate2 16 CFEB Pedestal Calibration
+            (*crate)->ccb()->GenerateDmbCfebCalib0(); // Generate “DMB_cfeb_calibrate[0]” 25 ns pulse
+            usleep( usWaitAfterPulse + 1000*msec_between_pulses );
+            progress_.increment();
+            if (iPulse % events_per_thresh == 0) {
+              if ( pLogger_ ){
+                stringstream ss;
+                ss << "Crate "  << (*crate)->GetLabel() << " "<< crate-crates.begin()+1 << "/" << crates.size()
+                   << ", strip " << iStrip+1 << "/" << strips_per_run
+                   << ", amplitude " << iAmp+1 << "/" << dmb_tpamps_per_strip
+                   << ", threshold " << iThreshold+1 << "/" << threshs_per_tpamp
+                   << ", pulses " << iPulse << "/" << events_per_thresh << " (" << progress_.getCurrent() << " of " << nEvents_ << " in total)";
+                LOG4CPLUS_INFO( *pLogger_, ss.str() );
+              }
+            }
+            // Find the time between the DMB's receiving CLCT pretrigger and L1A:
+            // for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+            //   PrintDmbValuesAndScopes( (*crate)->GetChamber( *dmb )->GetTMB(), *dmb, (*crate)->ccb(), (*crate)->mpc() );
+            // } // for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb )
+            
+            if ( isToStop_ ) return;
+            
+            (*crate)->ccb()->RedirectOutput (&cout); // get back ccb output
+            
+          } // for ( uint64_t iPulse = 1; iPulse <= events_per_thresh; ++iPulse )
+          
+        } // for ( uint64_t iThreshold = 0; iThreshold < threshs_per_tpamp; ++iThreshold )
 	
       } // for ( uint64_t iAmp = 0; iAmp < dmb_tpamps_per_strip; ++iAmp )
       
