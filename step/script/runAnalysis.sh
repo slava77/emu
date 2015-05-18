@@ -3,6 +3,20 @@
 # Invoke it as
 #   analysisScriptName analysisExeName 'dataFile1 dataFile2 ...' ['crateId1 dmbSlot1 chamberLabel1' 'crateId2 dmbSlot2 chamberLabel2' ...]
 
+function convertToDDU(){
+    # Adds DDU headers and trailers if necessary
+    # Argument 1: data file name
+    if [[ $(od -Ad -tx8z -w8 $1 | grep -c 8000ffff80008000) -eq 0 ]]; then
+	print "No DDU trailers found in $1. Adding them and the headers."
+	# First rename the original file.
+	print "mv ${1} ${1:r}.odmb"
+	mv ${1} ${1:r}.odmb
+	# Add the DDU headers and trailers.
+	print "Adding DDU headers and trailers:\n${ANALYZER:h}/add_ddu_hdr.exe ${1:r}.odmb ${1:r}.raw"
+	${ANALYZER:h}/add_ddu_hdr.exe ${1:r}.odmb ${1:r}.raw
+    fi
+}
+
 ulimit -c unlimited
 
 print
@@ -149,6 +163,9 @@ for DATAFILE in $DATAFILES; do
 	DATAPATHNAME=/cmscsc/${DATAHOSTNAME}/${DATAPATHNAME#/data/}
     fi
     print "DATAPATHNAME   =$DATAPATHNAME"
+
+    convertToDDU $DATAPATHNAME
+
     RESULTSTOPDIR=${DATAPATHNAME:h}/Tests_results
     [[ -d $RESULTSTOPDIR ]] || mkdir -p $RESULTSTOPDIR
 
