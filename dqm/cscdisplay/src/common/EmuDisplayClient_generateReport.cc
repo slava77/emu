@@ -1045,13 +1045,17 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
     {
       if (itr->first.find("DDU") == 0)
         {
+	  std::string ddu_id = itr->first;
           ///** Replace RUI numbering with Post-LS1 FED/DDU id
-          std::string ddu_id = emu::dqm::utils::replaceRUIwithDDUId(itr->first);
+          // Not needed anymore 
+          /*	
+          ddu_id = emu::dqm::utils::replaceRUIwithDDUId(itr->first);
           if (ddu_id == "")
             {
               LOG4CPLUS_WARN(logger_, "Unable to convert RUI " << itr->first << " to DDU Id");
               continue;
             }
+          */
           emu::base::Component comp( std::string(ddu_id).erase( std::string(ddu_id).find('_'),1) );
           // emu::base::Component comp( std::string(itr->first).erase( std::string(itr->first).find('_'),1) );
           for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr)

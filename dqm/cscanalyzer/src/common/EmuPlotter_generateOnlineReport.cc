@@ -736,7 +736,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
       // List of layers with lowered HV for ME11
       std::vector<bool> loweredHVsegment(6,false);
 
-      if  (nActiveCFEBs > 0)
+      if  ((nActiveCFEBs > 0) && !hasHotCFEB)
         {
           // Expecting active CFEBs
 
@@ -931,7 +931,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
 
         }
 
-      if  (nActiveCFEBs > 0)
+      if  ((nActiveCFEBs > 0) && !hasHotCFEB)
         {
           // Expecting active CFEBs
           // -- CFEB Comparators Occupancies Checks

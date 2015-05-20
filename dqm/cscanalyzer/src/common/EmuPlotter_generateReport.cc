@@ -1561,7 +1561,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
 
       std::vector<bool> loweredHVsegment(6,false);
-      if  (nActiveCFEBs > 0)
+      if  ((nActiveCFEBs > 0) && !hasHotCFEB)
         {
           // Expecting active CFEBs
 
@@ -1776,7 +1776,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
             }
         }
 
-      if  (nActiveCFEBs > 0)
+      if  ((nActiveCFEBs > 0) && !hasHotCFEB)
         {
           // Expecting active CFEBs
           // -- CFEB Comparators Occupancies Checks
