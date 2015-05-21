@@ -1785,6 +1785,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Title>DDUs in Readout</Title>
 		<SetNdivisionsX>36</SetNdivisionsX>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
+	        <SetMinimum>0</SetMinimum>
 		<SetStats>0</SetStats>
 	</Histogram>
 	<Histogram>
@@ -1937,6 +1938,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<SetGridx>1</SetGridx>
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
+		<SetMinimum>0</SetMinimum>
 		<SetYLabels>1='1'|2='2'|3='3'|4='4'|5='5'|6='6'|7='7'|8='8'|9='9'|10='10'|11='11'|12='12'|13='13'|14='14'|15='15'|</SetYLabels>
 	</Histogram>
 	<Histogram>
@@ -5901,9 +5903,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CLCT0_dTime</Name>
 		<SetOption>texthist</SetOption>
-		<XMin>-170</XMin>
+		<XMin>-200</XMin>
 		<XMax>-140</XMax>
-		<XBins>30</XBins>
+		<XBins>60</XBins>
 		<XTitle>CLCT0 BXN - TMB_L1A BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emruo</SetOptStat>
@@ -5920,9 +5922,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMax>224</XMax>
                 <XBins>224</XBins>
                 <XTitle>Key Half Strip</XTitle>
-                <YMin>-170</YMin>
+                <YMin>-200</YMin>
                 <YMax>-140</YMax>
-                <YBins>30</YBins>
+                <YBins>60</YBins>
                 <YTitle>Average (CLCT0 BXN - L1A BXN)</YTitle>
                 <SetOptStat>em</SetOptStat>
                 <Title>Average (CLCT0 BXN - L1A BXN) vs Key Half Strip</Title>
@@ -5937,9 +5939,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>224</XMax>
 		<XBins>56</XBins>
 		<XTitle>Key DiStrip</XTitle>
-		<YMin>-170</YMin>
+		<YMin>-200</YMin>
 		<YMax>-140</YMax>
-		<YBins>30</YBins>
+		<YBins>60</YBins>
 		<YTitle>CLCT0 BXN - TMB_L1A BXN</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>(CLCT0 BXN - TMB_L1A BXN) vs Key DiStrip</Title>
@@ -5954,9 +5956,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>224</XMax>
 		<XBins>224</XBins>
 		<XTitle>Key Half Strip</XTitle>
-		<YMin>-170</YMin>
+		<YMin>-200</YMin>
 		<YMax>-140</YMax>
-		<YBins>30</YBins>
+		<YBins>60</YBins>
 		<YTitle>CLCT0 BXN - TMB_L1A BXN</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>(CLCT0 BXN - TMB_L1A BXN) vs Key Half Strip</Title>
@@ -6157,9 +6159,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<Prefix>CSC</Prefix>
 		<Name>CLCT1_dTime</Name>
 		<SetOption>texthist</SetOption>
-		<XMin>-170</XMin>
+		<XMin>-200</XMin>
 		<XMax>-140</XMax>
-		<XBins>30</XBins>
+		<XBins>60</XBins>
 		<XTitle>CLCT1 BXN - TMB_L1A BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emruo</SetOptStat>
@@ -6176,9 +6178,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMax>224</XMax>
                 <XBins>224</XBins>
                 <XTitle>Key Half Strip</XTitle>
-                <YMin>-170</YMin>
+                <YMin>-200</YMin>
                 <YMax>-140</YMax>
-                <YBins>30</YBins>
+                <YBins>60</YBins>
                 <YTitle>Average (CLCT1 BXN - L1A BXN)</YTitle>
                 <SetOptStat>em</SetOptStat>
                 <Title>Average (CLCT1 BXN - L1A BXN) vs Key Half Strip</Title>
@@ -6193,9 +6195,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>224</XMax>
 		<XBins>56</XBins>
 		<XTitle>Key DiStrip</XTitle>
-		<YMin>-170</YMin>
+		<YMin>-200</YMin>
 		<YMax>-140</YMax>
-		<YBins>30</YBins>
+		<YBins>60</YBins>
 		<YTitle>CLCT1 BXN - TMB_L1A BXN</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>(CLCT1 BXN - TMB_L1A BXN) vs Key DiStrip</Title>
@@ -6210,9 +6212,9 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>224</XMax>
 		<XBins>56</XBins>
 		<XTitle>Key Half Strip</XTitle>
-		<YMin>-170</YMin>
+		<YMin>-200</YMin>
 		<YMax>-140</YMax>
-		<YBins>30</YBins>
+		<YBins>60</YBins>
 		<YTitle>CLCT1 BXN - TMB_L1A BXN</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>(CLCT1 BXN - TMB_L1A BXN) vs Key Half Strip</Title>
