@@ -627,7 +627,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                         }
                       if (tcnt && (((tsum/tcnt)/avg_cfeb_occup)>0.5))
                         {
-                          if (!isBeam) LOG4CPLUS_INFO(logger, cscName << " --> Run2 beam collisions data detected");
+                          // if (!isBeam) LOG4CPLUS_INFO(logger, cscName << " --> Run2 beam collisions data detected");
                           isBeam = true;
                         }
                     }
