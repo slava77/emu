@@ -789,7 +789,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
               for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
                 {
                   std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
-                  if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>300) )
+                  if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>200) )
                     {
                       double fract=((double)(csc_stats[cscName]))/csc_type_avg_events[j];
                       if (fract >= 10.)
@@ -818,7 +818,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
               for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
                 {
                   std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
-                  if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>300) )
+                  if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>200) )
                     {
                       double fract=((double)(csc_stats[cscName]))/csc_type_avg_events[j];
                       double avg = round(100.*fract)/100.;
@@ -1216,7 +1216,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
-      uint32_t min_events=300;
+      uint32_t min_events=200;
       double rms_limit = 1.81;
       if (theFormatVersion == 2013) rms_limit = 1.5;
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
@@ -1254,7 +1254,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
-      uint32_t min_events=300;
+      uint32_t min_events=200;
       double rms_limit = 2.11;
       if (theFormatVersion == 2013) rms_limit = 1.7;
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
@@ -1367,7 +1367,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
   for (uint32_t i=0; i<CSC_folders.size(); i++)
     {
       int crate=0, slot =0;
-      uint32_t min_events = 300;
+      uint32_t min_events = 200;
       double cfeb_hot_thresh = 60.;
       std::string cscName = getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition);
       int nCFEBs = emu::dqm::utils::getNumCFEBs(cscName, theFormatVersion);

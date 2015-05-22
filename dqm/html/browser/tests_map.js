@@ -20,7 +20,7 @@ var TESTS_MAP = {
 	{"testID": "ALL_CHAMBERS_WITHOUT_ALCT", "testPlot": "EMU_Test11_CSC_wo_Data_Blocks", "testScope": "EMU"},
 	{"testID": "ALL_CHAMBERS_WITHOUT_CLCT", "testPlot": "EMU_Test11_CSC_wo_Data_Blocks", "testScope": "EMU"},
 	{"testID": "ALL_CHAMBERS_WITHOUT_CFEB", "testPlot": "EMU_Test11_CSC_wo_Data_Blocks", "testScope": "EMU"},
-	{"testID": "ALL_CHAMBERS_WITH_L1A_OUT_OF_SYNC", "testPlot": "EMU_Test11_CSC_wo_Data_Blocks", "testScope": "EMU"},
+	{"testID": "ALL_CHAMBERS_WITH_L1A_OUT_OF_SYNC", "testPlot": "EMU_Test10_CSC_Errors_Warnings_Fract", "testScope": "EMU"},
 	{"testID": "ALL_CHAMBERS_WITH_BWORDS", "testPlot": "EMU_Test11_CSC_wo_Data_Blocks", "testScope": "EMU"},
 	{"testID": "ALL_CHAMBERS_ALCT_TIMING", "testPlot": "EMU_Test14_ALCT_Timing", "testScope": "EMU"},
 	{"testID": "ALL_CHAMBERS_CLCT_TIMING", "testPlot": "EMU_Test15_CLCT_Timing", "testScope": "EMU"},

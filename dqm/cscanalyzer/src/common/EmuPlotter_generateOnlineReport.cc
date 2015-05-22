@@ -393,13 +393,14 @@ int EmuPlotter::generateOnlineReport(std::string runname)
           }
     }
 
+
 // == Check for ALCT Timing issues
   me = findME("EMU", "CSC_ALCT0_BXN_rms",  sourcedir);
   if (me)
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
-      uint32_t min_events=300;
+      uint32_t min_events=200;
       double rms_limit = 1.81;
       if (theFormatVersion == 2013) rms_limit = 1.5;
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
@@ -426,7 +427,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
               }
 
           }
-      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with ALCT Timing Problems", csc_cntr),NONE,"ALL_CHAMBERS_ALCT_TIMING"));
+//      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with ALCT Timing Problems", csc_cntr),NONE,"ALL_CHAMBERS_ALCT_TIMING"));
     }
 
 // == Check for CLCT Timing issues
@@ -435,7 +436,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
-      uint32_t min_events=300;
+      uint32_t min_events=200;
       double rms_limit = 2.11;
       if (theFormatVersion == 2013) rms_limit = 1.7;
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
@@ -462,9 +463,8 @@ int EmuPlotter::generateOnlineReport(std::string runname)
               }
 
           }
-      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with CLCT Timing Problems", csc_cntr),NONE,"ALL_CHAMBERS_CLCT_TIMING"));
+//      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with CLCT Timing Problems", csc_cntr),NONE,"ALL_CHAMBERS_CLCT_TIMING"));
     }
-
 
   // == Check for chambers with L1A out of sync
   me = findME("EMU", "DMB_L1A_out_of_sync_Fract",  sourcedir);
@@ -542,7 +542,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
   for (uint32_t i=0; i<CSC_folders.size(); i++)
     {
       int crate=0, slot =0;
-      uint32_t min_events = 300;
+      uint32_t min_events = 200;
       double cfeb_hot_thresh = 60.;
       //    std::cout << getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition) << std::endl;
       std::string cscName = getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition);

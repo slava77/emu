@@ -581,7 +581,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
               for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
                 {
                   std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
-                  if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>300) )
+                  if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>200) )
                     {
                       double fract=((double)(csc_stats[cscName]))/csc_type_avg_events[j];
                       if (fract >= 10.)
@@ -610,7 +610,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
               for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
                 {
                   std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
-                  if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>300) )
+                  if ( (csc_stats[cscName]>0) && (csc_type_avg_events[j]>200) )
                     {
                       double fract=((double)(csc_stats[cscName]))/csc_type_avg_events[j];
                       double avg = round(100.*fract)/100;
@@ -780,7 +780,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
-      uint32_t min_events=300;
+      uint32_t min_events=200;
       // double rms_limit = 1.81;
       double rms_limit = 1.5; // Post-LS1
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
@@ -793,13 +793,13 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
             double avg = round(z*10.)/10.;
             if (avg > limit)
               {
-                csc_cntr++;
                 uint32_t csc_events = csc_stats[cscName];
                 if (csc_events>min_events)
                   {
-                    std::string diag=Form("ALCT Timing problem (ALCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, rms_limit);
+		    csc_cntr++;
 
-                    dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_ALCT_TIMING"));
+                   // std::string diag=Form("ALCT Timing problem (ALCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, rms_limit);
+                   // dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_ALCT_TIMING"));
                   }
               }
 
@@ -814,7 +814,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
-      uint32_t min_events=300;
+      uint32_t min_events=200;
       // double rms_limit = 2.11;
       double rms_limit = 1.7; // Post-LS1
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
@@ -829,13 +829,13 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                 double avg = round(z*10.)/10.;
                 if (avg > limit)
                   {
-                    csc_cntr++;
                     uint32_t csc_events = csc_stats[cscName];
                     if (csc_events>min_events)
                       {
-                        std::string diag=Form("CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, rms_limit);
+			csc_cntr++;
 
-                        dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CLCT_TIMING"));
+                      //  std::string diag=Form("CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, rms_limit);
+                      //  dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CLCT_TIMING"));
                       }
                   }
               }
