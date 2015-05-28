@@ -36,6 +36,7 @@ void Test_CFEB04::initCSC(std::string cscID)
   nCSCEvents[cscID]=0;
 
   // Initialize internal data structire for Gains analysis
+  LOG4CPLUS_INFO(logger, "Data Format Version: " << theFormatVersion );
   GainData gaindata;
   gaindata.Nbins = getNumStrips(cscID, theFormatVersion);
   gaindata.Nlayers = 6;
@@ -55,6 +56,7 @@ void Test_CFEB04::initCSC(std::string cscID)
   cfebdata.Nlayers = 6;
   memset(cfebdata.content, 0, sizeof (cfebdata.content));
   memset(cfebdata.cnts, 0, sizeof (cfebdata.cnts));
+  LOG4CPLUS_INFO(logger, "Number of strips: " << cfebdata.Nbins );
 
   test_step tstep;
   tstep.active_strip=0;
@@ -251,6 +253,8 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
     {
       return;
     }
+
+  theFormatVersion = data.getFormatVersion();
 
   // == Get CSC ID string
   int csctype=0, cscposition=0;
