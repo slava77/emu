@@ -3095,17 +3095,12 @@ void DAQMB::set_cal_tim_pulse(int itim)
      int depth;
      int tfine;
      tfine=itim % 8;
-     int order[8]={6,7,0,1,2,3,4,5};
+     int order[8]={3,2,1,0,7,6,5,4};
+     depth = 63 + (itim/8);
      for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb)
      {
          dcfeb_adc_finedelay(cfebs_[icfeb], order[tfine]);  
          udelay(100000);
-         if((itim/8)==0)depth=62;
-         if((itim/8)==1)depth=61;
-         if((itim/8)==2)depth=60;
-         if((itim/8)==3)depth=59;
-         if((itim/8)==4)depth=58;
-         if((itim/8)==5)depth=57;
          // printf(" itim=%d, depth=%d, tfine=%d \n",itim, depth, order[tfine]);
          dcfeb_set_PipelineDepth(cfebs_[icfeb],  depth);
          Pipeline_Restart(cfebs_[icfeb]);
