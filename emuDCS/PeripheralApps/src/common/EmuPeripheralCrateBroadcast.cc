@@ -1151,7 +1151,9 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBComparator (x
     }
     threshold=0.003*thresholdsetting+0.01+ (0.19+0.007*thresholdsetting)*highthreshold;
     broadcastODMB->set_comp_thresh_bc(threshold);
-    std::cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<std::endl;
+    std::cout <<" The strip was set to: " << nstrip
+	      <<" DAC was set to: "       << dac       << "V (" << int(dac*4095./5.0)              << ")" 
+	      <<" Threshold was set to: " << threshold << "V (" << int(4095*((3.5-threshold)/3.5)) << ")\n";
   }
   ::usleep(nsleep);
   //    fireEvent("Enable");
@@ -1187,11 +1189,13 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBGains (xoap::
   if ( broadcastODMB ){
     std::cout << "ODMB setup for DCFEB Gain, calsetup= " <<calsetup<< std::endl;
     //
+    // broadcastODMB->WriteRegister(emu::pc::DAQMB::L1A_MODE, 0); // (0: normal, i.e. non pedestal)
     //Start the setup process:
     int gainsetting =((calsetup-1)%20);
     int nstrip=(calsetup-1)/20;
-    if (!gainsetting) broadcastDMB->buck_shift_ext_bc(nstrip);
+    if (!gainsetting) broadcastODMB->buck_shift_ext_bc(nstrip);
     dac=0.1+0.25*gainsetting;
+    // dac=0.1+0.25*19; // always max
     broadcastODMB->set_cal_dac(dac,dac);
     std::cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<std::endl;
   }
@@ -1232,7 +1236,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBCrossTalk (xo
     //Start the setup process:
     int timesetting =((calsetup-1)%10);
     int nstrip=(calsetup-1)/10;
-    if (!timesetting) broadcastDMB->buck_shift_ext_bc(nstrip);
+    if (!timesetting) broadcastODMB->buck_shift_ext_bc(nstrip);
     broadcastODMB->set_cal_tim_pulse(timesetting+5);
     std::cout <<" The strip was set to: "<<nstrip<<" Time was set to: "<<timesetting <<std::endl;
   }
