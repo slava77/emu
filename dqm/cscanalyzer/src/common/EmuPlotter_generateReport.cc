@@ -1216,9 +1216,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
-      uint32_t min_events=200;
+      uint32_t min_events=400;
       double rms_limit = 1.81;
-      if (theFormatVersion == 2013) rms_limit = 1.5;
+      if (theFormatVersion == 2013) rms_limit = 1.71;
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
@@ -1226,7 +1226,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
             if (!deadALCT[cscName])   ///* Don't check CLCT Timing if ALCT is dead on this chamber
               {
                 double limit = rms_limit;
-                if ((theFormatVersion != 2013) && emu::dqm::utils::isME42(cscName)) limit = rms_limit + 0.2; // Handle ME42 chambers, which have different timing pattern
+                if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 0.4; // Handle ME42 chambers, which have different timing pattern
                 double z = h->GetBinContent(i, j+1);
                 double avg = round(z*10.)/10.;
                 if (avg > limit)
@@ -1254,9 +1254,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
-      uint32_t min_events=200;
+      uint32_t min_events=400;
       double rms_limit = 2.11;
-      if (theFormatVersion == 2013) rms_limit = 1.7;
+      if (theFormatVersion == 2013) rms_limit = 1.91;
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
@@ -1264,7 +1264,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
             if (!deadCLCT[cscName])   ///* Don't check CLCT Timing if ALCT is dead on this chamber
               {
                 double limit = rms_limit;
-                if ((theFormatVersion != 2013) && emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern
+                if ((theFormatVersion == 2013) && emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern
                 double z = h->GetBinContent(i, j+1);
                 double avg = round(z*10.)/10.;
                 if (avg > limit)
@@ -1584,7 +1584,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   SCAsums.clear();
                   int noSCAs = 0;
                   double low_sca_thresh = 0.2; // !!! Rasing default theshold from 0.2 to 0.55 to be able to detect cable swap problems;
-                  double high_sca_thresh = 2.5;
+                  double high_sca_thresh = 3.0;
 
                   // std::cout << cscName << " ly " << ilayer << ", sca sum: " << allSCAsum;
                   if ( nentries >= (10*16*nActiveCFEBs) )
@@ -1794,7 +1794,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   Compsums.clear();
                   int noComps = 0;
                   double low_comp_thresh = 0.2;
-                  double high_comp_thresh = 2.5;
+                  double high_comp_thresh = 3.0;
 
                   // std::cout << cscName << " ly " << ilayer << ", comp sum: " << allCompsum;
 
