@@ -5,12 +5,12 @@
 
 namespace EmuTFMonitor
 {
-const std::string package     = "emuDQM/EmuTFMonitor";
-const std::string versions    = "12.02.04";
-const std::string description = "XDAQ application for EMU data monitoring";
+const std::string package     = "emudqmtfmonitor";
+const std::string versions    = "12.04.06";
+const std::string description = "XDAQ application for CSC TF data monitoring";
 const std::string link = "http://www.phys.ufl.edu/cms/emu/dqm";
 const std::string authors = "Victor Barashko <barvic@ufl.edu>";
-const std::string summary = "Emu DQM Monitoring Modules";
+const std::string summary = "CSC TF DQM Monitoring Modules";
 
 config::PackageInfo getPackageInfo();
 void checkPackageDependencies() throw (config::PackageInfo::VersionException);

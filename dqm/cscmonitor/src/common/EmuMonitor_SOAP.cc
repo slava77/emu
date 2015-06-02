@@ -251,7 +251,7 @@ xoap::MessageReference EmuMonitor::saveResults(xoap::MessageReference node) thro
                     }
                   else
                     {
-                      LOG4CPLUS_INFO(logger_, "Saving of results is skipped." );
+                      LOG4CPLUS_INFO(logger_, "Saving of results for Run " << runNumber_ << " is skipped because of inactivity." );
                     }
                 }
             }

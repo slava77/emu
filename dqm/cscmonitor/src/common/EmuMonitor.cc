@@ -1190,7 +1190,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
 
   if ((runNumber_ != msg->runNumber) || (runStartUTC_ != msg->runStartUTC))
     {
-      LOG4CPLUS_INFO(logger_,"Detected Run Number switch. Resetting Monitor...");
+      LOG4CPLUS_INFO(logger_,"Detected Run number switch to " << msg->runNumber << "( start time:  " << emu::dqm::utils::now(msg->runStartUTC) << " ). Resetting Monitor...");
       resetMonitor();
       runNumber_ = msg->runNumber;
       runStartUTC_ = msg->runStartUTC;

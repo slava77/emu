@@ -19,12 +19,12 @@
 
 namespace EmuTFDisplayClient 
 {
-    const std::string package  =  "emuDQM/EmuTFDisplayClient";
+    const std::string package  =  "emudqmtfdisplay";
     const std::string versions =  "12.04.06";
     const std::string description = "CSC TF DQM Display Client";
     const std::string link = "http://www.phys.ufl.edu/cms/emu/dqm";
     const std::string authors = "Victor Barashko <barvic@ufl.edu>";
-    const std::string summary = "Emu CSCTF DQM Display Client Application";
+    const std::string summary = "Emu CSC TF DQM Display Client Application";
     config::PackageInfo getPackageInfo();
     void checkPackageDependencies() throw (config::PackageInfo::VersionException);
     std::set<std::string, std::less<std::string> > getPackageDependencies();
