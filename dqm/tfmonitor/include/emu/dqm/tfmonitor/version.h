@@ -6,7 +6,7 @@
 namespace EmuTFMonitor
 {
 const std::string package     = "emuDQM/EmuTFMonitor";
-const std::string versions    = "2.0";
+const std::string versions    = "12.02.04";
 const std::string description = "XDAQ application for EMU data monitoring";
 const std::string link = "http://www.phys.ufl.edu/cms/emu/dqm";
 const std::string authors = "Victor Barashko <barvic@ufl.edu>";

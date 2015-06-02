@@ -33,13 +33,15 @@ void EmuMonitor::showStatus (xgi::Input * in, xgi::Output * out)  throw (xgi::ex
   */
   *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
 
-  xgi::Utils::getPageHeader
-  (out,
-   "EmuMonitor",
-   getApplicationDescriptor()->getContextDescriptor()->getURL(),
-   getApplicationDescriptor()->getURN(),
-   "/daq/xgi/images/Application.gif"
-  );
+  /*
+    xgi::Utils::getPageHeader
+    (out,
+     "EmuMonitor",
+     getApplicationDescriptor()->getContextDescriptor()->getURL(),
+     getApplicationDescriptor()->getURN(),
+     "/daq/xgi/images/Application.gif"
+    );
+  */
 
   std::string url = "/";
   url += getApplicationDescriptor()->getURN();
@@ -89,8 +91,9 @@ void EmuMonitor::showStatus (xgi::Input * in, xgi::Output * out)  throw (xgi::ex
 
   printParametersTable(out);
 
-
-  xgi::Utils::getPageFooter(*out);
+  /*
+    xgi::Utils::getPageFooter(*out);
+  */
 }
 
 void EmuMonitor::InvalidWebAction(xgi::Input * in ) throw (xgi::exception::Exception)
@@ -117,29 +120,29 @@ void EmuMonitor::printParametersTable( xgi::Output * out ) throw (xgi::exception
         << "<th>" << "Value" << "</th>"
         << "</tr>" << std::endl;
   for (itr=params_list->begin(); itr != params_list->end(); ++itr)
-  {
-    if (itr->second->type() == "properties") continue;
-    *out << "<tr>" << std::endl;
-    *out << "<td>" << itr->first << "</td>" << std::endl;
-    *out << "<td>" << itr->second->type() << "</td>" << std::endl;
-    if (itr->second->type() == "vector")
     {
-      *out << "<td>";
-      // =VB= !!! possible XDAQ bug: returns wrong pointer to xdata::Vector (+4 bytes offset)
-      /*
-      for (int i=0; i < reinterpret_cast<xdata::Vector<xdata::Serializable>* >((int)(itr->second)-4)->elements(); i++) {
-      *out << reinterpret_cast<xdata::Vector<xdata::Serializable>*>((int)(itr->second)-4)->elementAt(i)->toString() << " ";
-      }
-      */
-      *out << "</td>" << std::endl;
-    }
-    else
-    {
-      *out << "<td>" << itr->second->toString() << "</td>" << std::endl;
-    }
+      if (itr->second->type() == "properties") continue;
+      *out << "<tr>" << std::endl;
+      *out << "<td>" << itr->first << "</td>" << std::endl;
+      *out << "<td>" << itr->second->type() << "</td>" << std::endl;
+      if (itr->second->type() == "vector")
+        {
+          *out << "<td>";
+          // =VB= !!! possible XDAQ bug: returns wrong pointer to xdata::Vector (+4 bytes offset)
+          /*
+          for (int i=0; i < reinterpret_cast<xdata::Vector<xdata::Serializable>* >((int)(itr->second)-4)->elements(); i++) {
+          *out << reinterpret_cast<xdata::Vector<xdata::Serializable>*>((int)(itr->second)-4)->elementAt(i)->toString() << " ";
+          }
+          */
+          *out << "</td>" << std::endl;
+        }
+      else
+        {
+          *out << "<td>" << itr->second->toString() << "</td>" << std::endl;
+        }
 
-    *out << "</tr>" << std::endl;
-  }
+      *out << "</tr>" << std::endl;
+    }
   *out  << "</table>" << std::endl;
 }
 /*
@@ -173,15 +176,15 @@ void EmuMonitor::stateMachinePage( xgi::Output * out ) throw (xgi::exception::Ex
     }
   */
   *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-
-  xgi::Utils::getPageHeader
-  (out,
-   "EmuMonitor",
-   getApplicationDescriptor()->getContextDescriptor()->getURL(),
-   getApplicationDescriptor()->getURN(),
-   "/daq/xgi/images/Application.gif"
-  );
-
+  /*
+    xgi::Utils::getPageHeader
+    (out,
+     "EmuMonitor",
+     getApplicationDescriptor()->getContextDescriptor()->getURL(),
+     getApplicationDescriptor()->getURN(),
+     "/daq/xgi/images/Application.gif"
+    );
+  */
   std::string url = "/";
   url += getApplicationDescriptor()->getURN();
   url += "/dispatch";
@@ -204,22 +207,22 @@ void EmuMonitor::stateMachinePage( xgi::Output * out ) throw (xgi::exception::Ex
   *out << "<tr>" << std::endl;
   std::set<std::string>::iterator i;
   for ( i = allInputs.begin(); i != allInputs.end(); i++)
-  {
-    *out << "<td>";
-    *out << cgicc::form().set("method","get").set("action", url).set("enctype","multipart/form-data") << std::endl;
-
-    if ( possibleInputs.find(*i) != possibleInputs.end() )
     {
-      *out << cgicc::input().set("type", "submit").set("name", "StateInput").set("value", (*i) );
-    }
-    else
-    {
-      *out << cgicc::input() .set("type", "submit").set("name", "StateInput").set("value", (*i) ).set("disabled", "true");
-    }
+      *out << "<td>";
+      *out << cgicc::form().set("method","get").set("action", url).set("enctype","multipart/form-data") << std::endl;
 
-    *out << cgicc::form();
-    *out << "</td>" << std::endl;
-  }
+      if ( possibleInputs.find(*i) != possibleInputs.end() )
+        {
+          *out << cgicc::input().set("type", "submit").set("name", "StateInput").set("value", (*i) );
+        }
+      else
+        {
+          *out << cgicc::input() .set("type", "submit").set("name", "StateInput").set("value", (*i) ).set("disabled", "true");
+        }
+
+      *out << cgicc::form();
+      *out << "</td>" << std::endl;
+    }
 
   *out << "</tr>" << std::endl;
   *out << "</table>" << std::endl;
@@ -229,8 +232,9 @@ void EmuMonitor::stateMachinePage( xgi::Output * out ) throw (xgi::exception::Ex
 
   printParametersTable(out);
 
-
-  xgi::Utils::getPageFooter(*out);
+  /*
+    xgi::Utils::getPageFooter(*out);
+  */
 }
 
 
@@ -241,20 +245,21 @@ void EmuMonitor::failurePage(xgi::Output * out, xgi::exception::Exception & e)  
 {
   *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
   *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-
-  xgi::Utils::getPageHeader
-  (out,
-   "EmuMonitor Failure",
-   getApplicationDescriptor()->getContextDescriptor()->getURL(),
-   getApplicationDescriptor()->getURN(),
-   "/daq/xgi/images/Application.gif"
-  );
-
+  /*
+    xgi::Utils::getPageHeader
+    (out,
+     "EmuMonitor Failure",
+     getApplicationDescriptor()->getContextDescriptor()->getURL(),
+     getApplicationDescriptor()->getURN(),
+     "/daq/xgi/images/Application.gif"
+    );
+  */
   *out << cgicc::br() << e.what() << cgicc::br() << std::endl;
   std::string url = "/";
   url += getApplicationDescriptor()->getURN();
 
   *out << cgicc::br() << "<a href=\"" << url << "\">" << "retry" << "</a>" << cgicc::br() << std::endl;
-
-  xgi::Utils::getPageFooter(*out);
+  /*
+    xgi::Utils::getPageFooter(*out);
+  */
 }

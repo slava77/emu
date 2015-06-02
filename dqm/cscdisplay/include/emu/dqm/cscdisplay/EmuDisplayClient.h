@@ -257,6 +257,7 @@ protected:
   bool isCSCCountersFileAvailable(std::string runname);
 
   int syncMonitorsStates();
+  int syncNodesToCurrentRun();
   int prepareReportFacts(std::string runname);
   int updateNodesStatusFacts();
   inline void addFact(const emu::base::Fact &fact) {

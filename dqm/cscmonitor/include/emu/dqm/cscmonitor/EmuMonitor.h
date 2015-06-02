@@ -172,6 +172,7 @@ protected:
   xoap::MessageReference requestCSCCounters (xoap::MessageReference msg) throw (xoap::exception::Exception);
   xoap::MessageReference requestReport (xoap::MessageReference msg) throw (xoap::exception::Exception);
   xoap::MessageReference saveResults (xoap::MessageReference msg) throw (xoap::exception::Exception);
+  xoap::MessageReference syncToCurrentRun (xoap::MessageReference msg) throw (xoap::exception::Exception);
 
 private:
 

@@ -43,7 +43,6 @@ throw (xdaq::exception::Exception)
     utilBSem_(BSem::FULL)
 {
 
-
   appBSem_.take();
 
   bsem_tout.tv_sec    = 10;
@@ -204,7 +203,6 @@ void EmuDisplayClient::actionPerformed (xdata::Event& e)
                          "Histograms Booking XML Config File for plotter : " << xmlHistosBookingCfgFile_.toString());
           clearMECollection(MEs);
           loadXMLBookingInfo(xmlHistosBookingCfgFile_.toString());
-
         }
       else if ( item == "xmlCanvasesCfgFile")
         {
@@ -218,23 +216,17 @@ void EmuDisplayClient::actionPerformed (xdata::Event& e)
           LOG4CPLUS_INFO(logger_,
                          "CSC Mapping File for plotter : " << cscMapFile_.toString());
           setCSCMapFile(cscMapFile_.toString());
-
         }
       else if ( item == "saveResultsDelay")
         {
           LOG4CPLUS_INFO(logger_,
                          "Save Nodes Results request delay : " << saveResultsDelay.toString() <<"min");
-
         }
-
-
     }
-
 }
 
 
 // XGI Call back
-
 void EmuDisplayClient::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   ifstream index;
@@ -272,7 +264,6 @@ FoldersMap EmuDisplayClient::readFoldersMap(std::string run)
           rootsrc=NULL;
           return folders;
         }
-
 
       TDirectory *sourcedir = gDirectory;
 
@@ -436,6 +427,7 @@ void EmuDisplayClient::getCSCList (xgi::Input * in, xgi::Output * out)  throw (x
 
 }
 
+
 bool EmuDisplayClient::isCSCCountersFileAvailable(std::string runname)
 {
   struct stat attrib;                   // create a file attribute structure
@@ -444,7 +436,6 @@ bool EmuDisplayClient::isCSCCountersFileAvailable(std::string runname)
   if (stat((ResultsDir.toString()+"/"+runplots+"/"+report_file).c_str(), &attrib) == 0) return true;
   else return false;
 }
-
 
 
 void EmuDisplayClient::getCSCCounters (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
@@ -630,7 +621,6 @@ void EmuDisplayClient::getDQMReport (xgi::Input * in, xgi::Output * out)  throw 
   if (stateInputElement != cgi.getElements().end())
     {
       runname = (*stateInputElement).getValue();
-      //       std::cout << runname << std::endl;
     }
 
   (out->getHTTPResponseHeader()).addHeader("Content-Type","application/json");
@@ -701,6 +691,7 @@ void EmuDisplayClient::getDQMReport (xgi::Input * in, xgi::Output * out)  throw 
 
 }
 
+
 void EmuDisplayClient::getROOTFile (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
 {
   appBSem_.take();
@@ -747,6 +738,7 @@ void EmuDisplayClient::getROOTFile (xgi::Input * in, xgi::Output * out)  throw (
 
 }
 
+
 void EmuDisplayClient::redir (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
 {
 
@@ -781,9 +773,10 @@ void EmuDisplayClient::redir (xgi::Input * in, xgi::Output * out)  throw (xgi::e
       LOG4CPLUS_ERROR(logger_, "Failed to open URL " << url);
     }
 
-
   appBSem_.give();
+
 }
+
 
 void EmuDisplayClient::controlDQM (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
 {
@@ -839,12 +832,12 @@ void EmuDisplayClient::controlDQM (xgi::Input * in, xgi::Output * out)  throw (x
                                   << (*mon)->getClassName() << (*mon)->getInstance() << " "
                                   << xcept::stdformat_exception_history(e));
                 }
-
             }
         }
-
     }
+
   updateNodesStatus();
+
   appBSem_.give();
 
 }
@@ -918,14 +911,14 @@ void EmuDisplayClient::configureDQM (xgi::Input * in, xgi::Output * out)  throw 
                                   << (*mon)->getClassName() << (*mon)->getInstance() << " "
                                   << xcept::stdformat_exception_history(e));
                 }
-
             }
         }
-
     }
+
   appBSem_.give();
 
 }
+
 
 void EmuDisplayClient::saveNodesResults()
 {
@@ -952,7 +945,6 @@ void EmuDisplayClient::saveNodesResults()
               xoap::SOAPElement timeStampElement = command.addChildElement(timeStamp);
               timeStampElement.addTextNode(tstamp);
 
-              // LOG4CPLUS_DEBUG (logger_, "Sending saveResults command to " << (*mon)->getClassName() << " ID" << (*mon)->getLocalId());
               xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *(*mon));
 
               xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
@@ -962,35 +954,130 @@ void EmuDisplayClient::saveNodesResults()
                   std::string errmsg = "DQMNode: ";
                   errmsg += fault.getFaultString();
                   XCEPT_RAISE(xoap::exception::Exception, errmsg);
-
                   continue;
                 }
-              else
-                {
-                  //      LOG4CPLUS_INFO (logger_, "Sent saveResults command to " << (*mon)->getClassName() << " ID" << (*mon)->getLocalId());
-                }
-
-
-              // emu::dqm::sendFSMEventToApp(action, getApplicationContext(), getApplicationDescriptor(),*mon);
             }
           catch (xcept::Exception e)
             {
-              //      stringstream oss;
-
-              //      oss << "Failed to " << action << " ";
-              //      oss << (*mon)->getClassName() << (*mon)->getInstance();
-
-              //      XCEPT_RETHROW(emuDAQManager::exception::Exception, oss.str(), e);
 
               // Don't raise exception here. Go on to try to deal with the others.
               LOG4CPLUS_ERROR(logger_, "Failed to send " << action << " "
                               << (*mon)->getClassName() << (*mon)->getInstance() << " "
                               << xcept::stdformat_exception_history(e));
             }
+        }
+    }
+}
 
+int EmuDisplayClient::syncNodesToCurrentRun()
+{
+  std::string action = "syncToCurrentRun";
+
+  std::string runNum=curRunNumber;
+  std::string runStart="0";
+  
+//  LOG4CPLUS_INFO (logger_, "Sync Nodes to current run " << curRunNumber);
+  if (!monitors.empty())
+    {
+      std::set<xdaq::ApplicationDescriptor*>::iterator mon;
+
+
+      /* Initial scan to find most current Run number to sync Nodes to */
+      int curRun = 0;
+      if (sscanf(runNum.c_str(),"%d", &curRun) != 1) curRun = 0;
+
+      int curStartTime = 0;
+     
+      for (mon=monitors.begin(); mon!=monitors.end(); ++mon)
+        {
+          if ((*mon) == NULL) continue;
+
+          std::ostringstream st;
+          st << (*mon)->getClassName() << "-" << (*mon)->getInstance();
+          std::string nodename = st.str();
+	  
+          int tmp_run = curRun;
+          if (sscanf(nodesStatus[nodename]["runNumber"].c_str(), "%d", &tmp_run) == 1)
+	  {
+	      if (tmp_run > curRun) curRun = tmp_run;
+	  }
+
+	  int tmp_start = curStartTime;
+          if (sscanf(nodesStatus[nodename]["runStartUTC"].c_str(), "%d", &tmp_start) == 1)
+          {
+              if (tmp_start > curStartTime) curStartTime = tmp_start;
+          }
         }
 
+       std::stringstream st;
+       st.str("");
+       st << curRun;
+       runNum = st.str();
+
+       st.str("");
+       st.clear();
+       st << curStartTime;
+       runStart = st.str();      
+
+//     LOG4CPLUS_INFO (logger_, "Sync Nodes to current run " << runNum << " started at " << runStart);
+
+      /* Sending requests to sync Nodes */
+      for (mon=monitors.begin(); mon!=monitors.end(); ++mon)
+        {
+	  if ((*mon) == NULL) continue;
+
+          std::ostringstream st;
+          st << (*mon)->getClassName() << "-" << (*mon)->getInstance();
+          std::string nodename = st.str();
+
+	  // Skip nodes which don't need sync
+	  if ( nodesStatus[nodename]["readoutMode"].compare("internal") == 0) continue;
+	  if ((nodesStatus[nodename]["runNumber"].compare(runNum) == 0) 
+	    && (nodesStatus[nodename]["runStartUTC"].compare(runStart) == 0)) continue;
+
+          LOG4CPLUS_INFO (logger_, "Syncing " << nodename << " to current run " << runNum << " started at " << runStart);
+
+          try
+            {
+              xoap::MessageReference msg = xoap::createMessage();
+              xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
+              xoap::SOAPBody body = envelope.getBody();
+              xoap::SOAPName commandName = envelope.createName(action,"xdaq", "urn:xdaq-soap:3.0");
+
+
+              xoap::SOAPElement command = body.addBodyElement(commandName );
+
+              xoap::SOAPName runNumberStamp = envelope.createName("runNumber", "", "");
+              xoap::SOAPElement runNumberStampElement = command.addChildElement(runNumberStamp);
+              runNumberStampElement.addTextNode(runNum);
+
+              xoap::SOAPName runStartStamp = envelope.createName("runStartUTC", "", "");
+              xoap::SOAPElement runStartStampElement = command.addChildElement(runStartStamp);
+              runStartStampElement.addTextNode(runStart);
+
+              xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *(*mon));
+
+              xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
+              if (rb.hasFault() )
+                {
+                  xoap::SOAPFault fault = rb.getFault();
+                  std::string errmsg = "DQMNode: ";
+                  errmsg += fault.getFaultString();
+                  XCEPT_RAISE(xoap::exception::Exception, errmsg);
+                  continue;
+                }
+            }
+          catch (xcept::Exception e)
+            {
+
+              // Don't raise exception here. Go on to try to deal with the others.
+              LOG4CPLUS_ERROR(logger_, "Failed to send " << action << " "
+                              << (*mon)->getClassName() << (*mon)->getInstance() << " "
+                              << xcept::stdformat_exception_history(e));
+            }
+        }
     }
+  return 0;
 }
 
 
@@ -1084,7 +1171,7 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
   appBSem_.take();
   (out->getHTTPResponseHeader()).addHeader("Content-Type","text/javascript");
   *out << "var NODES_LIST=[" << std::endl;
-  *out << "['Node','State','Run Number','DAQ Events','DQM Events','Rate (Evt/s)','Detected CSCs', 'Unpacked CSCs','Rate (CSCs/s)','Readout Mode','Data Source','Last event timestamp']," << std::endl;
+  *out << "['Node','State','Run Number','Run Start Time','DQM Events','Rate (Evts/s)','#CSCs', 'Unpacked CSCs','Rate (CSCs/s)','Readout Mode','Data Source','Last Updated']," << std::endl;
 
   if (!nodesStatus.empty())
     {
@@ -1098,6 +1185,7 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
           std::string state =  "NA";
           std::string stateChangeTime = "NA";
           std::string runNumber   = "NA";
+          std::string runStartUTC   = "NA";
           std::string events = "0";
           std::string dataRate   = "0";
           std::string cscUnpacked   = "0";
@@ -1107,6 +1195,7 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
           std::string lastEventTime = "NA";
           std::string nDAQevents = "0";
           std::string dataSource = "NA";
+          std::string updateTime = "NA";
 
           if ((itr = nitr->second.find("appLink")) != nitr->second.end())
             {
@@ -1134,8 +1223,18 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
             }
 
           if ((itr = nitr->second.find("runNumber")) != nitr->second.end())
-            {
+            {              
               runNumber = nitr->second["runNumber"];
+            }
+
+          if ((itr = nitr->second.find("runStartUTC")) != nitr->second.end())
+            {
+              runStartUTC = nitr->second["runStartUTC"];
+	      time_t tmp_time = 0;
+              if (sscanf(runStartUTC.c_str(), "%d", &tmp_time) == 1)
+               {
+		 runStartUTC = emu::dqm::utils::now(tmp_time);
+               }
             }
 
           if ((itr = nitr->second.find("sessionEvents")) != nitr->second.end())
@@ -1173,6 +1272,12 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
               dataSource = nitr->second["dataSource"];
             }
 
+	  if ((itr = nitr->second.find("updateTime")) != nitr->second.end())
+            {
+              updateTime = nitr->second["updateTime"];
+            }
+
+/*
           if ((itr = nitr->second.find("nDAQEvents")) != nitr->second.end())
             {
               nDAQevents = nitr->second["nDAQevents"];
@@ -1182,12 +1287,12 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
             {
               lastEventTime = nitr->second["lastEventTime"];
             }
+*/
 
           *out << "['"<< nodename << "','"<< applink << "','" << state
-               << "','" << runNumber << "','" << nDAQevents << "','" << events
+               << "','" << runNumber << "','" << runStartUTC << "','" << events
                << "','" << dataRate << "','"  << cscDetected << "','"<< cscUnpacked << "','" << cscRate
-               << "','" << readoutMode << "','" << dataSource << "','" << lastEventTime
-               << "']" << "," << std::endl;
+               << "','" << readoutMode << "','" << dataSource << "','" << updateTime << "']" << "," << std::endl;
 
         }
     }
@@ -1212,6 +1317,7 @@ int EmuDisplayClient::updateNodesStatusFacts()
           std::string state =  "NA";
           std::string stateChangeTime = "NA";
           std::string runNumber   = "NA";
+          std::string runStartUTC   = "NA";
           std::string events = "0";
           std::string dataRate   = "0";
           std::string cscUnpacked   = "0";
@@ -1241,6 +1347,11 @@ int EmuDisplayClient::updateNodesStatusFacts()
             {
               runNumber = nitr->second["runNumber"];
             }
+          if ((itr = nitr->second.find("runStartUTC")) != nitr->second.end())
+            {
+              runStartUTC = nitr->second["runStartUTC"];
+            }
+
 
           if ((itr = nitr->second.find("sessionEvents")) != nitr->second.end())
             {
@@ -2112,6 +2223,7 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
             std::string state =  "NA";
             std::string stateChangeTime = "NA";
             std::string runNumber   = "NA";
+            std::string runStartUTC = "NA";
             std::string events = "0";
             std::string dataRate   = "0";
             std::string cscUnpacked   = "0";
@@ -2146,6 +2258,9 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
                 runNumber   = emu::dqm::getScalarParam(getApplicationContext(),
                                                        getApplicationDescriptor(),  (*pos),"runNumber","unsignedInt");
                 curRunNumber = runNumber;
+
+                runStartUTC   = emu::dqm::getScalarParam(getApplicationContext(),
+                                                       getApplicationDescriptor(),  (*pos),"runStartUTC","unsignedInt");
 
                 events = emu::dqm::getScalarParam(getApplicationContext(),
                                                   getApplicationDescriptor(), (*pos),"sessionEvents","unsignedInt");
@@ -2192,6 +2307,7 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
             nodesStatus[nodename]["stateName"] = state;
             nodesStatus[nodename]["stateChangeTime"] = stateChangeTime;
             nodesStatus[nodename]["runNumber"] = runNumber;
+            nodesStatus[nodename]["runStartUTC"] = runStartUTC;
             nodesStatus[nodename]["sessionEvents"] = events;
             nodesStatus[nodename]["averageRate"] = dataRate;
             nodesStatus[nodename]["cscUnpacked"] = cscUnpacked;
@@ -2203,6 +2319,7 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
             st.str("");
             st << (*pos)->getClassName() << Form("%02d", (*pos)->getInstance() );
             nodesStatus[nodename]["nodename"] = st.str();
+	    nodesStatus[nodename]["updateTime"] = emu::dqm::utils::now();
             /*
                   if (useExSys)
                     {
@@ -2244,6 +2361,7 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
         LOG4CPLUS_DEBUG (logger_, "DQM Nodes Statuses are updated");
         nodesStatus.setTimeStamp(time(NULL));
         syncMonitorsStates();
+	syncNodesToCurrentRun();
       }
   }
   return nodesStatus;

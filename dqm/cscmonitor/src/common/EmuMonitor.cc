@@ -403,6 +403,7 @@ void EmuMonitor::bindSOAPcallbacks()
   xoap::bind (this, &EmuMonitor::requestCSCCounters,  "requestCSCCounters",   XDAQ_NS_URI);
   xoap::bind (this, &EmuMonitor::requestReport,   "requestReport",  XDAQ_NS_URI);
   xoap::bind (this, &EmuMonitor::saveResults,     "saveResults",    XDAQ_NS_URI);
+  xoap::bind (this, &EmuMonitor::syncToCurrentRun,     "syncToCurrentRun",    XDAQ_NS_URI);
 
 }
 
@@ -1407,6 +1408,10 @@ void EmuMonitor::createDeviceReader()
               else     LOG4CPLUS_ERROR(logger_,
                                          "Bad device type: " << inputDeviceType_.toString() <<
                                          "Use \"file\", \"spy\", or \"slink\"");
+
+	     runStartUTC_ = time(NULL);
+	       
+	      
             }
         }
       catch (char* e)
@@ -1547,10 +1552,13 @@ int EmuMonitor::svc()
                       LOG4CPLUS_INFO(logger_,
                                      "Restarting readout from " << inputDataFormat_.toString() << " " << inputDeviceType_.toString() <<
                                      " " << inputDeviceName_.toString());
+		      appBSem_.take();
                       destroyDeviceReader();
                       createDeviceReader();
                       readValid=true;
                       isReadoutActive = true;
+		      appBSem_.give();
+
                     }
 
                 }
