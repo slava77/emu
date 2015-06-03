@@ -729,7 +729,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
      *out << std::endl;
      //
-     *out << cgicc::legend("DCFEB Virtex-6 Parameters").set("style","color:blue") << std::endl ;
+     *out << cgicc::legend("DCFEB Configuration Parameters").set("style","color:blue") << std::endl ;
      *out << cgicc::table().set("border","1");
      *out <<cgicc::td() << "Channel" << cgicc::td();
      for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr)
@@ -799,12 +799,12 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
      chname.push_back("AV54P_3_CUR (A)");
      chname.push_back("AV54P_5_CUR (A)");
      chname.push_back("V3PIO (V)");
-     chname.push_back("N.A.");
+     chname.push_back("Flag (Hex)");
      chname.push_back("V25IO (V)");
      chname.push_back("V5PACOMP (V)");
      chname.push_back("V5PAMP (V)");
      chname.push_back("V18PDAC (V)");
-     chname.push_back("N.A.");
+     chname.push_back("Ctrl Reg 1 (Hex)");
      chname.push_back("V33PAADC (V)");
      chname.push_back("V5PPA (V)");
      chname.push_back("V5PSUB (V)");
@@ -848,7 +848,10 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
               std::string color = "";
               if( monitor_dcfebs_alert[feb*23+ch-1] >= 0) color = monitor_dcfebs_alert[feb*23+ch-1] ? "red" : "green";
               if (!color.empty()) *out << cgicc::span().set("style", "color:" + color);
-              if( monitor_dcfebs[feb*23+ch-1]>=0.) *out << monitor_dcfebs[feb*23+ch-1];
+              if(ch==11 || ch==16) {  // these two channels are hex values
+                 *out << std::hex << int(monitor_dcfebs[feb*23+ch-1]) << std::dec; }
+              else {
+                 if( monitor_dcfebs[feb*23+ch-1]>=0.) *out << monitor_dcfebs[feb*23+ch-1]; }
               if (!color.empty()) *out << cgicc::span();
               *out << cgicc::td();
           }
@@ -3534,7 +3537,7 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
         val=fvalue[vstart+3*lfeb+cnt];
         sprintf(sbuf, "CFEB%d %3.1fV = %6.2f ",feb+1, normv[cnt], val);
         *out << cgicc::td();
-        if ( val < normv[cnt]*(0.95) ||  val > normv[cnt]*(1.05) )	 
+        if ( val < normv[cnt]*(0.94) ||  val > normv[cnt]*(1.05) )	 
            *out << cgicc::span().set("style","color:red");
         else
            *out << cgicc::span().set("style","color:green");
@@ -3554,8 +3557,8 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   value=fvalue[vstart+3*cfebs+0];
   sprintf(buf,"ALCT  3.3V = %3.2f ",value);
-  if ( value < 3.3*0.95 ||
-       value > 3.3*1.05 ) {
+  if ( value < 3.3*0.94 ||
+       value > 3.3*1.06 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
@@ -3567,8 +3570,8 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   value=fvalue[vstart+3*cfebs+1];
   sprintf(buf,"ALCT  1.8V = %3.2f ",value);
-  if ( value < 1.8*0.95 ||
-       value > 1.8*1.95 ) {
+  if ( value < 1.8*0.94 ||
+       value > 1.8*1.06 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
@@ -3580,8 +3583,8 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   value=fvalue[vstart+3*cfebs+2];
   sprintf(buf,"ALCT  5.5V(B) = %3.2f ",value);
-  if ( value < 5.5*0.95 ||
-       value > 5.5*1.05 ) {
+  if ( value < 5.5*0.94 ||
+       value > 5.5*1.06 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
@@ -3593,8 +3596,8 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   value=fvalue[vstart+3*cfebs+3];
   sprintf(buf,"ALCT  5.5V(A) = %3.2f ",value);
-  if ( value < 5.5*0.95 ||
-       value > 5.5*1.05 ) {
+  if ( value < 5.5*0.94 ||
+       value > 5.5*1.06 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  

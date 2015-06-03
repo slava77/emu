@@ -7737,6 +7737,23 @@ std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
         }
         readout.push_back(readf);
      }
+// read out the Flag and Control registers
+     data=0x43F0000;
+     cfeb_do(10, &comd, 32, &data, rcvbuf, NOW|READ_YES);
+     udelay(100);
+     for(unsigned i=0; i<3; i++)
+     {
+        data += 0x10000;
+        cfeb_do(0, buf, 32, &data, (char *)&ibrd, NOW|READ_YES);
+        udelay(100);
+        adc = ibrd & 0xFFFF;
+        if(i==0)
+          readout[10]=adc;  // Flag stored at readout[10] which was undefined
+        else if(i==2)
+        {
+          readout[15]=adc;  // Control register #1 stored at readout[15] which was undefined
+        }
+     }
      comd=VTX6_BYPASS;
      cfeb_do(10, &comd, 0, &data, rcvbuf, NOW);
      udelay(10);
