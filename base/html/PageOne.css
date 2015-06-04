@@ -13,7 +13,7 @@ td.Halted, td.halted { background-color:#7777FF; }
 td.halted_configure_configured { background-color:#999933; }
 td.Ready, td.ready { background-color:#dddd00; }
 td.Configured, td.configured { background-color:#dddd00; }
-td.suspended, td.paused { background-color:#99CC66; }
+td.suspended, td.paused, td.Pausing, td.Paused { background-color:#AACC77; }
 td.Enabled, td.enabled, td.running { background-color:#33cc33; }
 td.ON { background-color:#33cc33; }
 td.Calibration { background-color:#33cc33; }

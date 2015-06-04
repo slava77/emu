@@ -12,7 +12,7 @@ function onLoad() {
 	PCMonM:   "http://csc-dcs-pc2.cms:20040/urn:xdaq-application:lid=30/ForEmuPage1",
 	DAQDisks: "http://srv-c2d04-25.cms:8845/urn:xdaq-application:lid=400/retrieveCollection",
 	CSCTF:    "http://l1ts-csctf.cms:5005/urn:xdaq-application:service=las/retrieveCollection",
-	TTC:      "http://srv-c2d04-27.cms:9945/urn:xdaq-application:lid=400/retrieveCollection",
+	TCDS:     "http://pc-c2e11-23-01.cms:9945/urn:xdaq-application:lid=16/retrieveCollection",
 	FED:      "http://csc-sv.cms:20101/urn:xdaq-application:lid=66/ForEmuPage1",
 	DAQ:      "http://csc-daq00.cms:20200/urn:xdaq-application:class=emu::daq::manager::Application,instance=0/ForEmuPage1",
 	DQM:      "http://csc-dqm.cms:20550/urn:xdaq-application:lid=1450/ForEmuPage1"
@@ -651,46 +651,44 @@ function Panel( name, refreshPeriod, dataURL ) {
 	
     };
 
-    this.TTCFromJson = function (){
-	// Get info on Track Finder from csctf_emupageone flashlist
-	$.getJSON( self.DataURL+'?fmt=json&flash=urn:xdaq-flashlist:ttcci_conf', function(json){
+    this.TCDSFromJson = function (){
+	// Get info on TCDS
+	$.getJSON( self.DataURL+'?fmt=json&flash=urn:xdaq-flashlist:tcds_common', function(json){
 	    var combinedState = null;
 	    $.each( json.table.rows, function(i,row){
-		if ( row.ComponentKey.substr(0,3) == 'CSC' ){
-		    if ( combinedState && combinedState != row.FSMState ) combinedState = 'INDEFINITE';
-		    else                                                  combinedState = row.FSMState;
-		    //console.log( row.ComponentKey+' '+row.FSMState+' '+combinedState );
+		if ( row.service.search('i-csc') >= 0 ){
+		    if ( combinedState && combinedState != row.state_name ) combinedState = 'INDEFINITE';
+		    else                                                    combinedState = row.state_name;
+		    //console.log( row.service+' '+row.state_name+' '+combinedState );
 		}
+		else if ( row.service == 'lpm-csc' ){
+		    $('#'+self.name+'-td_value_LPMState').attr( 'class', row.state_name );
+		    $('#'+self.name+'-a_value_LPMState').text( row.state_name );
+		    $('#'+self.name+'-a_value_LPMState').attr( 'title', 'The LPM (Local Partition Manager) Controller application is '+row.state_name);
+		}
+		else if ( row.service == 'cpm-pri' ){
+		    $('#'+self.name+'-td_value_CPMPriState').attr( 'class', row.state_name );
+		    $('#'+self.name+'-a_value_CPMPriState').text( row.state_name );
+		    $('#'+self.name+'-a_value_CPMPriState').attr( 'title', 'The CPM (Central Partition Manager) Controller application is '+row.state_name);
+		}		
 	    });
 	    $('#'+self.name+'-td_value_State').attr( 'class', combinedState );
 	    $('#'+self.name+'-a_value_State').text( combinedState );
-	    $('#'+self.name+'-a_value_State').attr( 'title', (combinedState == 'INDEFINITE' ? 'Not all TTC applications are in the same FSM state.' : 'All TTC applications are '+combinedState) );
+	    $('#'+self.name+'-a_value_State').attr( 'title', (combinedState == 'INDEFINITE' ? 'Not all TCDS CI and PI Controller applications are in the same FSM state.' : 'All TCDS CI and PI Controller applications are '+combinedState ) );
 	    
 	}).success( function(){
-	    $.getJSON( self.DataURL+'?fmt=json&flash=urn:xdaq-flashlist:ttcci_scalers', function(json){
-		var time = toUnixTime( json.table.properties.LastUpdate );
-		$('#'+self.name+'-td_localDateTime').text( timeToString( time ) );
-		var minL1ARate = Number.POSITIVE_INFINITY;
-		$.each( json.table.rows, function(i,row){
-		    if ( row.ComponentKey.substr(row.ComponentKey.length-4) == 'CSC+' ){
-			$('#'+self.name+'-a_value_L1APlus').text( formatNumber( row.L1ARateHz )+' Hz' );
-			if ( row.L1ARateHz < minL1ARate ) minL1ARate = row.L1ARateHz;
-			//console.log( row.ComponentKey+' '+row.L1ARateHz );
-		    }
-		    else if ( row.ComponentKey.substr(row.ComponentKey.length-4) == 'CSC-' ){
-			$('#'+self.name+'-a_value_L1AMinus').text( formatNumber( row.L1ARateHz )+' Hz' );
-			if ( row.L1ARateHz < minL1ARate ) minL1ARate = row.L1ARateHz;
-			//console.log( row.ComponentKey+' '+row.L1ARateHz );
-		    }
-		    else if ( row.ComponentKey.substr(row.ComponentKey.length-5) == 'CSCTF' ){
-			$('#'+self.name+'-a_value_L1ATF').text( formatNumber( row.L1ARateHz )+' Hz' );
-			if ( row.L1ARateHz < minL1ARate ) minL1ARate = row.L1ARateHz;
-			//console.log( row.ComponentKey+' '+row.L1ARateHz );
-		    }
-		});
-		var graphPoint = { name:'TTC L1A rate [Hz]', time:time, value:minL1ARate };
-		self.appendPoint( graphPoint );
-	    }).success( function(){
+	    $.getJSON( self.DataURL+'?fmt=json&flash=urn:xdaq-flashlist:tcds_cpm_rates', function(json){
+	    	var time = toUnixTime( json.table.properties.LastUpdate );
+	    	$('#'+self.name+'-td_localDateTime').text( timeToString( time ) );
+	    	var totalTriggerRate = 0;
+	    	$.each( json.table.rows, function(i,row){
+	    	    if ( row.service == 'cpm-pri' ){
+	    		totalTriggerRate = row.trg_rate_total;
+	    	    }
+	    	});
+	    	var graphPoint = { name:'Total primary CPM trigger [Hz]', time:time, value:totalTriggerRate };
+	    	self.appendPoint( graphPoint );
+	    // }).success( function(){
 		clearTimeout(self.Clock);
 		self.ageOfPageClock(0);
 	    });
@@ -722,12 +720,14 @@ function Panel( name, refreshPeriod, dataURL ) {
 		}
 	    });
 	    // Display disk of highest usage
-	    var d = disks.sort( function( a, b ){ return b.usage - a.usage; } )[0]; // Sort function must return a pos/neg number. With boolean, e.g. a>b, it doesn't work in WebKit (e.g., in rekonq).
-	    var klass = 'ON';
-	    if      ( d.usage > 80 ) klass = 'WARN';
-	    else if ( d.usage > 95 ) klass = 'OFF';
-	    $('#'+self.name+'-td_value_0').attr('class',klass);
-	    $('#'+self.name+'-a_value_0').attr('title',d.host+':'+d.mount+' has '+formatNumber(d.free)+' MB free left at '+d.time+'.').text(d.usage.toFixed(0)+' %');
+	    if ( disks.length > 0 ){
+		var d = disks.sort( function( a, b ){ return b.usage - a.usage; } )[0]; // Sort function must return a pos/neg number. With boolean, e.g. a>b, it doesn't work in WebKit (e.g., in rekonq).
+		var klass = 'ON';
+		if      ( d.usage > 80 ) klass = 'WARN';
+		else if ( d.usage > 95 ) klass = 'OFF';
+		$('#'+self.name+'-td_value_0').attr('class',klass);
+		$('#'+self.name+'-a_value_0').attr('title',d.host+':'+d.mount+' has '+formatNumber(d.free)+' MB free left at '+d.time+'.').text(d.usage.toFixed(0)+' %');
+	    }
 	})
 	    .success( function(){
 		clearTimeout(self.Clock);
@@ -1044,7 +1044,7 @@ function Panel( name, refreshPeriod, dataURL ) {
     this.autoReloadData = function (){
 	if      ( self.name == 'DAQDisks' ) this.diskUsageFromJson();
 	else if ( self.name == 'CSCTF'    ) this.TrackFinderFromJson();
-	else if ( self.name == 'TTC'      ) this.TTCFromJson();
+	else if ( self.name == 'TCDS'     ) this.TCDSFromJson();
 	else                                this.getXML();
 
 	setTimeout( function(){ self.autoReloadData(); }, this.pageRefreshPeriod );

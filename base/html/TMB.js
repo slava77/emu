@@ -428,7 +428,7 @@ function TMBPanel( dataURLs ) {
 
     this.loadData = function(){
 	self.getXML();
-	console.log( 'XML +: '+self.xmlDoc.plus +' XML -: '+self.xmlDoc.minus );
+	// console.log( 'XML +: '+self.xmlDoc.plus +' XML -: '+self.xmlDoc.minus );
 	self.valuesFromXmlToTable();
 	self.scale();
 	// if ( self.xmlDoc.minus ) console.log( (new XMLSerializer()).serializeToString( self.xmlDoc.minus ) );
