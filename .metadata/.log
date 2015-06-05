@@ -1,0 +1,9 @@
+!SESSION 2015-06-05 17:00:03.443 -----------------------------------------------
+eclipse.buildId=M20100909-0800
+java.version=1.7.0_75
+java.vendor=Oracle Corporation
+BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=en_US
+Command-line arguments:  -os linux -ws gtk -arch x86_64
+
+!ENTRY org.eclipse.ui 4 4 2015-06-05 17:00:49.333
+!MESSAGE Invalid preference page path: Field Assist
