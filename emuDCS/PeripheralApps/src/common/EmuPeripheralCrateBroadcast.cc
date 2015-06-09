@@ -1000,40 +1000,6 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   //
   DefineBroadcastCrate();
   //
-#if 0
-  // broadcastCrate->vmeController()->Debug(10);
-  //  
-  broadcastTMB->DisableCLCTInputs();
-  std::cout << "Disabling inputs for TMB slot  " << broadcastTMB->slot() << std::endl;
-  broadcastTMB->DisableALCTInputs();
-  //
-//move to Command
-  // DMB fifo Master_Reset
-  broadcastDMB->calctrl_fifomrst();
-  std::cout << "DMB Fifo reset and initialization "<<std::endl;
-  usleep(5000);
-  broadcastDMB->restoreMotherboardIdle();
-  //
-  std::cout << "Set DAC for DMB slot  " << broadcastDMB->slot() << std::endl;
-  broadcastDMB->set_cal_dac(dac,dac);
-  std::cout <<" DAC is set to: "<<dac<<std::endl;
-  //Enable CLCT (bit0=1), disable L1A (bit1=0) on DMB calibration
-//  broadcastDMB->settrgsrc(1);
-  //
-  //set the default DMB Calibration timing:
-  /* // change the itim to adjust the pulse position
-     int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
-     | (calibration_l1acc_delay_ & 0x1F) << 4
-     | (itim & 0x1F) << 9
-     | (inject_delay_ & 0x1F) << 14;
-  */
-  int dword= (6 | (20<<4) | (10<<9) | (15<<14) ) &0xfffff;
-  broadcastDMB->setcaldelay(dword);
-
-  std::cout << " The Peripheral Crate configure finished "<<std::endl;
-  ::usleep(nsleep);
-#endif
-
   In_Broadcast_ = false;
   return createReply(message);
   //
@@ -1237,6 +1203,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBCrossTalk (xo
     int timesetting =((calsetup-1)%10);
     int nstrip=(calsetup-1)/10;
     if (!timesetting) broadcastODMB->buck_shift_ext_bc(nstrip);
+    // Pipeline depth will be set to its value in broadcast.xml. Adjust it there as needed.
     broadcastODMB->set_cal_tim_pulse(timesetting+5);
     std::cout <<" The strip was set to: "<<nstrip<<" Time was set to: "<<timesetting <<std::endl;
   }
