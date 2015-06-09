@@ -3096,12 +3096,16 @@ void DAQMB::set_cal_tim_pulse(int itim)
      int tfine;
      tfine=itim % 8;
      int order[8]={3,2,1,0,7,6,5,4};
-     depth = 63 + (itim/8);
      for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb)
      {
          dcfeb_adc_finedelay(cfebs_[icfeb], order[tfine]);  
          udelay(100000);
-         // printf(" itim=%d, depth=%d, tfine=%d \n",itim, depth, order[tfine]);
+	 depth = cfebs_[icfeb].GetPipelineDepth() + (itim/8);
+	 std::cout << "i="                    << itim 
+		   << " pipeline depth="      << depth 
+		   << " ("                    << cfebs_[icfeb].GetPipelineDepth() 
+		   << " in XML), fine delay=" << order[tfine] 
+		   << std::endl;
          dcfeb_set_PipelineDepth(cfebs_[icfeb],  depth);
          Pipeline_Restart(cfebs_[icfeb]);
          udelay(100000);
@@ -10223,7 +10227,7 @@ float DAQMB::get_best_pipeline_depth(const unsigned lower_depth,
   odmb_set_kill_mask(original_kill);
   for(unsigned dcfeb(0); dcfeb<cfebs_.size() && dcfeb<7; ++dcfeb){
     odmb_set_kill_mask(0xFFFFu);
-    dcfeb_set_PipelineDepth(cfebs_[dcfeb], original_delay[dcfeb]);
+    dcfeb_set_PipelineDepth(cfebs_[dcfeb], original_depth[dcfeb]);
     dcfeb_fine_delay(cfebs_[dcfeb], original_delay[dcfeb]);
     Pipeline_Restart(cfebs_[dcfeb]);
     odmb_rst_dcfeb_fifo(0x7Fu);
