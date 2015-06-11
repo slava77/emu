@@ -9219,19 +9219,62 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   // Clocking Status
   if (thisTMB->GetHardwareVersion() >= 2) {
   *out << cgicc::fieldset();
-    *out << cgicc::legend("Clocking Status").set("style","color:blue") << std::endl ;
-    thisTMB->ReadRegister(alct_startup_status_adr);
-    thisTMB->ReadRegister(v6_snap12_qpll_adr);
-    thisTMB->ReadRegister(vme_dddsm_adr);
-    *out << cgicc::pre() << std::endl;
-    *out << "MMCM lock status       = " << thisTMB->GetReadDDDStateMachineClock0Lock() << std::endl;
-    *out << "MMCM lost lock history = " << thisTMB->GetReadMMCMLostLock() << std::endl;
-    *out << "MMCM lost lock count   = " << thisTMB->GetReadMMCMLostLockCount() << std::endl;
-    *out << "QPLL lock status       = " << thisTMB->GetReadQPLLLock() << std::endl;
-    *out << "QPLL lost lock history = " << thisTMB->GetReadQPLLLostLock() << std::endl;
-    *out << "QPLL lost lock count   = " << thisTMB->GetReadQPLLLostLockCount() << std::endl;
-    *out << cgicc::pre() << std::endl;
-    *out << cgicc::fieldset();
+  *out << cgicc::legend("Clocking Status").set("style","color:blue") << std::endl ;
+  thisTMB->ReadRegister(alct_startup_status_adr);
+  thisTMB->ReadRegister(v6_snap12_qpll_adr);
+  thisTMB->ReadRegister(vme_dddsm_adr);
+  int temp_lock_var;
+  *out << cgicc::pre() << std::endl;
+  *out << "MMCM lock status       = ";
+  temp_lock_var = thisTMB->GetReadDDDStateMachineClock0Lock();
+  if (temp_lock_var == 1)
+    *out<< cgicc::span().set("style","color:green");
+  else
+    *out<< cgicc::span().set("style","color:red");
+  *out << temp_lock_var << std::endl;
+  *out << cgicc::span();
+  *out << "MMCM lost lock history = ";
+  temp_lock_var = thisTMB->GetReadMMCMLostLock();
+  if (temp_lock_var == 0)
+    *out<< cgicc::span().set("style","color:green");
+  else
+    *out<< cgicc::span().set("style","color:red");
+  *out << temp_lock_var << std::endl;
+  *out << cgicc::span();
+  *out << "MMCM lost lock count   = ";
+  temp_lock_var = thisTMB->GetReadMMCMLostLockCount();
+  if (temp_lock_var == 0)
+    *out<< cgicc::span().set("style","color:green");
+  else
+    *out<< cgicc::span().set("style","color:red");
+  *out << temp_lock_var << std::endl;
+  *out << cgicc::span(); 
+  *out << "QPLL lock status       = ";
+  temp_lock_var = thisTMB->GetReadQPLLLock();
+  if (temp_lock_var == 1)
+    *out<< cgicc::span().set("style","color:green");
+  else
+    *out<< cgicc::span().set("style","color:red");
+  *out << temp_lock_var << std::endl;
+  *out << cgicc::span();
+  *out << "QPLL lost lock history = ";
+  temp_lock_var = thisTMB->GetReadQPLLLostLock();
+  if (temp_lock_var == 0)
+    *out<< cgicc::span().set("style","color:green");
+  else
+    *out<< cgicc::span().set("style","color:red");
+  *out << temp_lock_var << std::endl;
+  *out << cgicc::span();
+  *out << "QPLL lost lock count   = ";
+  temp_lock_var = thisTMB->GetReadQPLLLostLockCount();
+  if (temp_lock_var == 0)
+    *out<< cgicc::span().set("style","color:green");
+  else
+    *out<< cgicc::span().set("style","color:red");
+  *out << temp_lock_var << std::endl;
+  *out << cgicc::span();
+  *out << cgicc::pre() << std::endl;
+  *out << cgicc::fieldset();
   }
   //
   // Clocking Status
