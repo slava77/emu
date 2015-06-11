@@ -9236,74 +9236,74 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   //
   // Clocking Status
   if (thisTMB->GetHardwareVersion() >= 2) {
-      *out << cgicc::fieldset();
-      *out << cgicc::legend("Configuration and programming timers (100 nanosecond units)").set("style","color:blue") << std::endl;
-      thisTMB->ReadRegister(tmb_mez_fpga_jtag_count_adr);
-      thisTMB->ReadRegister(tmb_power_up_time_adr);
-      thisTMB->ReadRegister(tmb_load_cfg_time_adr);
-      thisTMB->ReadRegister(alct_phaser_lock_time_adr);
-      thisTMB->ReadRegister(alct_load_cfg_time_adr);
-      thisTMB->ReadRegister(gtx_phaser_lock_time_adr);
-      thisTMB->ReadRegister(gtx_sync_done_time_adr);
-      *out << cgicc::pre() << std::endl;
-      *out << "FPGA Mez JTAG Chain Access Count              = ";
-      int temp_time_var = thisTMB->GetReadMezFpgaJtagCount();
-      if (temp_time_var >= 60000){
-        *out<< cgicc::span().set("style","color:red");
-        *out << temp_time_var << std::endl;
-        *out << cgicc::span();
-      }
-      else *out << temp_time_var << std::endl;
-      *out << "TMB Power Up Time                             = ";
-      temp_time_var = thisTMB->GetReadTMBPowerUpTime();
-      if (temp_time_var >= 60000){
-        *out<< cgicc::span().set("style","color:red");
-        *out << temp_time_var << std::endl;
-        *out << cgicc::span();
-      }
-      else *out << temp_time_var << std::endl;
-      *out << "TMB Load Cfg Time                             = ";
-      temp_time_var = thisTMB->GetReadTMBLoadCfgTime();
-      if (temp_time_var >= 60000){
-        *out<< cgicc::span().set("style","color:red");
-        *out << temp_time_var << std::endl;
-        *out << cgicc::span();
-      }
-      else *out << temp_time_var << std::endl;
-      *out << "ALCT Phaser Lock Time                         = ";
-      temp_time_var = thisTMB->GetReadALCTPhaserLockTime();
-      if (temp_time_var >= 60000){
-        *out<< cgicc::span().set("style","color:red");
-        *out << temp_time_var << std::endl;
-        *out << cgicc::span();
-      }
-      else *out << temp_time_var << std::endl;
-      *out << "ALCT Load Cfg Time (after ALCT startup delay) = ";
-      temp_time_var = thisTMB->GetReadALCTLoadCfgTime();
-      if (temp_time_var >= 60000){
-        *out<< cgicc::span().set("style","color:red");
-        *out << temp_time_var << std::endl;
-        *out << cgicc::span();
-      }
-      else *out << temp_time_var << std::endl;
-      *out << "Comparator Fiber Phaser Lock Time             = ";
-      temp_time_var = thisTMB->GetReadGtxPhaserLockTime();
-      if (temp_time_var >= 60000){
-        *out<< cgicc::span().set("style","color:red");
-        *out << temp_time_var << std::endl;
-        *out << cgicc::span();
-      }
-      else *out << temp_time_var << std::endl;
-      *out << "Gtx Sync Done Time                            = ";
-      temp_time_var = thisTMB->GetReadGtxSyncDoneTime();
-      if (temp_time_var >= 60000){
-        *out<< cgicc::span().set("style","color:red");
-        *out << temp_time_var << std::endl;
-        *out << cgicc::span();
-      }
-      else *out << temp_time_var << std::endl;
-      *out << cgicc::pre() << std::endl;
-      *out << cgicc::fieldset();
+    *out << cgicc::fieldset();
+    *out << cgicc::legend("Configuration and programming timers (100 nanosecond units)").set("style","color:blue") << std::endl;
+    thisTMB->ReadRegister(tmb_mez_fpga_jtag_count_adr);
+    thisTMB->ReadRegister(tmb_power_up_time_adr);
+    thisTMB->ReadRegister(tmb_load_cfg_time_adr);
+    thisTMB->ReadRegister(alct_phaser_lock_time_adr);
+    thisTMB->ReadRegister(alct_load_cfg_time_adr);
+    thisTMB->ReadRegister(gtx_phaser_lock_time_adr);
+    thisTMB->ReadRegister(gtx_sync_done_time_adr);
+    *out << cgicc::pre() << std::endl;
+    *out << "FPGA Mez JTAG Chain Access Count              = ";
+    int temp_time_var = thisTMB->GetReadMezFpgaJtagCount();
+    if (temp_time_var >= 60000){
+      *out<< cgicc::span().set("style","color:red");
+      *out << temp_time_var << std::endl;
+      *out << cgicc::span();
+    }
+    else *out << temp_time_var << std::endl;
+    *out << "TMB Power Up Time                             = ";
+    temp_time_var = thisTMB->GetReadTMBPowerUpTime();
+    if (temp_time_var >= 60000){
+      *out<< cgicc::span().set("style","color:red");
+      *out << temp_time_var << std::endl;
+      *out << cgicc::span();
+    }
+    else *out << temp_time_var << std::endl;
+    *out << "TMB Load Cfg Time                             = ";
+    temp_time_var = thisTMB->GetReadTMBLoadCfgTime();
+    if (temp_time_var >= 60000){
+      *out<< cgicc::span().set("style","color:red");
+      *out << temp_time_var << std::endl;
+      *out << cgicc::span();
+    }
+    else *out << temp_time_var << std::endl;
+    *out << "ALCT Phaser Lock Time                         = ";
+    temp_time_var = thisTMB->GetReadALCTPhaserLockTime();
+    if (temp_time_var >= 60000){
+      *out<< cgicc::span().set("style","color:red");
+      *out << temp_time_var << std::endl;
+      *out << cgicc::span();
+    }
+    else *out << temp_time_var << std::endl;
+    *out << "ALCT Load Cfg Time (after ALCT startup delay) = ";
+    temp_time_var = thisTMB->GetReadALCTLoadCfgTime();
+    if (temp_time_var >= 60000){
+      *out<< cgicc::span().set("style","color:red");
+      *out << temp_time_var << std::endl;
+      *out << cgicc::span();
+    }
+    else *out << temp_time_var << std::endl;
+    *out << "Comparator Fiber Phaser Lock Time             = ";
+    temp_time_var = thisTMB->GetReadGtxPhaserLockTime();
+    if (temp_time_var >= 60000){
+      *out<< cgicc::span().set("style","color:red");
+      *out << temp_time_var << std::endl;
+      *out << cgicc::span();
+    }
+    else *out << temp_time_var << std::endl;
+    *out << "Gtx Sync Done Time                            = ";
+    temp_time_var = thisTMB->GetReadGtxSyncDoneTime();
+    if (temp_time_var >= 60000){
+      *out<< cgicc::span().set("style","color:red");
+      *out << temp_time_var << std::endl;
+      *out << cgicc::span();
+    }
+    else *out << temp_time_var << std::endl;
+    *out << cgicc::pre() << std::endl;
+    *out << cgicc::fieldset();
     }
   //
   *out << cgicc::fieldset();
@@ -9322,66 +9322,66 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset();
   //
   if (thisTMB->GetHardwareVersion() >= 2) {
-      *out << cgicc::fieldset();
-      *out << cgicc::legend("Optical input status").set("style","color:blue") << std::endl ;
-      *out << cgicc::pre();
-      thisTMB->RedirectOutput(out);
-      thisTMB->ReadRegister(v6_gtx_rx0_adr);
-      thisTMB->ReadRegister(v6_gtx_rx1_adr);
-      thisTMB->ReadRegister(v6_gtx_rx2_adr);
-      thisTMB->ReadRegister(v6_gtx_rx3_adr);
-      thisTMB->ReadRegister(v6_gtx_rx4_adr);
-      thisTMB->ReadRegister(v6_gtx_rx5_adr);
-      thisTMB->ReadRegister(v6_gtx_rx6_adr);
-      *out << " ->GTX optical input control and monitoring:" << std::endl;
-      *out << "    Input enable [DCFEBs 0-6]: \t\t[ ";
-      for (int i=0; i < 7; i++) { *out << thisTMB->GetReadGtxRxEnable(i) << " "; }
-      *out << "]" << std::endl;
-      *out << "    Input reset [DCFEBs 0-6]: \t\t[ ";
-      for (int i=0; i < 7; i++) { *out << thisTMB->GetReadGtxRxReset(i) << " "; }
-      *out << "]" << std::endl;
-      *out << "    PRBS test enable [DCFEBs 0-6]: \t[ ";
-      for (int i=0; i < 7; i++) { *out << thisTMB->GetReadGtxRxPrbsTestEnable(i) << " "; }
-      *out << "]" << std::endl;
-      *out << "    Input ready [DCFEBs 0-6]: \t\t[ ";
-      for (int i=0; i < 7; i++) { *out << thisTMB->GetReadGtxRxReady(i) << " "; }
-      *out << "]" << std::endl;
-      *out << "    Link good [DCFEBs 0-6]: \t\t[ ";
-      for (int i=0; i < 7; i++)
-        {
-      	int read_gtx_rx_link_good_temp = thisTMB->GetReadGtxRxLinkGood(i);
-      	 if (read_gtx_rx_link_good_temp == 1)
-             *out<< cgicc::span().set("style","color:green");
-      	 else
-      		 *out<< cgicc::span().set("style","color:red");
-      	 *out << read_gtx_rx_link_good_temp << " ";
-      	 *out << cgicc::span();
-        }
-      *out << "]" << std::endl;
-      *out << "    Link had errors [DCFEBs 0-6]: \t[ ";
-      for (int i=0; i < 7; i++) { *out << thisTMB->GetReadGtxRxLinkHadError(i) << " "; }
-      *out << "]" << std::endl;
-      *out << "    Link unstable [DCFEBs 0-6]: \t[ ";
-      for (int i=0; i < 7; i++)
-        {
-          int read_gtx_rx_link_bad_temp = thisTMB->GetReadGtxRxLinkBad(i);
-           if (read_gtx_rx_link_bad_temp == 1)
-             *out<< cgicc::span().set("style","color:red");
-           else
-             *out<< cgicc::span().set("style","color:green");
-           *out << read_gtx_rx_link_bad_temp << " ";
-           *out << cgicc::span();
-        }
-      *out << "]" << std::endl;
-      *out << "    Link error count [DCFEBs 0-6]: \t[ ";
-      for (int i=0; i < 7; i++) { *out << thisTMB->GetReadGtxRxErrorCount(i) << " "; }
-      *out << "]" << std::endl;
-  //  thisTMB->PrintTMBRegister(v6_gtx_rx0_adr);
-  //  the above line of code is an alternative output without the colors
-      thisTMB->RedirectOutput(&std::cout);
-      *out << cgicc::pre();
-      *out << cgicc::fieldset();
-    } 
+    *out << cgicc::fieldset();
+    *out << cgicc::legend("Optical input status").set("style","color:blue") << std::endl ;
+    *out << cgicc::pre();
+    thisTMB->RedirectOutput(out);
+    thisTMB->ReadRegister(v6_gtx_rx0_adr);
+    thisTMB->ReadRegister(v6_gtx_rx1_adr);
+    thisTMB->ReadRegister(v6_gtx_rx2_adr);
+    thisTMB->ReadRegister(v6_gtx_rx3_adr);
+    thisTMB->ReadRegister(v6_gtx_rx4_adr);
+    thisTMB->ReadRegister(v6_gtx_rx5_adr);
+    thisTMB->ReadRegister(v6_gtx_rx6_adr);
+    *out << " ->GTX optical input control and monitoring:" << std::endl;
+    *out << "    Input enable [DCFEBs 0-6]: \t\t[ ";
+    for (int i=0; i < 7; i++) { *out << thisTMB->GetReadGtxRxEnable(i) << " "; }
+    *out << "]" << std::endl;
+    *out << "    Input reset [DCFEBs 0-6]: \t\t[ ";
+    for (int i=0; i < 7; i++) { *out << thisTMB->GetReadGtxRxReset(i) << " "; }
+    *out << "]" << std::endl;
+    *out << "    PRBS test enable [DCFEBs 0-6]: \t[ ";
+    for (int i=0; i < 7; i++) { *out << thisTMB->GetReadGtxRxPrbsTestEnable(i) << " "; }
+    *out << "]" << std::endl;
+    *out << "    Input ready [DCFEBs 0-6]: \t\t[ ";
+    for (int i=0; i < 7; i++) { *out << thisTMB->GetReadGtxRxReady(i) << " "; }
+    *out << "]" << std::endl;
+    *out << "    Link good [DCFEBs 0-6]: \t\t[ ";
+    for (int i=0; i < 7; i++)
+    {
+      int read_gtx_rx_link_good_temp = thisTMB->GetReadGtxRxLinkGood(i);
+      if (read_gtx_rx_link_good_temp == 1)
+        *out<< cgicc::span().set("style","color:green");
+      else
+        *out<< cgicc::span().set("style","color:red");
+      *out << read_gtx_rx_link_good_temp << " ";
+      *out << cgicc::span();
+    }
+    *out << "]" << std::endl;
+    *out << "    Link had errors [DCFEBs 0-6]: \t[ ";
+    for (int i=0; i < 7; i++) { *out << thisTMB->GetReadGtxRxLinkHadError(i) << " "; }
+    *out << "]" << std::endl;
+    *out << "    Link unstable [DCFEBs 0-6]: \t[ ";
+    for (int i=0; i < 7; i++)
+      {
+      int read_gtx_rx_link_bad_temp = thisTMB->GetReadGtxRxLinkBad(i);
+      if (read_gtx_rx_link_bad_temp == 1)
+        *out<< cgicc::span().set("style","color:red");
+      else
+        *out<< cgicc::span().set("style","color:green");
+      *out << read_gtx_rx_link_bad_temp << " ";
+      *out << cgicc::span();
+      }
+    *out << "]" << std::endl;
+    *out << "    Link error count [DCFEBs 0-6]: \t[ ";
+    for (int i=0; i < 7; i++) { *out << thisTMB->GetReadGtxRxErrorCount(i) << " "; }
+    *out << "]" << std::endl;
+//  thisTMB->PrintTMBRegister(v6_gtx_rx0_adr);
+//  the above line of code is an alternative output without the colors
+    thisTMB->RedirectOutput(&std::cout);
+    *out << cgicc::pre();
+    *out << cgicc::fieldset();
+  } 
   //
   *out << cgicc::fieldset();
   *out << cgicc::legend("Sync Error status").set("style","color:blue") << std::endl ;
