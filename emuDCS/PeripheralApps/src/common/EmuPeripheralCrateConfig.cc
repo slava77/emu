@@ -9304,7 +9304,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     else *out << temp_time_var << std::endl;
     *out << cgicc::pre() << std::endl;
     *out << cgicc::fieldset();
-    }
+  }
   //
   *out << cgicc::fieldset();
   *out << cgicc::legend("Comparator Badbits").set("style","color:blue") << std::endl ;
@@ -9381,7 +9381,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     thisTMB->RedirectOutput(&std::cout);
     *out << cgicc::pre();
     *out << cgicc::fieldset();
-  } 
+  }
   //
   *out << cgicc::fieldset();
   *out << cgicc::legend("Sync Error status").set("style","color:blue") << std::endl ;
