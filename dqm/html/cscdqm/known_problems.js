@@ -110,6 +110,9 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor", "genDate": "2010-02-19 11:
 {"objID": "ME+3/2/01", "name": "ME+3/2/01", "list": [
 	{"testID": "CSC_NO_HV_SEGMENT", "scope": "CSC", "descr": "No HV: Segment5 Layer5", "severity": "2", "obj": "Segment5 Layer5"}
 ]},
+{"objID": "ME+3/2/07", "name": "ME+3/2/07", "list": [
+	{"testID": "CSC_CFEB_SCA_DEAD_CHANNEL", "scope": "CSC", "descr": "Dead SCA channel: CFEB2 Layer2 Ch#16", "severity": "1", "obj": "CFEB2 Layer2 Ch#16"}
+]},
 {"objID": "ME+3/2/19", "name": "ME+3/2/19", "list": [
 	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB5 DAV 0.000%", "severity": "3", "obj": "CFEB5"}
 ]},

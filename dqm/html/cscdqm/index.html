@@ -166,6 +166,14 @@
 	.SEVERITY_KNOWN_PROBLEM {background-color: magenta; font-weight: bold;}
 	.SEVERITY_NO_DATA {background-color: #8C8C8C; font-weight: bold;}
 	.SEVERITY_FILTERED {background-color: #CCCCCC; font-weight: bold;}
+
+
+        .RUN_TYPE_ONLINE {background-color: white; font-weight: bold;}
+        .RUN_TYPE_UNKNOWN {background-color: #BBBBBB; }
+        .RUN_TYPE_COSMICS {background-color: #8FBC8F; }
+        .RUN_TYPE_BEAM {background-color: #E9967A; }
+        .RUN_TYPE_LOWSTAT {background-color: #FFFACD; }
+
 	li.sshow_list { font-size:8pt; font-family:Arial; margin: 0;}
 	
 	table.dqm_report {
@@ -288,6 +296,12 @@
 		vertical-align: top;
 		
 	}
+	table.page_layout_status {
+
+                border-spacing: 2px;
+                background-color: white;
+
+        }
 	
 </style>
 <script type="text/javascript">
@@ -433,6 +447,15 @@ var CSC_TYPES = [
 		["ME-4/2", 36]]
 	]
 ];
+
+var RUN_TYPES =
+        [
+        {"type": "UNKNOWN", "name": "Undefined", "color": "#AAAAAA;", "descr": "Unknown/Undefined run type"},
+        {"type": "COSMICS", "name": "Cosmics", "color": "#8FBC8F", "descr": "Cosmics run"},
+        {"type": "BEAM", "name": "Beam", "color": "#E9967A", "descr": "Beam collisions run" },
+        {"type": "LOWSTAT", "name": "Low stats", "color": "#CCCCCC", "descr": "Low statistsics run"}
+        ];
+
 
 function addPadding(num,count,pad)
 {
@@ -768,8 +791,8 @@ function showDDUTable(id)
 			// Display DDUs 
 			//out += "<tr class='me'><td id='cscDDU' class='me' colspan='2' >DDUs</td>";	
 			out += "<tr><td class='me_type'>RUI#</td><td class='me_type'>DDU ID</td>";
-			for (var i=0; i<15; i++) {
-				out += "<td class='me_type'>Inp "+i+"</td>";
+			for (var i=1; i<=15; i++) {
+				out += "<td class='me_type'>Input "+i+"</td>";
 			};
 			out += "</tr>";
 			for (var i=0; i<= c_list.length; i++) {
@@ -777,7 +800,7 @@ function showDDUTable(id)
 				rui = c_list[i];
 				if (rui && rui.length) {
 					out += "<td class='me_type' id='cscRUI"+i+"' class='me_ddu' >"+rui[1]+"</td>";
-					out += "<td class='me_type' >"+rui[0]+"</td>";
+					out += "<td class='me_type' id='csc"+rui[0]+"'>"+rui[0]+"</td>";
 					for (var j=4; j<19; j++) {
 						out += "<td id='csc"+rui[j]+"'>"+rui[j]+"</td>";
 					}
@@ -796,11 +819,12 @@ function showDDUTable(id)
 function findLinkedDDU(id)
 {
 	if (DDUMAP && DDUMAP.length) {
+		showDDUTable("ddutable_div");
 		for (var i=0; i<DDUMAP.length; i++) {
 			rui = DDUMAP[i];
 			for (var j=4; j<19; j++){
 				if (rui[j]==id) {
-					showConnectedCSCs(i+1);
+					showConnectedCSCs(i+1, id);
 					return false;
 				}
 			}
@@ -808,40 +832,49 @@ function findLinkedDDU(id)
 	}
 }
 
-function showConnectedCSCs(id)
+function getLinkedDDU(id)
+{
+        if (DDUMAP && DDUMAP.length) {
+                for (var i=0; i<DDUMAP.length; i++) {
+                        rui = DDUMAP[i];
+                        for (var j=4; j<19; j++){
+                                if (rui[j]==id) {
+				   ddu_link = rui[0] + " Input:" + (j-3);
+				   return ddu_link;
+                                }
+                        }
+                }
+        }
+	return "";
+}
+
+function showConnectedCSCs(id, csc)
 {
 	// updateCSCMappings();
-	// loadDQMReport("report_div");
 	// addlog("DDU"+id, "info");
 	if (DDUMAP && DDUMAP.length) {
 		rui=DDUMAP[id-1];
 		if (rui && rui.length) {
-			/*
-			obj = document.getElementById("cscDDU"+id);
-			if (obj) {
+			obj = document.getElementById("csc"+rui[0]);
+                        if (obj) {
+				obj.style.background = "white";
 				obj.style.borderColor = "red";
-				obj.style.borderWidth = "2px";
+                                obj.style.borderWidth = "2px";
 			}
-			*/
 			for (var i=4; i<19; i++) {
 				cscid="csc"+rui[i];
 				if (rui[i] != "") {
 					obj = document.getElementById(cscid);
 					if (obj) {
-						// obj.style.borderColor = "red";
 						obj.style.background = "yellowgreen";
-						//obj.style.borderWidth = "2px";
+						if (rui[i] == csc) {
+							obj.style.borderColor = "red";
+        	                                        obj.style.borderWidth = "2px";
+						}
 					}
-					/*
-					obj = document.getElementById(rui[i]);
-					if (obj) {
-						obj.style.borderColor = "red";
-						obj.style.borderWidth = "2px";
-						
-					}
-					*/
 				}
 			}
+			
 		}
 	}
 }
@@ -1567,6 +1600,20 @@ function findHWId(id)
 	return "";
 }
 
+
+
+function getPCrateId(id)
+{
+	var m_list = CSCMAP;
+        if (m_list.length>0) {
+                for (var i=0; i<m_list.length; i++) {
+                        if (m_list[i][2] == id )
+                           return getVMECrateName(m_list[i][0]) +  " (PCrate:" +crateID(m_list[i][0])+"; DMB Slot:"+slotID(m_list[i][1]) + ")";            
+                }       
+        }
+        return "";
+}
+
 function getFolderName(id, scope) {
 	if (scope == "EMU") return "EMU";
 	if (scope == "DDU" && (id.search("DDU_") >=0)) return id;
@@ -1588,9 +1635,22 @@ function findReportEntry(report, id)
 function setTestsStatus(id)
 {
 	loadTestsList (TREE_ITEMS, "tests_div");
-	var out = "<table class='page_layout' style='border: 0px black solid;'><tr style='border: 0px black solid;'><td style='border: 0px black solid;'><table class='dqm_report'><tr><th class='repScope' colspan=2><b>Run " + RunName + " Status for " + id + "</b></th>";	
+	var out = "<table class='page_layout_status' style='border: 0px black solid;'>";
+	if ( id.search("ME") >=0 )
+	{
+	  out += "<tr style='border: 1px black solid;'><td style='border: 0px black solid;'><b>" + id + "</b> ";
+	  out += "is connected to <b><font color='blue'>" + getPCrateId(id) + "</font></b>; fiber linked to <b><font color='blue'>"  + getLinkedDDU(id) + "</font></b></td>";
+	  out += "</tr><tr style='border: 1px black solid;' ><td style='border: 1px black solid;'> Counters: " + getCountersForCSC(id) + "</td>";
+	} else {
+	  out += "<tr style='border: 1px black solid;'><td style='border: 0px black solid;'><b>" + id + "</b></td>";
+	}
+	
+	out += "</tr>";
+	out += "</table>";
+
+	out += "<table class='page_layout' style='border: 0px black solid;'><tr style='border: 0px black solid;'><td style='border: 0px black solid;'><table class='dqm_report'><tr><th class='repScope' colspan=2><b>Run " + RunName + " Status for " + id + "</b></th>";	
         if (KNOWN_PROBLEMS)
-                out += "<th class='repScope' colspan=2><b>Known as</b></th>";
+                out += "<th class='repScope' colspan=2><b>Problem Known as</b></th>";
 	if (REF_DQM_REPORT) 
                 out += "<th class='repScope' colspan=2><b>Compared to Run " + selRefRun + "</b></th>";
 	out += "</tr>";
@@ -1664,7 +1724,7 @@ function setTestsStatus(id)
 	
 /*	
 	if (KNOWN_PROBLEMS) {
-		out += "<table class='dqm_report'><tr><th class='repScope' colspan=2><b>Known as</b></th></tr>";
+		out += "<table class='dqm_report'><tr><th class='repScope' colspan=2><b>Problem Known as</b></th></tr>";
 		var repentry = findReportEntry(KNOWN_PROBLEMS.report, id);
 		if (repentry) {	
 			
@@ -2128,7 +2188,7 @@ function loadRunsList(r_list)
 	// out += "<div><table class='runs_table'>";
 	out = "<table class='runs_table'>";
 	out += "<th>Run</th><th>Analyzed on</th>";
-	out += "<tr><td><a href='' id='Online' onClick='RunName=\"Online\";getTestsList();getCSCCounters();loadCSCList(\"Online\");return false;'>Online</a></td><td></td></tr>";
+	out += "<tr class='RUN_TYPE_ONLINE'><td><a href='' id='Online' onClick='RunName=\"Online\";getTestsList();getCSCCounters();loadCSCList(\"Online\");return false;'>Online</a></td><td></td></tr>";
 	if (r_list) {
 		compare_list = document.getElementById("compare_selection");
 		
@@ -2142,6 +2202,10 @@ function loadRunsList(r_list)
 					isSelected = false;
 					if (selRefRun == "ref") isSelected = true;
 					compare_list.add(new Option("Default Reference Run", "ref", false, isSelected), null) //add new option to end of "sample"					
+					if (selRefRun == "ref_cosmics") isSelected = true;
+                                        compare_list.add(new Option("Reference Cosmics Run", "ref_cosmics", false, isSelected));
+					if (selRefRun == "ref_beam") isSelected = true;
+                                        compare_list.add(new Option("Reference Collisions Run", "ref_beam", false, isSelected));
 				}
 			catch(e){ //in IE, try the below version instead of add()
 					if (selRefRun == "noref") isSelected = true;
@@ -2149,6 +2213,10 @@ function loadRunsList(r_list)
 					isSelected = false;
 					if (selRefRun == "ref") isSelected = true;
 					compare_list.add(new Option("Default Reference Run", "ref", false, isSelected));
+				        if (selRefRun == "ref_cosmics") isSelected = true;
+                                        compare_list.add(new Option("Reference Cosmics Run", "ref_cosmics", false, isSelected));
+                                        if (selRefRun == "ref_beam") isSelected = true;
+                                        compare_list.add(new Option("Reference Collisions Run", "ref_beam", false, isSelected));
 				}
 				if (selRefRun == "") {
 					selRefRun = "noref";
@@ -2163,12 +2231,16 @@ function loadRunsList(r_list)
 			if (!child) continue;
 			// remove ref.root from list
 			if (child[0].search(/ref.root/g) != -1) continue;
+			if (child[0].search(/ref_beam.root/g) != -1) continue;
+			if (child[0].search(/ref_cosmics.root/g) != -1) continue;
 			run_descr = child[0].replace(/.root/g,'');
 			run_num = child[0].substr(0, child[0].search(/.root/g));
 			run_time = child[0].substr(child[0].search(/\(/g),child[0].search(/\)/g));
 			// if (i==0) RunNumber = run_num;
 			// addlog(run_descr, "info");
-			out += "<tr><td><a href='' id='"+run_num+"' onClick='RunName=\""+run_num+"\";getTestsList();getCSCCounters();loadCSCList(\""+run_num+"\");return false;'>"+run_num+"</a></td><td>"+run_time+"</td></tr>";
+			run_type = "RUN_TYPE_UNKNOWN";
+		        
+			out += "<tr><td class='"+run_type+"'><a href='' id='"+run_num+"' onClick='RunName=\""+run_num+"\";getTestsList();getCSCCounters();loadCSCList(\""+run_num+"\");return false;'>"+run_num+"</a></td><td>"+run_time+"</td></tr>";
 			if (selRefRun == run_num) isSelected = true;
 			if (compare_list)
 				{
@@ -2193,6 +2265,18 @@ function loadRunsList(r_list)
 	if (obj) obj.innerHTML = out;
 	
 }	
+
+function setRunsFilter()
+{
+        out = "<table class='dqm_report'><tr>";
+        out += "<td><b>Run types:</b></td> ";
+        for (var i=0; i<RUN_TYPES.length; i++) {
+                out += "<td><span title='"+RUN_TYPES[i].descr+"' class='RUN_TYPE_"+RUN_TYPES[i].type+"'>" + RUN_TYPES[i].name + "</span></td> ";
+        }
+        out += "</tr></table>";
+	obj = document.getElementById("run_filter");
+        if (obj) obj.innerHTML = out;
+}
 
 
 function getRunsList()
@@ -2364,6 +2448,62 @@ function getVMECrateName(crate)
 			}			
 		}
 	}
+}
+
+function getCountersForCSC(id)
+{
+   cntrs=CSC_COUNTERS;
+   if (cntrs && cntrs.length >0) {
+       cscs = cntrs[0];
+       cscid = findHWId(id);
+       if (cscid != "") {
+	 for (var i=1; i<cscs.length; i++) {
+            if (!cscs[i] || (cscs[i][0] != cscid)) continue;
+	    stats = cscs[i][1];
+
+	    stats_out="";
+            alct=0;
+            clct=0;
+            cfeb=0;
+            bad=0;
+            dmb=0;
+                                
+            if (stats && stats.length)
+               {
+                 for (var j=0; j<stats.length; j++) {
+                    tag = stats[j][0];
+                    if (tag=='ALCT') alct=parseInt(stats[j][1]);
+                    if (tag=='CLCT') clct=parseInt(stats[j][1]);
+                    if (tag=='CFEB') cfeb=parseInt(stats[j][1]);
+                    if (tag=='BAD') bad=parseInt(stats[j][1]);
+                    if (tag=='DMB') dmb=parseFloat(stats[j][1]);
+                   }
+               }
+            if (dmb) {
+                bcolor='white';
+		color="black";
+		if ((100*bad/dmb)>10) { color="red"; bcolor=badclr; }
+                stats_out += "[<b><font color='blue'>DMB Events</font></b>: <b>"+dmb+"</b>] ";
+		stats_out += "[<b><font color='red'>Bad: " + "</font></b><font color='"+color+"'><b>"+bad+"</b> ("+(100*(bad/(dmb))).toFixed(1)+"%)</font>] ";
+
+                color="black";
+                badclr='#FFD0D0';
+                if ((100*alct/(dmb-bad))<30) { color="red"; cnt_bad_alct++;}
+                stats_out+="[<b><font color='green'>ALCT</font></b>: <b>" + alct + "</b><font color='"+color+"'> ("+(100*(alct/dmb)).toFixed(1)+"%)</font>] ";
+                color="black";
+                if ((100*clct/(dmb-bad))<30) { color="red"; cnt_bad_clct++;}
+                stats_out+="[<b><font color='green'>CLCT</font></b>: <b>" + clct+ " </b><font color='"+color+"'> ("+(100*(clct/dmb)).toFixed(1)+"%)</font>] ";
+                color="black";
+                if ((100*cfeb/(dmb-bad))<30) { color="red"; cnt_bad_cfeb++;}
+                stats_out+="[<b><font color='green'>CFEBs</font></b>: <b>" + cfeb + "</b><font color='"+color+"'> ("+(100*(cfeb/dmb)).toFixed(1)+"%)</font>]";// ;Bad:"+bad;
+                                
+            } else { stats_out += "DMB Events: <b>" + dmb + "</b>";}
+
+	    return stats_out;
+	 }
+       } 
+   }
+   return "";
 }
 
 function showCSCCounters()  
@@ -3338,10 +3478,22 @@ get_element = document.all ?
 		<legend>
 			<a class='winTitle' href='#' onClick='showHide("runs_list");'>Runs</a>
 		</legend>
+
+		<a target="_blank" href=http://csc-c2d08-13.cms:20560/urn:xdaq-application:lid=1451/><b><font color="red" size="2">Browse results from old DQM node</font></b></a>
 		
 		<div id="runs_list">
 			
 		</div>
+
+		<div id="run_filter" title="Runs fitering">
+                    <script type="text/javascript">
+                    <!--//
+                        setRunsFilter();
+                    //-->
+                    </script>
+                </div>
+
+
 		<div id="compare_list" title="Compare selected Run DQM Results to other Runs">	
 			<label>Compare to:</label>
 			<select id="compare_selection" onChange="setCompareRun();">
@@ -3350,6 +3502,7 @@ get_element = document.all ?
 			<span title='Check to Show Known Problems'><label>Show Known Problems</label> <input checked type=checkbox  id="showknown" onclick="selectShowKnownMode();"></span><br>
 			<span title='Check to Mark Low Stats Errors'><label>Mark Low Stats Errors</label> <input checked type=checkbox  id="marklowstats" onclick="selectMarkLowStatsErrs();"></span><br>
 		</div>
+
 		<div title="Display Filters for DQM Reports">
 			<span title="Select Problem Severity Level Filter">
 			<label>Problem Severity Filter:</label>
