@@ -2056,7 +2056,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                               if (( ch<=3 && icfeb==0 ) || ( ch>=30  && (icfeb==(nCFEBs-1)) )
                                                   || ( ME11 && ch<=3 && icfeb==4 )
                                                   || ( ch<=3 && icfeb>0 && (badCFEBs[icfeb-1]==1) )) continue;
-                                              if ( (nentries >= (50*32*nActiveCFEBs)) && (ch_val <= 0.05)
+                                              if ( (nentries >= (40*32*nActiveCFEBs)) && (ch_val <= 0.05)
                                                    && !isDeadLowComps && !isNoisyComps && !isNoisyCompsChan )
                                                 {
                                                   std::string diag = Form("CFEB Dead Comparators channel: CFEB%d Layer%d HStrip%d",
@@ -2142,8 +2142,8 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                             if ( ( ch<=3 && icfeb==0 ) || ( ch>=30  && icfeb==(nCFEBs-1) )
                                                  || ( ME11 && ch<=3 && icfeb==4 )
                                                  || ( ch<=3 && icfeb>0 && (badCFEBs[icfeb-1]==1) )) continue;
-                                            if ( (nentries >= (50*32*nActiveCFEBs)) && (ch_val <= 0.05)
-                                                 && !isDeadLowComps && isNoisyComps && !isNoisyCompsChan)
+                                            if ( (nentries >= (40*32*nActiveCFEBs)) && (ch_val <= 0.05)
+                                                 && !isDeadLowComps && !isNoisyComps && !isNoisyCompsChan)
                                               {
                                                 std::string diag = Form("CFEB Dead Comparator channel: CFEB%d Layer%d Ch#%d HStrip%d",
                                                                         icfeb+1, ilayer, ch, ch+icfeb*32);
