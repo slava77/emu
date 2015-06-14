@@ -402,7 +402,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
       int csc_cntr=0;
       uint32_t min_events=400;
       double rms_limit = 1.81;
-      if (theFormatVersion == 2013) rms_limit = 1.71;
+      if (theFormatVersion == 2013) rms_limit = 1.91;
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
@@ -437,8 +437,8 @@ int EmuPlotter::generateOnlineReport(std::string runname)
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
       uint32_t min_events=400;
-      double rms_limit = 2.11;
-      if (theFormatVersion == 2013) rms_limit = 1.91;
+      double rms_limit = 2.31;
+      // if (theFormatVersion == 2013) rms_limit = 1.91;
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {

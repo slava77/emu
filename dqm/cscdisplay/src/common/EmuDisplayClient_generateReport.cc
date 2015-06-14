@@ -782,7 +782,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
       int csc_cntr=0;
       uint32_t min_events=200;
       // double rms_limit = 1.81;
-      double rms_limit = 1.5; // Post-LS1
+      double rms_limit = 1.91; // Post-LS1
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
@@ -816,7 +816,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
       int csc_cntr=0;
       uint32_t min_events=200;
       // double rms_limit = 2.11;
-      double rms_limit = 1.7; // Post-LS1
+      double rms_limit = 2.31; // Post-LS1
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
