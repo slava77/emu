@@ -855,6 +855,7 @@ bool Test_CFEB04::checkResults(std::string cscID)
 
 double Test_CFEB04::fivePoleFitTime( int tmax,  double* adc, double t_peak)
 {
+  double tb[4] = {200., 250., 300., 350.};
   double fpNorm   = adc[1]; // this is tmax bin
   double t0       = 0.;
   double t0peak   = 109.6;   // this is offset of peak from start time t0
@@ -880,7 +881,7 @@ double Test_CFEB04::fivePoleFitTime( int tmax,  double* adc, double t_peak)
 
       for ( int j=0; j < n_fit; ++j )
         {
-          double tdif = adc[j] - tt0;
+          double tdif = tb[j] - tt0;
           if(tdif<0.0)
             {
               x[j]=0.0;
