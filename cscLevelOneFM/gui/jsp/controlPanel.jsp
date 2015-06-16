@@ -3,10 +3,10 @@
 <%@ page import="rcms.gui.servlet.pilot.FMPilotConstants"%>
 <%@ page isELIgnored="false"%>
 
-<%@ taglib prefix="rcms.menu" uri="../tld/menu.tld"%>
-<%@ taglib prefix="rcms.control" uri="../tld/control.tld"%>
-<%@ taglib prefix="rcms.globalParameter" uri="../tld/globalParameter.tld"%>
-<%@ taglib prefix="rcms.notification" uri="../tld/notification.tld"%>
+<%@ taglib prefix="rcms.menu" uri="rcms.menu"%>
+<%@ taglib prefix="rcms.control" uri="rcms.control"%>
+<%@ taglib prefix="rcms.globalParameter" uri="rcms.globalParameter"%>
+<%@ taglib prefix="rcms.notification" uri="rcms.notification"%>
 
 <!-- Optional Section to set the visibility of available commands at a given state begin -->
 <rcms.control:menuCreator />
@@ -96,7 +96,7 @@
 	<rcms.control:createButtonRenderer cssClass="button1"
 	onClickFunction="onCreateButton()" name="Create" indentation="10" /> 
 	<rcms.control:attachButtonRenderer cssClass="button1" 
-	onClickFunction="onAttachButton()" name="Attach"indentation="10" /> 
+	onClickFunction="onAttachButton()" name="Attach" indentation="10" /> 
 	<rcms.control:detachButtonRenderer cssClass="button1" 
 	onClickFunction="onDetachButton()" name="Detach" indentation="10" /> 
 	</TD>	

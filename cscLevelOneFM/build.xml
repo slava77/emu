@@ -19,7 +19,8 @@
 	<property name="rcms.libs"    value="${rcms.webapp}/WEB-INF/lib" />
 
 	<!-- jakarta tomcat properties -->
-	<property name="jakarta.common" value="${jakarta.home}/common/lib" />
+	<!-- <property name="jakarta.common" value="${jakarta.home}/common/lib" /> -->
+	<property name="jakarta.common" value="${jakarta.home}/lib" />
 	<property name="jakarta.fmdeploy" value="${jakarta.home}/webapps/ROOT/functionmanagers" />
 	<property name="jakarta.rcmslib" value="${jakarta.home}/webapps/rcms/WEB-INF/lib" />
 			
