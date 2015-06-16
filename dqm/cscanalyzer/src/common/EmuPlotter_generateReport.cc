@@ -723,6 +723,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
   std::map<std::string, bool> deadALCT;
   std::map<std::string, bool> deadCLCT;
+  std::map<std::string, bool> deadCFEBs;
   std::map<std::string, bool> hotChamber;
 
   hname = "CSC_Reporting";
@@ -753,9 +754,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   csc_cntr++;
                   h_tmp1->Fill(cnt);
                   h_tmp->Fill(cnt);
-
-                  //  std::cout << cscName << ": #Events: " << cnt << std::endl;
-
                 }
             }
           csc_type_avg_events[j] = (uint32_t)h_tmp->GetMean();
@@ -999,13 +997,10 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                               }
                             std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
                             std::string diag=std::string(Form("DMB-Input FIFO Full: %s %d events (%.3f%%)",error_type.c_str(), events, z*100));
-                            // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
                             dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_INPUT_FIFO_FULL"));
                           }
                       }
                   }
-                // ---
-
               }
           }
       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with DMB-Input FIFO Full", csc_cntr),NONE,"ALL_CHAMBERS_WITH_INPUT_FIFO_FULL"));
@@ -1201,6 +1196,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 float fract=z*100;
                 if (csc_events>min_events)
                   {
+                    deadCFEBs[cscName] = true;
                     std::string diag=Form("No CFEB Data: %.1f%%",fract);
                     dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CFEB"));
                   }

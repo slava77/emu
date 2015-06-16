@@ -148,7 +148,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
               ddu_stats[dduName] = cnt;
               ddu_evt_cntr+=cnt;
               h_tmp->Fill(cnt);
-
             }
         }
       ddu_avg_events = (uint32_t)h_tmp->GetMean();
@@ -160,7 +159,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
           int low_ddus = 0;
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDUs in Readout", ddu_cntr),NONE,"ALL_DDU_IN_READOUT"));
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Total number of DDU events: %d ", ddu_evt_cntr),NONE,"ALL_DDU_EVENTS_COUNTER"));
-//          ddu_avg_events=ddu_evt_cntr/ddu_cntr;
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Average number of events per DDU: %d ", ddu_avg_events),NONE));
           if (ddu_avg_events >= 500)   // Detect different efficiency DDUs if average number of events is reasonable (>500)
             {
@@ -184,7 +182,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                     }
                 }
             }
-
         }
       else
         {
@@ -195,7 +192,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     {
       if (debug) LOG4CPLUS_WARN(logger_,"Can not find " << hname);
     }
-
 
   // Check for DDU trailer errors
   uint32_t ddu_with_errs = 0;
@@ -216,7 +212,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
               std::string dduName = Form("DDU_%02d", i);
               ddu_err_stats[dduName] = cnt;
               ddu_err_cntr+=cnt;
-
             }
         }
       if (ddu_with_errs)
@@ -241,9 +236,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                   dqm_report.addEntry(dduName, entry.fillEntry(diag, severity, "DDU_WITH_TRAILER_ERRORS"));
                 }
             }
-
         }
-
     }
   else
     {
@@ -270,7 +263,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
               std::string dduName = Form("DDU_%02d", i);
               ddu_fmt_err_stats[dduName] = cnt;
               ddu_fmt_err_cntr+=cnt;
-
             }
         }
       if (ddu_with_fmt_errs)
@@ -320,13 +312,10 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                 ddu_live_inputs++;
                 std::string dduName = Form("DDU_%02d", i);
                 ddu_live_inp_stats[dduName] |= (1<<(j-1));
-
               }
-
           }
       dqm_report.addEntry("EMU Summary", entry.fillEntry(
                             Form("%d DDU Live Inputs detected", ddu_live_inputs),NONE,"ALL_DDU_WITH_LIVE_INPUTS"));
-
     }
   else
     {
@@ -351,7 +340,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                 ddu_inp_w_data++;
                 std::string dduName = Form("DDU_%02d", i);
                 ddu_inp_data_stats[dduName] |= (1<<(j-1));
-
               }
 
           }
@@ -375,15 +363,11 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                 }
             }
         }
-
-
     }
   else
     {
       if (debug) LOG4CPLUS_WARN(logger_,"Can not find " << hname);
     }
-
-
 
   // Check for DDU Inputs in ERROR state
   uint32_t ddu_inp_w_errors = 0;
@@ -406,10 +390,8 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                 {
                   ddu_inp_w_errors++;
                   ddu_inp_w_errors_stats[dduName] |= (1<<(j-3));
-
                 }
               if (events) ddu_inp_w_errors_ratio[dduName].push_back(std::make_pair(cnt, (cnt/events)*100.) );
-
             }
         }
       if (ddu_inp_w_errors)
@@ -435,7 +417,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                           std::string diag=Form("DDU Input #%d: detected ERROR state in %d events, (%f%%)",i+1,
                                                 ddu_inp_w_errors_ratio[dduName][i].first, fract );
                           dqm_report.addEntry(dduName, entry.fillEntry(diag, severity, "DDU_INPUT_IN_ERROR_STATE" ));
-
                         }
                     }
                 }
@@ -469,10 +450,8 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                 {
                   ddu_inp_w_warn++;
                   ddu_inp_w_warn_stats[dduName] |= (1<<(j-3));
-
                 }
               if (events) ddu_inp_w_warn_ratio[dduName].push_back(std::make_pair(cnt, (cnt/events)*100.) );
-
             }
         }
 
@@ -501,8 +480,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                 }
             }
         }
-
-
     }
   else
     {
@@ -517,7 +494,8 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
   std::map<std::string, uint32_t> csc_stats;
   std::map<std::string, bool> deadALCT;
   std::map<std::string, bool> deadCLCT;
-
+  std::map<std::string, bool> deadCFEBs;
+  std::map<std::string, bool> hotChamber;
 
   hname = "CSC_Reporting";
   me = findME("EMU", hname);
@@ -592,6 +570,7 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                                                 csc_type_avg_events[j]);
                           dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_HOT_CHAMBER"));
                           hot_cscs++;
+                          hotChamber[cscName] = true;
                           isHotCSCPresent = true;
                         }
                       else if (csc_stats[cscName] >= 20*csc_avg_events)
@@ -601,9 +580,9 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                                                 (int)csc_avg_events);
                           dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_HOT_CHAMBER"));
                           hot_cscs++;
+                          hotChamber[cscName] = true;
                           isHotCSCPresent = true;
                         }
-
                     }
                 }
 
@@ -623,12 +602,9 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                           dqm_report.addEntry(cscName, entry.fillEntry(diag, TOLERABLE, "CSC_LOW_EFF_CHAMBER"));
                           low_cscs++;
                         }
-
                     }
                 }
-
             }
-
           if (hot_cscs) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d Hot CSCs", hot_cscs), CRITICAL, "ALL_HOT_CHAMBERS"));
           if (low_cscs) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d Low Efficiency CSCs", low_cscs), TOLERABLE, "ALL_LOW_EFF_CHAMBERS"));
         }
@@ -638,9 +614,6 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     {
       if (debug) LOG4CPLUS_WARN(logger_,"Can not find " << hname);
     }
-
-
-
 
   // == Check for chambers with Format Errors
   hname =  "DMB_Format_Errors_Fract";
@@ -719,15 +692,30 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
             if (round(z*100)>95.)
               {
                 csc_cntr++;
-                // std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
-                deadALCT[cscName]=false;
                 uint32_t csc_events = csc_stats[cscName];
+                float fract=z*100;
+                deadALCT[cscName]=false;
                 if (csc_events>min_events)
                   {
-                    deadALCT[cscName]=true;
-
+                    deadALCT[cscName] = true;
+                    if (!hotChamber[cscName])
+                      {
+                        std::string diag=Form("No ALCT Data: %.1f%%",fract);
+                        dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_WITHOUT_ALCT"));
+                      }
+                  }
+                else
+                  {
+                    if ((csc_events > 50) && (z == 1.))
+                      {
+                        if (!hotChamber[cscName])
+                          {
+                            std::string diag=Form("No ALCT Data (low stats): %.1f%%",fract);
+                            dqm_report.addEntry(cscName, entry.fillEntry(diag, TOLERABLE, "CSC_WITHOUT_ALCT"));
+                          }
+                      }
                   }
               }
           }
@@ -740,15 +728,39 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
+      uint32_t min_events=100;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
             double z = h->GetBinContent(i, j);
-            if (z>0.95)
+            if (round(z*100)>95.)
               {
                 csc_cntr++;
+                std::string cscTag(Form("CSC_%03d_%02d", i, j));
+                std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
+                uint32_t csc_events = csc_stats[cscName];
+                float fract=z*100;
+                if (csc_events>min_events)
+                  {
+                    deadCLCT[cscName] = true;
+                    if (!hotChamber[cscName])
+                      {
+                        std::string diag=Form("No CLCT Data: %.1f%%",fract);
+                        dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CLCT"));
+                      }
+                  }
+                else
+                  {
+                    if ((csc_events > 50) && (z == 1.))
+                      {
+                        if (!hotChamber[cscName])
+                          {
+                            std::string diag=Form("No CLCT Data (low stats): %.1f%%",fract);
+                            dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_WITHOUT_CLCT"));
+                          }
+                      }
+                  }
               }
-
           }
       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs without CLCT data", csc_cntr), NONE, "ALL_CHAMBERS_WITHOUT_CLCT"));
     }
@@ -759,20 +771,36 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
     {
       TH2D* h = reinterpret_cast<TH2D*>(me);
       int csc_cntr=0;
+      uint32_t min_events=100;
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         for (int j=int(h->GetYaxis()->GetXmin()); j <= int(h->GetYaxis()->GetXmax()); j++)
           {
             double z = h->GetBinContent(i, j);
-            if (z>0.95)
+            if (round(z*100)>95.)
               {
                 csc_cntr++;
+                std::string cscTag(Form("CSC_%03d_%02d", i, j));
+                std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
+                uint32_t csc_events = csc_stats[cscName];
+                float fract=z*100;
+                if (csc_events>min_events)
+                  {
+                    deadCFEBs[cscName] = true;
+                    std::string diag=Form("No CFEB Data: %.1f%%",fract);
+                    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CFEB"));
+                  }
+                else
+                  {
+                    if ((csc_events > 50) && (z == 1.))
+                      {
+                        std::string diag=Form("No CFEB Data (low stats): %.1f%%",fract);
+                        dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_WITHOUT_CFEB"));
+                      }
+                  }
               }
-
           }
       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs without CFEB data", csc_cntr),NONE,"ALL_CHAMBERS_WITHOUT_CFEB"));
     }
-
-
 
   // == Check for missing ALCT Timing issues
   me = findME("EMU", "CSC_ALCT0_BXN_rms");
@@ -787,22 +815,21 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
             std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
-            double limit = rms_limit;
-            // if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 0.2; // Handle ME42 chambers, which have different timing pattern
-            double z = h->GetBinContent(i, j+1);
-            double avg = round(z*10.)/10.;
-            if (avg > limit)
+            if (!deadALCT[cscName])   ///* Don't check ALCT Timing if ALCT is dead on this chamber
               {
-                uint32_t csc_events = csc_stats[cscName];
-                if (csc_events>min_events)
+                double limit = rms_limit;
+                // if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 0.2; // Handle ME42 chambers, which have different timing pattern
+                double z = h->GetBinContent(i, j+1);
+                double avg = round(z*10.)/10.;
+                if (avg > limit)
                   {
-		    csc_cntr++;
-
-                   // std::string diag=Form("ALCT Timing problem (ALCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, rms_limit);
-                   // dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_ALCT_TIMING"));
+                    uint32_t csc_events = csc_stats[cscName];
+                    if (csc_events>min_events)
+                      {
+                        csc_cntr++;
+                      }
                   }
               }
-
           }
       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with ALCT Timing Problems", csc_cntr),NONE,"ALL_CHAMBERS_ALCT_TIMING"));
     }
@@ -821,10 +848,9 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
             std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
-            if (!deadALCT[cscName])   ///* Don't check CLCT Timing if ALCT is dead on this chamber
+            if (!deadCLCT[cscName])   ///* Don't check CLCT Timing if CLCT is dead on this chamber
               {
                 double limit = rms_limit;
-                // if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern
                 double z = h->GetBinContent(i, j+1);
                 double avg = round(z*10.)/10.;
                 if (avg > limit)
@@ -832,18 +858,10 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
                     uint32_t csc_events = csc_stats[cscName];
                     if (csc_events>min_events)
                       {
-			csc_cntr++;
-
-                      //  std::string diag=Form("CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, rms_limit);
-                      //  dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CLCT_TIMING"));
+                        csc_cntr++;
                       }
                   }
               }
-            else
-              {
-
-              }
-
           }
       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with CLCT Timing Problems", csc_cntr),NONE,"ALL_CHAMBERS_CLCT_TIMING"));
     }
@@ -883,14 +901,11 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
               {
                 csc_cntr++;
               }
-
           }
       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with CFEB B-Words", csc_cntr), NONE, "ALL_CHAMBERS_WITH_BWORDS"));
     }
   return 0;
 }
-
-
 
 // == Save DQM Report to file
 std::string EmuDisplayClient::getReportJSON(std::string runname)
@@ -1045,10 +1060,10 @@ int EmuDisplayClient::prepareReportFacts(std::string runname)
     {
       if (itr->first.find("DDU") == 0)
         {
-	  std::string ddu_id = itr->first;
+          std::string ddu_id = itr->first;
           ///** Replace RUI numbering with Post-LS1 FED/DDU id
-          // Not needed anymore 
-          /*	
+          // Not needed anymore
+          /*
           ddu_id = emu::dqm::utils::replaceRUIwithDDUId(itr->first);
           if (ddu_id == "")
             {

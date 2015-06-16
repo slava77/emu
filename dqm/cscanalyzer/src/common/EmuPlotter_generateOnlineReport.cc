@@ -32,6 +32,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
   std::map<std::string, uint32_t> csc_stats;
   std::map<std::string, bool> deadALCT;
   std::map<std::string, bool> deadCLCT;
+  std::map<std::string, bool> deadCFEBs;
 
   hname = "DMB_Reporting";
   me = findME("EMU", hname,  sourcedir);
@@ -272,7 +273,6 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                       }
                   }
                 // ---
-
               }
           }
     }
@@ -299,21 +299,8 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 if (csc_events>min_events)
                   {
                     deadALCT[cscName]=true;
-
-                    std::string diag=Form("No ALCT Data: %.1f%%",fract);
-                    dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_WITHOUT_ALCT"));
-                  }
-                else
-                  {
-                    if ((csc_events > 50) && (z == 1.))
-                      {
-                        std::string diag=Form("No ALCT Data (low stats): %.1f%%",fract);
-
-                        dqm_report.addEntry(cscName, entry.fillEntry(diag, TOLERABLE, "CSC_WITHOUT_ALCT"));
-                      }
                   }
               }
-
           }
     }
 
@@ -338,20 +325,8 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 if (csc_events>min_events)
                   {
                     deadCLCT[cscName]=true;
-
-                    std::string diag=Form("No CLCT Data: %.1f%%",fract);
-                    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CLCT"));
-                  }
-                else
-                  {
-                    if ((csc_events > 50) && (z == 1.))
-                      {
-                        std::string diag=Form("No CLCT Data (low stats): %.1f%%",fract);
-                        dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_WITHOUT_CLCT"));
-                      }
                   }
               }
-
           }
     }
 
@@ -375,19 +350,9 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 float fract=z*100;
                 if (csc_events>min_events)
                   {
-                    std::string diag=Form("No CFEB Data: %.1f%%",fract);
-                    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CFEB"));
-                  }
-                else
-                  {
-                    if ((csc_events > 50) && (z == 1.) )
-                      {
-                        std::string diag=Form("No CFEB Data (low stats): %.1f%%",fract);
-                        dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_WITHOUT_CFEB"));
-                      }
+                    deadCFEBs[cscName]=true;
                   }
               }
-
           }
     }
 
@@ -405,7 +370,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
             std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
-            if (!deadALCT[cscName])   ///* Don't check CLCT Timing if ALCT is dead on this chamber
+            if (!deadALCT[cscName])   ///* Don't check ALCT Timing if ALCT is dead on this chamber
               {
                 double limit = rms_limit;
                 if (emu::dqm::utils::isME42(cscName)) limit = rms_limit + 0.4; // Handle ME42 chambers, which have different timing pattern
@@ -422,7 +387,6 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                       }
                   }
               }
-
           }
     }
 
@@ -439,7 +403,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
             std::string cscName = Form("%s/%02d", (emu::dqm::utils::getCSCTypeName(j)).c_str(), i);
-            if (!deadCLCT[cscName])   ///* Don't check CLCT Timing if ALCT is dead on this chamber
+            if (!deadCLCT[cscName])   ///* Don't check CLCT Timing if CLCT is dead on this chamber
               {
                 double limit = rms_limit;
                 if ((theFormatVersion == 2013) && emu::dqm::utils::isME42(cscName)) limit = rms_limit + 1.0; // Handle ME42 chambers, which have different timing pattern
@@ -456,7 +420,6 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                       }
                   }
               }
-
           }
     }
 
