@@ -1202,7 +1202,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 if (csc_events>min_events)
                   {
                     std::string diag=Form("No CFEB Data: %.1f%%",fract);
-
                     dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CFEB"));
                   }
                 else
@@ -1210,7 +1209,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                     if ((csc_events > 50) && (z == 1.))
                       {
                         std::string diag=Form("No CFEB Data (low stats): %.1f%%",fract);
-
                         dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_WITHOUT_CFEB"));
                       }
                   }
@@ -1247,8 +1245,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                     if (csc_events>min_events)
                       {
                         std::string diag=Form("ALCT Timing problem (ALCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, limit);
-
-                        dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_ALCT_TIMING"));
+                        dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_ALCT_TIMING"));
                       }
                   }
               }
@@ -1285,8 +1282,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                     if (csc_events>min_events)
                       {
                         std::string diag=Form("CLCT Timing problem (CLCT0 BXN - L1A BXN) RMS: %.3f ( >%.2f )",z, limit);
-
-                        dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CLCT_TIMING"));
+                        dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CLCT_TIMING"));
                       }
                   }
               }
@@ -1401,10 +1397,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
           continue;
         }
 
-      std::vector< std::pair<int,int> > hvSegMap = emu::dqm::utils::getHVSegmentsMap(cscName);
 
       // -- Anode Occupancies and HV Segments Checks
-
+      std::vector< std::pair<int,int> > hvSegMap = emu::dqm::utils::getHVSegmentsMap(cscName);
       double low_hvseg_thresh = 0.15;
       double low_anode_thresh = 0.10;
       double high_anode_thresh = 10.;
@@ -1529,7 +1524,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       if (me && me2)
         {
           TH1D* h = reinterpret_cast<TH1D*>(me);
-          // TH1D* h1 = reinterpret_cast<TH1D*>(me2);
           unsigned int entries = h->GetEntries();
 
           vector<double> cfebs;
@@ -1542,9 +1536,8 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
               double val=0;
 
 
-              for (int icfeb=0; icfeb< nCFEBs; icfeb++)
+              for (int icfeb=0; icfeb<nCFEBs; icfeb++)
                 {
-                  // val = round(h->GetBinContent(icfeb+1));
                   val = h->GetBinContent(icfeb+1);
                   cfebs.push_back(val);
                   if (val>cfeb_hot_thresh)
@@ -1591,7 +1584,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 }
 
 
-              for (int icfeb=0; icfeb< nCFEBs; icfeb++)
+              for (int icfeb=0; icfeb<nCFEBs; icfeb++)
                 {
 
                   double z=cfebs[icfeb];
@@ -1682,23 +1675,22 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
                 }
             }
-
           if (me) delete me;
           if (me2) delete me2;
-
-
         }
 
       int nActiveCFEBs = nCFEBs-nbadCFEBs;
 
-
+      // List of layers with lowered HV for ME11
       std::vector<bool> loweredHVsegment(6,false);
+
       if  ((nActiveCFEBs > 0) && !hasHotCFEB)
         {
           // Expecting active CFEBs
 
           double avgSCAlayer=0;
           std::vector<double> layerSCAsums;
+
           // -- CFEB SCA Occupancies Checks
           for (int ilayer=1; ilayer<=6; ilayer++)
             {
@@ -1718,11 +1710,10 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   double low_sca_thresh = 0.2; // !!! Rasing default theshold from 0.2 to 0.55 to be able to detect cable swap problems;
                   double high_sca_thresh = 3.0;
 
-                  // std::cout << cscName << " ly " << ilayer << ", sca sum: " << allSCAsum;
                   if ( nentries >= (10*16*nActiveCFEBs) )
                     {
                       // -- Check for dead SCAs CFEBs
-                      for (int icfeb=0; icfeb < nCFEBs; icfeb++)
+                      for (int icfeb=0; icfeb<nCFEBs; icfeb++)
                         {
 
                           if (badCFEBs[icfeb] == 1)
@@ -1733,8 +1724,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
                           double cfeb_sca_sum = h->Integral(icfeb*16+1, (icfeb+1)*16);
                           SCAsums.push_back(cfeb_sca_sum);
-                          // std::cout << ", " << cfeb_sca_sum;
-
 
                           if (cfeb_sca_sum == 0)
                             {
@@ -1742,16 +1731,13 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                               std::string diag=Form("CFEB No SCA Data: CFEB%d Layer%d", icfeb+1, ilayer);
                               dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE,"CSC_CFEB_NO_SCA_DATA"));
                               noSCAs++;
-                              // std::cout << cscName << " " << diag << std::endl;
                             }
                         }
-                      // std::cout << ", " << allSCAsum/(nActiveCFEBs-noSCAs) << std::endl;
                     }
                   else
                     {
-                      // if ( (nentries == 0) && ((int)csc_stats[cscName] >= (10*16*nActiveCFEBs)) && !ME11 )
                       if ( (nentries == 0) && ((int)csc_stats[cscName] >= (5*16*nActiveCFEBs)))
-                        for (int icfeb=0; icfeb < nCFEBs; icfeb++)
+                        for (int icfeb=0; icfeb<nCFEBs; icfeb++)
                           {
                             noSCAs++;
                             if (ME11 && (no_hv_segments[ilayer].size() > 0)) continue; // Skip reporting for ME11 with no HV segment
@@ -1768,14 +1754,11 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                           // Check that still active CFEBs present
                           double avg_sca_occupancy = allSCAsum/(nActiveCFEBs-noSCAs);
                           double avg_sca_ch_occupancy = (avg_sca_occupancy/(16*nentries))*100;
-                          // if (ME11) std::cout << cscName << " " << ilayer << "> avg SCA: " << avg_sca_occupancy << ", " << std::endl;
                           for (int icfeb=0; icfeb < nCFEBs; icfeb++)
                             {
-                              // std::cout << "CFEB"<< (icfeb+1) << ": " << (double(SCAsums[icfeb])) << ", ";
                               // Avg. strip SCA occupancy > 5.
                               bool isLowEff = false;
                               double cfeb_sca_sum = SCAsums[icfeb];
-
 
                               if (theFormatVersion != 2013)
                                 {
@@ -1808,7 +1791,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                           isLowEff = true;
                                         }
                                     }
-                                  else
+                                  else // FormatVersion2013
                                     {
 
                                       if ( (cfeb_sca_sum < low_sca_thresh*avg_sca_occupancy) && (lowEffCFEBs[icfeb] != 1))
@@ -1855,14 +1838,12 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                         }
 
                                       if (ch_val > high_sca_thresh*avg_sca_ch_occupancy )
-                                        // if ((avg_strip_occupancy > 40) && (ch_ratio > high_sca_thresh*avg_strip_occupancy))
                                         {
                                           std::string diag = Form("CFEB Hot/Noisy SCA channel: CFEB%d Layer%d Ch#%d (occupancy %.1f times > average)",
                                                                   icfeb+1, ilayer, ch, ch_val/avg_sca_ch_occupancy);
                                           dqm_report.addEntry(cscName, entry.fillEntry(diag,MINOR, "CSC_CFEB_SCA_NOISY_CHANNEL"));
                                         }
 
-                                      // if ( nentries >= (100*16*nActiveCFEBs) )
                                       if (avg_strip_occupancy > 40)
                                         {
                                           double ch_thresh = 0.02;
@@ -1875,7 +1856,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                               /// ME11 DCFEB3 ch16 and DCFEB4 ch1 have lower occupancy
                                               if ( ME11 && ( ((ch==16) && (icfeb == 3)) || ((ch==1) && (icfeb == 4)) ) ) ch_thresh = 0.0;
                                             }
-                                          // if (ch_val == 0 && !isLowEff && (lowEffCFEBs[icfeb] != 1))
+
                                           if ((ch_ratio < ch_thresh) && !isLowEff && (lowEffCFEBs[icfeb] != 1))
                                             {
                                               std::string diag = Form("Dead SCA channel: CFEB%d Layer%d Ch#%d (occupancy %.3f < %.2f )", icfeb+1, ilayer, ch, ch_ratio, ch_thresh);
@@ -1885,14 +1866,12 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                     }
                                 }
                             }
-                          // std::cout << std::endl;
                         }
                       if (me) delete me;
-
                     }
                 }
-
             }
+
           //* Try to detect lowered ME11 HV segment
           avgSCAlayer/=6;
           for (unsigned int i=0; i < layerSCAsums.size(); i++)
@@ -1920,7 +1899,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
           for (int ilayer=1; ilayer<=6; ilayer++)
             {
               std::string name = Form("CLCT_Ly%d_Rate",ilayer);
-
               me = findME(CSC_folders[i], name , sourcedir);
               if (me)
                 {
@@ -1933,11 +1911,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   double low_comp_thresh = 0.1;
                   double high_comp_thresh = 3.0;
 
-                  // std::cout << cscName << " ly " << ilayer << ", comp sum: " << allCompsum;
-
                   if ( nentries >= (5*32*nActiveCFEBs) )
                     {
-                      for (int icfeb=0; icfeb < nCFEBs; icfeb++)
+                      for (int icfeb=0; icfeb<nCFEBs; icfeb++)
                         {
 
                           if (badCFEBs[icfeb] == 1 )
@@ -1947,8 +1923,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                             }// Skip dead CFEBs
 
                           double cfeb_comp_sum = h->Integral(icfeb*32+1, (icfeb+1)*32);
-
-                          // std::cout << ", " << cfeb_comp_sum;
 
                           if (theFormatVersion != 2013)
                             {
@@ -1964,7 +1938,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
                           if ( (cfeb_comp_sum == 0) && (lowEffCFEBs[icfeb] != 1))
                             {
-
                               std::string diag=Form("CFEB No Comparators Data: CFEB%d Layer%d", icfeb+1, ilayer);
                               dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_NO_COMPARATORS_DATA"));
                               noComps++;
@@ -1976,11 +1949,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                   if (isBeam && ME11 && (icfeb==4)) noComps++; // Don't count ME11 CFEB5 occupancy during Beam
                                 }
                             }
-
                         }
                     }
 
-                  // std::cout << ", " << allCompsum/(nActiveCFEBs-noComps) << std::endl;
 
                   if ( nentries >= (25*32*nActiveCFEBs) )
                     {
@@ -1994,11 +1965,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                               double avg_eff = (100*Compsums[icfeb])/(32.*csc_stats[cscName]);
                               double avg = round(avg_eff*100.)/100.;
 
-                              /*
-                              std::cout << cscName << " ly" << ilayer << " cfeb" << (icfeb+1) << ": "
-                              << Compsums[icfeb] << ", " << avg_eff << ", " << avg <<std::endl;
-                                                 */
-
                               if (Compsums[icfeb])
                                 {
                                   if (theFormatVersion != 2013)
@@ -2008,7 +1974,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                           // Standard occupancy check logic for Cosmic run
 
                                           bool isDeadLowComps = false;
-                                          // if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
                                           if ( (avg < low_comp_thresh) && (lowEffCFEBs[icfeb] != 1) && (!loweredHVsegment[ilayer-1]))
                                             {
                                               if (avg < 0.01)
@@ -2026,7 +1991,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                             }
 
                                           bool isNoisyComps = false;
-                                          // if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
                                           if ( avg >= high_comp_thresh)
                                             {
                                               std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f > %.1f threshold)", icfeb+1, ilayer,
@@ -2041,8 +2005,8 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                               double ch_val = h->GetBinContent(ch+icfeb*32-1);
                                               if ( (ch_val > 8*avg_comp_ch_occupancy) && !isNoisyComps)
                                                 {
-                                                  std::string diag = Form("CFEB Hot/Noisy Comparator channel: CFEB%d Layer%d HStrip%d (occupancy %.1f times > average)",
-                                                                          icfeb+1, ilayer, ch+icfeb*32,
+                                                  std::string diag = Form("CFEB Hot/Noisy Comparator channel: CFEB%d Layer%d Ch#%d HStrip%d (occupancy %.1f times > average)",
+                                                                          icfeb+1, ilayer, ch, ch+icfeb*32,
                                                                           ch_val/avg_comp_ch_occupancy);
                                                   dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_CFEB_COMPARATORS_NOISY_CHANNEL"));
                                                   isNoisyCompsChan = true;
@@ -2064,15 +2028,14 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                                   dqm_report.addEntry(cscName, entry.fillEntry(diag,MINOR, "CSC_CFEB_COMPARATORS_DEAD_CHANNEL"));
                                                   isDeadCompsChan = true;
                                                 }
-
                                             }
+
                                         }
                                       else if (ME11 && icfeb==4)  // Occupancy check logic for ME11 CFEB5 with Beam run
                                         {
                                           double me11_cfeb5_low_comp_thresh = 1.0;
                                           double me11_cfeb5_high_comp_thresh = 5.;
                                           if ( (avg < me11_cfeb5_low_comp_thresh) && (lowEffCFEBs[icfeb] != 1) && (!loweredHVsegment[ilayer-1]) )
-                                            // if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
                                             {
                                               std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% threshold)", icfeb+1, ilayer,
                                                                     avg, me11_cfeb5_low_comp_thresh);
@@ -2080,7 +2043,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                             }
 
                                           if ( avg >= me11_cfeb5_high_comp_thresh )
-                                            // if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
                                             {
                                               std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f%% > %.1f%% threshold)", icfeb+1, ilayer,
                                                                     avg, me11_cfeb5_high_comp_thresh);
@@ -2088,13 +2050,12 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                             }
                                         }
                                     }
-                                  else
+                                  else  // == Post-LS1
                                     {
                                       // if ( !isBeam )
                                       {
 
                                         bool isDeadLowComps = false;
-                                        // if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
                                         if ( (avg < low_comp_thresh) && (lowEffCFEBs[icfeb] != 1) && (!loweredHVsegment[ilayer-1]))
                                           {
                                             if (avg < 0.01)
@@ -2112,7 +2073,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                           }
 
                                         bool isNoisyComps = false;
-                                        // if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
                                         if ( avg >= high_comp_thresh)
                                           {
                                             std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f > %.1f threshold)", icfeb+1, ilayer,
@@ -2151,7 +2111,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                                 isDeadCompsChan = true;
                                               }
                                           }
-
                                       }
                                     }
                                 }
@@ -2159,8 +2118,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                         }
                     }
                   if (me) delete me;
-
-
                 }
             }
         } // expecting active CFEBs
@@ -2188,7 +2145,8 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
                 float fract=z*100;
                 DQM_SEVERITY severity=NONE;
-                if (events > 10)
+
+                if (events > 25)
                   {
                     if (fract >= 80.) severity=CRITICAL;
                     else if (fract >= 20.) severity=SEVERE;
@@ -2197,7 +2155,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   }
 
                 std::string diag=Form("CFEB B-Words: %d events (%.3f%%)",events, z*100);
-
                 dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_BWORDS"));
               }
 
