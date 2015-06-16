@@ -979,7 +979,7 @@ void EmuMonitor::doStop()
           if ( (timer_ != NULL) && (!timer_->isActive()) )
             {
               timer_->setPlotter(plotter_);
-              timer_->setROOTFileName(getROOTFileName());
+              timer_->setROOTFileName(getROOTFileName("final"));
               timer_->activate();
             }
         }
@@ -1738,7 +1738,7 @@ void EmuMonitor::resetMonitor()
         {
           plotter_->updateFractionHistos();
           plotter_->updateCSCFractionHistos();
-          plotter_->saveToROOTFile(getROOTFileName());
+          plotter_->saveToROOTFile(getROOTFileName("final"));
         }
       sessionEvents_	= 0;
       prev_sessionEvents_= 0;
