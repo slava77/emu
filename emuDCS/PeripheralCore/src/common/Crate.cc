@@ -543,9 +543,7 @@ int Crate::configure(int c, int ID) {
 
   std::vector<DAQMB*> myDmbs = this->daqmbs();
 
-  std::cout << " HardReset, then lowv_onoff " << std::endl;
-  ccb->hardReset();
-  ::sleep(1);
+  std::cout << " Lowv_onoff, then hard reset " << std::endl;
   for (unsigned dmb=0; dmb<myDmbs.size(); dmb++) 
   {
     std::cout << "DMB slot " << myDmbs[dmb]->slot() 
@@ -563,6 +561,8 @@ int Crate::configure(int c, int ID) {
     myDmbs[dmb]->restoreMotherboardIdle();
   }
   ::sleep(2);
+  ccb->hardReset();
+  ::sleep(1);
 
   if(!IsAlive())
   {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
