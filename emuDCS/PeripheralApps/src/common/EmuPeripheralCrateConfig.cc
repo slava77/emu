@@ -1359,8 +1359,11 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
 //////////////////////////////////////////////////////////////////////////
 void EmuPeripheralCrateConfig::CrateTests(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
-  if(!parsed) ParsingXML();  
   MyHeader(in,out,"CrateTests");
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
@@ -1983,6 +1986,10 @@ void EmuPeripheralCrateConfig::CrateDumpConfiguration(xgi::Input * in, xgi::Outp
 ////////////////////////////////////////////////////////////////////////////////////
 void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   char Name[100];
   sprintf(Name,"CSC Configuration Status");
@@ -3189,6 +3196,10 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 //
 void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   MyHeader(in,out,"CSC DOC daily checklist");
   //
@@ -4006,6 +4017,10 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
 ////////////////////////////////////////////////////////////////////////////////////
 void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   int initial_crate = current_crate_;
   //
