@@ -697,7 +697,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                               tcnt++;
                             }
                         }
-                      if (tcnt && (((tsum/tcnt)/avg_cfeb_occup)>0.5) && (avg_cfeb_occup > 9.0))
+                      if (tcnt && (((tsum/tcnt)/avg_cfeb_occup)>0.75) && (avg_cfeb_occup > 6.0))
                         {
                           // if (!isBeam) LOG4CPLUS_INFO(logger, cscName << " --> Run2 beam collisions data detected");
                           isBeam = true;
@@ -783,7 +783,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                             }
                           else if (!isBeam && ME11 && icfeb >= 4)
                             {
-                              if ((z < 1.) || round(z) < 0.10*avg_cfeb_occup)
+                              if ((z < 0.91) || round(z) < 0.05*avg_cfeb_occup)
                                 {
                                   std::string diag=Form("CFEB Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
                                   lowEffCFEBs[icfeb]=1;
@@ -933,7 +933,8 @@ int EmuPlotter::generateOnlineReport(std::string runname)
 
                                     }
 
-                                  if ( cfeb_sca_sum >= high_sca_thresh*avg_sca_occupancy )
+                                  if ( cfeb_sca_sum >= high_sca_thresh*avg_sca_occupancy
+                                       && (isBeam || !ME11 || (ME11 && (icfeb<4))) )
                                     {
                                       std::string diag=Form("CFEB Noisy/Hot CFEB SCAs: CFEB%d Layer%d (%.1f > %.1f times from average)", icfeb+1, ilayer,
                                                             cfeb_sca_sum/avg_sca_occupancy, high_sca_thresh);
