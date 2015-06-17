@@ -552,7 +552,7 @@ int MPC::ReadMask()
      }
   }
 
-  (*MyOutput_) << "read MPC mask :" << std::hex << mask << std::dec << std::endl;
+//  (*MyOutput_) << "read MPC mask :" << std::hex << mask << std::dec << std::endl;
   return mask;
 }
 
