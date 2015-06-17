@@ -868,6 +868,10 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
 
 void EmuPeripheralCrateConfig::CFEBUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   std::vector <std::string> FuncName; 
   char Name[100];

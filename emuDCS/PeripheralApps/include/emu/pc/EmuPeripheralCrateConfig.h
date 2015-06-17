@@ -141,6 +141,8 @@ protected:
   std::ostringstream ALCT_TMB_communicationOutput[10][30];
   std::ostringstream OutputStringDMBStatus[10];
   std::ostringstream OutputStringTMBStatus[10];
+  std::ostringstream OutputStringCCBStatus;
+  std::ostringstream OutputStringMPCStatus;
   std::ostringstream OutputDMBTests[10][30];
   std::ostringstream OutputTMBTests[10][30];
   std::ostringstream OutputCCBTests[30];
@@ -529,6 +531,7 @@ private:
   void MPCnewPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MPCPRBSError(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MPCGTPReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void MPCCheckConfig(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   // CCB utils
   void CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -541,7 +544,7 @@ private:
   void CCBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CCBSignals(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void PrepareForTriggering(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  //
+  void CCBCheckConfig(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  //
   // DDU utils
   void DDUUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //

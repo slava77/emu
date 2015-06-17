@@ -18,6 +18,10 @@ namespace emu {
 /////////////////////////////////////////////////////////
 void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   char Name[100];
   sprintf(Name,"CCB status, crate=%s, slot=%d",ThisCrateID_.c_str(),thisCCB->slot());
@@ -141,6 +145,10 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
 //
 void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   std::vector <std::string> SignalName; 
   char Name[100];
@@ -279,6 +287,14 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::br() << std::endl;
   //
+  std::string CCBCheckConfig =
+    toolbox::toString("/%s/CCBCheckConfig",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CCBCheckConfig) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Check CCB Configuration");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::br() << std::endl;
+  //
   std::string ccbConfig =
     toolbox::toString("/%s/CCBConfig",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ccbConfig) << std::endl ;
@@ -313,6 +329,18 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::fieldset();
+  //
+  // Output area
+  //
+  *out << cgicc::form().set("method","GET") << std::endl ;
+  *out << cgicc::pre();
+  *out << cgicc::textarea().set("name","CCB Output").set("rows","30").set("cols","132").set("WRAP","OFF");
+  *out << "Check CCB Configuration Output:" << std::endl;
+  *out << OutputStringCCBStatus.str() << std::endl ;
+  *out << cgicc::textarea();
+  OutputStringCCBStatus.str("");
+  *out << cgicc::pre();
+  *out << cgicc::form() << std::endl ;
   //
 }
 //
@@ -350,6 +378,17 @@ void EmuPeripheralCrateConfig::CCBReadFirmware(xgi::Input * in, xgi::Output * ou
   this->CCBUtils(in,out);
   //
 }
+
+  //
+  void EmuPeripheralCrateConfig::CCBCheckConfig(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    thisCCB->RedirectOutput(&OutputStringCCBStatus);
+    thisCCB->CheckConfig(1);
+    thisCCB->RedirectOutput(&std::cout);
+    std::cout << OutputStringCCBStatus.str() << std::endl;      
+    this->CCBUtils(in,out);
+  }
 
   //
   void EmuPeripheralCrateConfig::CCBConfig(xgi::Input * in, xgi::Output * out ) 
@@ -407,6 +446,10 @@ void EmuPeripheralCrateConfig::CCBReadFirmware(xgi::Input * in, xgi::Output * ou
 //////////////////////////////////////////////////
 void EmuPeripheralCrateConfig::MPCStatus(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   char Name[100];
   sprintf(Name,"MPC status, crate=%s, slot=%d",
@@ -463,6 +506,10 @@ void EmuPeripheralCrateConfig::MPCStatus(xgi::Input * in, xgi::Output * out )
 //
 void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   char Name[100];
   char buf[200];
@@ -482,6 +529,7 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
   //
   int power_state[10];
   int powermask = thisMPC->ReadMask();
+  std::cout << "read MPC mask: " << std::hex << powermask << std::dec << std::endl;
   int power_read = powermask;
   for(int icc=0; icc<9; icc++)
   {   power_state[9-icc]= power_read & 1;
@@ -572,6 +620,15 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << cgicc::br() << std::endl ;
   //
   *out << cgicc::br() << cgicc::br() << std::endl;
+
+  std::string MPCCheckConfig =
+    toolbox::toString("/%s/MPCCheckConfig",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MPCCheckConfig) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Check MPC Configuration");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::br() << std::endl;
+  //
   std::string mpcConfig =
     toolbox::toString("/%s/MPCConfig",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",mpcConfig) << std::endl ;
@@ -663,6 +720,19 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
     *out << cgicc::form() << std::endl ;
 
   *out << cgicc::fieldset();
+  //
+  // Output area
+  //
+  *out << cgicc::form().set("method","GET") << std::endl ;
+  *out << cgicc::pre();
+  *out << cgicc::textarea().set("name","MPC Output").set("rows","30").set("cols","132").set("WRAP","OFF");
+  *out << "Check MPC Configuration Output:" << std::endl;
+  *out << OutputStringMPCStatus.str() << std::endl ;
+  *out << cgicc::textarea();
+  OutputStringMPCStatus.str("");
+  *out << cgicc::pre();
+  *out << cgicc::form() << std::endl ;
+  //
 }
 //
 void EmuPeripheralCrateConfig::MPCLoadFirmware(xgi::Input * in, xgi::Output * out ) 
@@ -698,6 +768,17 @@ void EmuPeripheralCrateConfig::MPCReadFirmware(xgi::Input * in, xgi::Output * ou
   this->MPCUtils(in,out);
   //
 }
+
+  void EmuPeripheralCrateConfig::MPCCheckConfig(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    thisMPC->RedirectOutput(&OutputStringMPCStatus);
+    thisMPC->CheckConfig();
+    thisMPC->RedirectOutput(&std::cout);
+    std::cout << OutputStringMPCStatus.str() << std::endl;      
+      
+    this->MPCUtils(in,out);
+  }
 
   void EmuPeripheralCrateConfig::MPCConfig(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)

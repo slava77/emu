@@ -316,7 +316,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCnewPRBS, "MPCnewPRBS");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCPRBSError, "MPCPRBSError");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCGTPReset, "MPCGTPReset");
- 
+  xgi::bind(this,&EmuPeripheralCrateConfig::CCBCheckConfig, "CCBCheckConfig");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MPCCheckConfig, "MPCCheckConfig"); 
   //
   //-----------------------------------------------
   // VME Controller routines
