@@ -8914,7 +8914,7 @@ std::vector<float> DAQMB::odmb_fpga_adc()
   return readout;
 }
 
-int DAQMB::DCSread2(char *data)
+int DAQMB::DCSread2(char *data, bool read_dcfeb)
 {
 
 // add DCFEB monitoring info here
@@ -8936,6 +8936,8 @@ int DAQMB::DCSread2(char *data)
 
   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)
   {
+    if(read_dcfeb)
+    {
       std::vector<float> fsysmon=dcfeb_fpga_monitor(cfebs_[lfeb]);
       int febnum=cfebs_[lfeb].number();
       for(unsigned i=0; i<fsysmon.size(); i++)
@@ -8948,7 +8950,8 @@ int DAQMB::DCSread2(char *data)
       {
          data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+i]=int(dadc[i]*100);
       }
-      retn += TOTAL_DCFEB;
+    }
+    retn += TOTAL_DCFEB;
   }
   std::vector<float> dsysmon=odmb_fpga_adc();
   for(unsigned int i=0; i<dsysmon.size(); i++)

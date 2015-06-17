@@ -798,7 +798,7 @@ public:
   void daqmb_do(int ncmd,void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd, int dev);   
   void dlog_do(int ncmd, void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd);
   void odmb_fpga_call(int inst, unsigned data, char *outbuf);
-  int DCSread2(char *data);
+  int DCSread2(char *data, bool read_dcfeb=true);
   int read_cfeb_done();
   int read_qpll_state();
   int read_odmb_id();

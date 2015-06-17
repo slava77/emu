@@ -892,7 +892,7 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
   return;
 }
 
-void Crate::MonitorDCS2(int cycle, char * buf, unsigned mask) 
+void Crate::MonitorDCS2(int cycle, char * buf, unsigned mask, bool read_dcfeb) 
 {
   // flag  bits 13-10:  if !=0, bad TMB/DMB # (1-9)
   // flag  bit pattern 8-0:  for each TMB/DMB
@@ -922,7 +922,7 @@ void Crate::MonitorDCS2(int cycle, char * buf, unsigned mask)
 
     if(IsAlive() && Dversion==2 && (dmask & (1<<i))==0)
     {  
-        rn=myDmbs[i]->DCSread2(buf+4+i*2*TOTAL_DCS_COUNTERS);
+        rn=myDmbs[i]->DCSread2(buf+4+i*2*TOTAL_DCS_COUNTERS, read_dcfeb);
         if( rn>0) flag |= (1<<i);
         else if(rn<0) 
         {  
