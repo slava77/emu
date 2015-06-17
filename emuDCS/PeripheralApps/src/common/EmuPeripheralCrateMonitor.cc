@@ -129,6 +129,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   slow_on = true;
   extra_on = true;
   reload_vcc = true;
+  read_dcfeb = true;
   fast_count = 0;
   slow_count = 0;
   extra_count = 0;
@@ -369,6 +370,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
       bool dmbpoweroff[9];
       unsigned short ccbtag;
 
+      bzero(buf, 8000);
       if(cycle<1 || cycle>3) return;
       if(total_crates_<=0) return;
       //update infospaces
@@ -391,7 +393,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
           if(cycle>1 && reload_vcc && !(now_crate->IsAlive()))
           {
                 int cr = now_crate->CheckController();
-                if (cr==1)
+                if (cr)
                 {
                    now_crate->vmeController()->reset();
                    vcc_reset[i] = vcc_reset[i] + 1;
@@ -409,6 +411,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
              std::string cratename=now_crate->GetLabel();
              if(cycle==3)
              {  
+                bzero(buf, 8000);
                 now_crate-> MonitorCCB(cycle, buf);
                 if(buf2[0])  
                 {   // buf2[0]==0 means no good data back
@@ -458,6 +461,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
              }
              else if( cycle==2)
              {
+                bzero(buf, 8000);
                 now_crate-> MonitorDCS(cycle, buf, dcs_mask[i]|(tcs_mask[i]<<10));
                 if(buf2[0])
                 {
@@ -591,7 +595,8 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                 if(upgraded>0)
                 {
                   /* DCFEB monitorables */
-                  now_crate-> MonitorDCS2(cycle, buf, dcs_mask[i]);
+                  bzero(buf, 8000);
+                  now_crate-> MonitorDCS2(cycle, buf, dcs_mask[i], read_dcfeb);
                   if(buf2[0])
                   {
                      // std::cout << "Crate " << i << " DCFEB counters " << buf2[0] << std::endl;
@@ -607,6 +612,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                 }
                 
                 /* TMB voltages */
+                bzero(buf, 8000);
                 now_crate-> MonitorTCS(cycle, buf, tcs_mask[i]);
                 if(buf2[0])
                 {
@@ -654,6 +660,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
              }
              else if( cycle==1)
              {
+                bzero(buf, 8000);
                 now_crate-> MonitorTMB(cycle, buf, tmb_mask[i]);
                 if(buf2[0])
                 {
@@ -685,6 +692,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    if(badboard>0 && badboard<10)
                       std::cout << "Bad TMB #" << badboard << " in crate " << cratename << " at " << getLocalDateTime() << std::endl;
                 }
+                bzero(buf, 8000);
                 now_crate-> MonitorDMB(cycle, buf, dmb_mask[i]);
                 if(buf2[0])
                 {
@@ -3184,7 +3192,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   {  //  X2P will trigger the start of monitoring.
      //   if monitoring already started but VME access stopped by a button, X2P will not do anything
      ReadingOn();
-     return;
+     ::sleep(3);
   }
 
   x2p_count++;
@@ -3223,6 +3231,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         continue;
      }  // end of OFF crates 
 
+     int problem_readings=0;
      is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
      xdata::Vector<xdata::Float> *dmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
      if(dmbdata==NULL || dmbdata->size()<myVector.size()*TOTAL_DCS_COUNTERS)
@@ -3308,8 +3317,8 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
             V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+39];
             if(V7<3.0) ch_state |= 1024;
         }
+        if(ch_state&0xFDD) problem_readings++;   // possible reading error (exclude bits 3,8)
         *out << " " << ch_state; 
-
         *out << " " << readtime << " " << ip;
 
 // CCB bits and FPGA bits
@@ -3368,8 +3377,9 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
            }             
         }
         *out << " -50" << std::endl;  // as end-of-line marker
-     }
-  }
+     }  // end of chamber loop
+     if(problem_readings>5)  crateVector[i]->SetLife(false);  // too many reading errors, probably VCC problem
+  }  // end of crate loop
 
 }
 
@@ -3403,7 +3413,7 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
   {  //  X2P will trigger the start of monitoring.
      //   if monitoring already started but VME access stopped by a button, X2P will not do anything
      ReadingOn();
-     return;
+     ::sleep(3);
   }
 
   x2p_count2++;
@@ -3446,6 +3456,7 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         continue;
      }  // end of OFF crates 
 
+     int problem_readings=0;
      is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
      xdata::Vector<xdata::Float> *dmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
      if(dmbdata==NULL || dmbdata->size()<myVector.size()*TOTAL_DCS_COUNTERS)
@@ -3540,6 +3551,7 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
             V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+51];
             if(V7<3.0) ch_state |= 1024;
         }
+        if(ch_state&0xFDD) problem_readings++;   // possible reading error (exclude bits 3,8)
         *out << " " << ch_state; 
 
         *out << " " << readtime << " " << ip;
@@ -3613,8 +3625,9 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         }
         *out << " -50" << std::endl;  // as end-of-line marker
         upgraded++;
-     }
-  }
+     }  // end of chamber loop
+     if(problem_readings>2)  crateVector[i]->SetLife(false);  // too many reading errors, probably VCC problem
+  }  // end of crate loop
 
 }
 
@@ -3906,6 +3919,12 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
      if (command_argu=="ON" || command_argu=="on") reload_vcc = true;
      else if (command_argu=="OFF" || command_argu=="off") reload_vcc = false;
      std::cout << "SwitchBoard: VCC Reset " << command_argu << " at " << getLocalDateTime() << std::endl;
+  }
+  else if (command_name=="DCFEB")
+  {
+     if (command_argu=="ON" || command_argu=="on") read_dcfeb = true;
+     else if (command_argu=="OFF" || command_argu=="off") read_dcfeb = false;
+     std::cout << "SwitchBoard: DCFEB Read " << command_argu << " at " << getLocalDateTime() << std::endl;
   }
   else if (command_name=="DEBUGON")
   {
