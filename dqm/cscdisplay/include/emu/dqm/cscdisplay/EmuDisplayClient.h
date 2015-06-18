@@ -309,6 +309,7 @@ private:
   xdata::Boolean 	viewOnly_;
   xdata::Boolean 	debug;
   xdata::Boolean 	useExSys; 		// Use Expert System
+  xdata::Boolean        enableNodesAutoSync;	// Enable sending of sync to current run commands to EmuMonitor nodes 
   xdata::String 	BaseDir;
   xdata::String 	ResultsDir;
   xdata::String 	refImagePath;     

@@ -36,6 +36,7 @@ throw (xdaq::exception::Exception)
     imagePath_("images"),
     viewOnly_(true),
     useExSys(false),
+    enableNodesAutoSync(true),
     BaseDir("/csc_data/dqm"),
     refImagePath("ref.plots"),
     saveResultsDelay(20),
@@ -112,6 +113,9 @@ throw (xdaq::exception::Exception)
 
   getApplicationInfoSpace()->fireItemAvailable("useExSys",  &useExSys);
   getApplicationInfoSpace()->addItemChangedListener ("useExSys", this);
+
+  getApplicationInfoSpace()->fireItemAvailable("enableNodesAutoSync",  &enableNodesAutoSync);
+  getApplicationInfoSpace()->addItemChangedListener ("enableNodesAutoSync", this);
 
   // book();
 
@@ -2361,7 +2365,9 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
         LOG4CPLUS_DEBUG (logger_, "DQM Nodes Statuses are updated");
         nodesStatus.setTimeStamp(time(NULL));
         syncMonitorsStates();
-	syncNodesToCurrentRun();
+	if (enableNodesAutoSync == xdata::Boolean(true)) {
+	  syncNodesToCurrentRun();
+	}
       }
   }
   return nodesStatus;
