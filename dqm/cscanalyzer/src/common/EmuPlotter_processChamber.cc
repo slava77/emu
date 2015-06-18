@@ -716,18 +716,19 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
               mo->Fill(wg-1);
               int number_wg = (int)(mo->GetBinContent(wg));
               Double_t Number_of_entries_ALCT = mo->getObject()->GetEntries();
-              if (isMEvalid(cscME, Form("ALCT_Ly%d_Efficiency", nLayer), mo))
+	      EmuMonitoringObject* mo1 = 0;
+              if (isMEvalid(cscME, Form("ALCT_Ly%d_Efficiency", nLayer), mo1))
               {
-                mo->SetBinContent(wg,((float)number_wg));
+                mo1->SetBinContent(wg,((float)number_wg));
                 if ((Double_t)(DMBEvents) > 0.0)
                 {
-                  mo->getObject()->SetNormFactor(100.0*Number_of_entries_ALCT/(Double_t)(DMBEvents));
+                  mo1->getObject()->SetNormFactor(100.0*Number_of_entries_ALCT/(Double_t)(DMBEvents));
                 }
                 else
                 {
-                  mo->getObject()->SetNormFactor(100.0);
+                  mo1->getObject()->SetNormFactor(100.0);
                 }
-                mo->SetEntries((int)DMBEvents);
+                mo1->SetEntries((int)DMBEvents);
               }
             }
             NumberOfWireGroupsWithHitsInALCT = NumberOfWireGroupsWithHitsInALCT + 1;

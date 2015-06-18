@@ -297,8 +297,14 @@ bool EmuPlotter::isMEvalid(ME_List& MEs, std::string name, EmuMonitoringObject*&
   if (res != MEs.end() && (res->second != 0))
   {
     me = res->second;
-    // cout << "Found " << me->getName() << endl;
-    return true;
+    if (me != 0) 
+      { return true; }
+    else 
+      {
+	me = 0;
+	return false;
+      }
+
   }
   else
   {

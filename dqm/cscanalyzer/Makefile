@@ -18,7 +18,7 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 #DebugFlags=
 #CFlags+= -O2
 #CCFlags= -g -Wall -O3 -march=prescott
-CCFlags+= -O3 -DLOCAL_UNPACK
+CCFlags+= -O2 -DLOCAL_UNPACK
 
 # check emu/dqm/config/site.mk for NEW_UNPACKER2013 variable and comment it you need old unpacker code prior to CMSSW_6_X_X
 ifdef NEW_UNPACKER2013

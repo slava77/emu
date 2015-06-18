@@ -334,7 +334,7 @@ xoap::MessageReference EmuMonitor::syncToCurrentRun(xoap::MessageReference node)
 
               if ((plotter_ != NULL)
                   && (fsm_.getCurrentState() == 'E')
-                  // && (runNum > runNumber_)
+                  && (runNum > runNumber_)
                   && (runStart > xdata::UnsignedInteger(0))
 		  && (runStart > runStartUTC_)
                  )

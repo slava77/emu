@@ -542,6 +542,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
               if (me)
                 {
                   TH1D* h = reinterpret_cast<TH1D*>(me);
+		  if (h == NULL) continue;
                   double ent = h->GetEntries();
 
                   // For ME11 if occupancy histo is empty then HV segment is OFF
