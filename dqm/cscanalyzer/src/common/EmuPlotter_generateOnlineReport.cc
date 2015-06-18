@@ -522,7 +522,6 @@ int EmuPlotter::generateOnlineReport(std::string runname)
           dqm_report.addEntry(cscName, entry.fillEntry(diag,NONE));
           continue;
         }
-
       // -- Anode Occupancies and HV Segments Checks
       std::vector< std::pair<int,int> > hvSegMap = emu::dqm::utils::getHVSegmentsMap(cscName);
       double low_hvseg_thresh = 0.15;
@@ -638,7 +637,6 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                         }
 
                     }
-                  delete me;
                 }
             }
         }
