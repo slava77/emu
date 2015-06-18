@@ -812,7 +812,7 @@ void Crate::MonitorDMB(int cycle, char * buf, unsigned mask)
   {
     int imask= 0x3F & (myDmbs[i]->GetPowerMask());
     bool chamber_on = (imask!=0x3F);
-    int Dversion=myDmbs[i]->GetHardwareVersion();
+    //SK: not used//    int Dversion=myDmbs[i]->GetHardwareVersion();
 
     if(IsAlive() && (mask & (1<<i))==0 && chamber_on)
     {  countbuf=myDmbs[i]->GetCounters();
@@ -861,8 +861,8 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
   {
     int imask= 0xFF & (myDmbs[i]->GetPowerMask());
     bool chamber_on = (imask!=0xFF);
-    int Dversion=myDmbs[i]->GetHardwareVersion();
-    int Tversion=myTmbs[i]->GetHardwareVersion();
+    //SK: not used//    int Dversion=myDmbs[i]->GetHardwareVersion();
+    //SK: not used//    int Tversion=myTmbs[i]->GetHardwareVersion();
 
     if(IsAlive() && (dmask & (1<<i))==0)
     {  
@@ -916,9 +916,9 @@ void Crate::MonitorDCS2(int cycle, char * buf, unsigned mask, bool read_dcfeb)
   for(unsigned i =0; i < myDmbs.size(); ++i) 
   {
     int imask= 0xFF & (myDmbs[i]->GetPowerMask());
-    bool chamber_on = (imask!=0xFF);
+    //SK: not used//    bool chamber_on = (imask!=0xFF);
     int Dversion=myDmbs[i]->GetHardwareVersion();
-    int Tversion=myTmbs[i]->GetHardwareVersion();
+    //SK: not used//    int Tversion=myTmbs[i]->GetHardwareVersion();
 
     if(IsAlive() && Dversion==2 && (dmask & (1<<i))==0)
     {  

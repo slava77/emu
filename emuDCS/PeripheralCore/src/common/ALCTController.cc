@@ -1108,7 +1108,7 @@ int ALCTController::GetSlowControlVersionId() {
 }
 //
 int ALCTController::GetSlowControlYear() { 
-  return ((read_slowcontrol_id_[2]<<8) | read_slowcontrol_id_[1]&0xff); 
+  return ((read_slowcontrol_id_[2]<<8) | (read_slowcontrol_id_[1]&0xff)); 
 }
 //
 int ALCTController::GetSlowControlDay() { 
@@ -1474,7 +1474,7 @@ void ALCTController::WriteAfebThresholds() {
     // ..... and the DAC channel through TDI, again using the correct AFEB indexing 
     // (N.B. the Get..DAC() method already will access the correct threshold)
     int data_to_send = 
-      ( (afeb_dac_channel[UserIndexToHardwareIndex_(afebChannel)]<<8) & 0xf00 ) | GetAfebThresholdDAC(afebChannel) & 0xff;
+      ( (afeb_dac_channel[UserIndexToHardwareIndex_(afebChannel)]<<8) & 0xf00 ) | (GetAfebThresholdDAC(afebChannel) & 0xff);
     if (debug_)
       (*MyOutput_) << "User AFEB" << std::dec << afebChannel 
 		   << " writes to hardware AFEB " << UserIndexToHardwareIndex_(afebChannel)
