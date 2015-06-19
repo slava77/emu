@@ -1014,6 +1014,8 @@ int EmuDisplayClient::syncNodesToCurrentRun()
 
           // Skip nodes which don't need sync
           if ( nodesStatus[nodename]["readoutMode"].compare("internal") == 0) continue;
+	  if ((nodesStatus[nodename]["runNumber"].compare("NA") == 0)
+              || (nodesStatus[nodename]["runStartUTC"].compare("NA") == 0)) continue;
           if ((nodesStatus[nodename]["runNumber"].compare(runNum) == 0)
               && (nodesStatus[nodename]["runStartUTC"].compare(runStart) == 0)) continue;
 
