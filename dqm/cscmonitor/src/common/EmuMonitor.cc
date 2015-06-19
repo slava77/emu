@@ -256,6 +256,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->addItemChangedListener ("enableDataWrite", this);
   getApplicationInfoSpace()->addItemChangedListener ("maxSavedEvents", this);
   getApplicationInfoSpace()->addItemChangedListener ("outputDataFile", this);
+  getApplicationInfoSpace()->addItemChangedListener ("runNumber", this);
 
 
   getApplicationInfoSpace()->addItemRetrieveListener ("totalEvents",  this);
@@ -744,8 +745,14 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
               if ( setPlotterDebug_ == xdata::Boolean(true) ) plotter_->setDebug(true);
               else plotter_->setDebug(false);
             }
-
         }
+      else if ( item == "runNumber")
+        {
+          LOG4CPLUS_INFO(logger_,
+                         "Set plotter Run Number : " << runNumber_.toString());
+          if (plotter_ != NULL) plotter_->setRunNumber(runNumber_.toString());
+        }
+
 
       else if ( item == "fSaveROOTFile")
         {
@@ -1041,8 +1048,9 @@ void EmuMonitor::doConfigure()
                           "plotter::binCheckMask: 0x" << std::hex << std::uppercase << strtoul((binCheckMask_.toString()).c_str(),NULL,0));
           plotter_->setBinCheckMask(binCheckMask_);
         }
-
+      plotter_->reset();
       plotter_->book();
+ 
     }
 
   configureReadout();
@@ -1074,7 +1082,7 @@ void  EmuMonitor::doStart()
   eventsReceived_ 	= 0;
   cscUnpacked_ 		= 0;
   cscDetected_ 		= 0;
-  runNumber_ 		= 0;
+  // runNumber_ 		= 0;
   nEventCredits_ 	= defEventCredits_;
 
   enableReadout();
@@ -1190,10 +1198,11 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
 
   if ((runNumber_ != msg->runNumber) || (runStartUTC_ != msg->runStartUTC))
     {
-      LOG4CPLUS_INFO(logger_,"Detected Run number switch to " << msg->runNumber << "( start time:  " << emu::dqm::utils::now(msg->runStartUTC) << " ). Resetting Monitor...");
+      LOG4CPLUS_INFO(logger_,"Detected Run Number switch to " << msg->runNumber << "( Run Start Time:  " << emu::dqm::utils::now(msg->runStartUTC) << " ). Resetting Monitor...");
       resetMonitor();
       runNumber_ = msg->runNumber;
       runStartUTC_ = msg->runStartUTC;
+      if (plotter_ != NULL) plotter_->setRunNumber(runNumber_.toString()); 
       if (enableDataWrite_ == xdata::Boolean(true)) createFileWriter();
     }
 
@@ -1404,7 +1413,12 @@ void EmuMonitor::createDeviceReader()
               if      ( inputDeviceType_ == "spy"  )
                 deviceReader_ = new emu::daq::reader::Spy(  inputDeviceName_.toString(), inputDataFormatInt_ );
               else if ( inputDeviceType_ == "file" )
-                deviceReader_ = new emu::daq::reader::RawDataFile( inputDeviceName_.toString(), inputDataFormatInt_ );
+		{
+                    deviceReader_ = new emu::daq::reader::RawDataFile( inputDeviceName_.toString(), inputDataFormatInt_ );
+		    LOG4CPLUS_INFO(logger_,"Setting Run Number to " << emu::dqm::utils::getRunNumberFromFilename (inputDeviceName_.toString()));
+		    runNumber_ = emu::dqm::utils::getRunNumberFromFilename (inputDeviceName_.toString());
+		    if (plotter_ != NULL) plotter_->setRunNumber(runNumber_.toString());
+		}
               // TODO: slink
               else     LOG4CPLUS_ERROR(logger_,
                                          "Bad device type: " << inputDeviceType_.toString() <<
@@ -1749,6 +1763,5 @@ void EmuMonitor::resetMonitor()
     }
 
   destroyFileWriter();
-
 }
 

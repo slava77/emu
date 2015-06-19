@@ -28,7 +28,6 @@ std::string now(time_t tstamp, const char* format)
 
 };
 
-
 std::string now()
 {
   return now(0);
@@ -384,7 +383,7 @@ std::string replaceRUIwithDDUId(std::string rui)
           if (id>0)
             {
               st.clear();
-	      st.str("");
+              st.str("");
               st << "DDU_" << id;
               ddu_id = st.str();
             }
@@ -392,6 +391,31 @@ std::string replaceRUIwithDDUId(std::string rui)
     }
 
   return ddu_id;
+}
+
+/**
+ * Try to get Run Number from the data file name
+ **/
+uint32_t getRunNumberFromFilename(std::string datafile, std::string prefix)
+{
+  uint32_t runNumber = 0;
+  std::stringstream st;
+  st.str("");
+  st << prefix << "[0-9]+_[^/]*";
+  if (REMATCH(st.str(), datafile))
+    {
+      std::string runstr = datafile;
+      st.str("");st.clear();
+      st << ".+" << prefix << "([0-9]+)_[^/]*";
+      REREPLACE(st.str(), runstr, "$1");
+      st.str("");st.clear();
+      st << prefix << "([0-9]+)_[^/]*";
+      REREPLACE(st.str(), runstr, "$1");
+      runNumber = atoi(runstr.c_str());
+      st.str("");st.clear();
+      st << runNumber;
+    }
+  return runNumber;
 }
 
 }

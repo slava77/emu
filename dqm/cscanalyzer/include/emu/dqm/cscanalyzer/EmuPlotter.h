@@ -19,6 +19,9 @@
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 
+#include "version.h"
+
+
 // == CMSSW Section
 /*  actually calls  emuDQM/CMSSWLibs/FWCore/MessageLogger/interface/MessageLogger.h */
 #include "FWCore/MessageLogger/interface/MessageLogger.h"

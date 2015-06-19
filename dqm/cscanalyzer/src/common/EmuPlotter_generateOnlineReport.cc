@@ -294,7 +294,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
                 uint32_t csc_events = csc_stats[cscName];
-                float fract=z*100;
+                // float fract=z*100;
                 deadALCT[cscName]=false;
                 if (csc_events>min_events)
                   {
@@ -321,7 +321,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
                 uint32_t csc_events = csc_stats[cscName];
-                float fract=z*100;
+                // float fract=z*100;
                 if (csc_events>min_events)
                   {
                     deadCLCT[cscName]=true;
@@ -347,7 +347,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                 std::string cscTag(Form("CSC_%03d_%02d", i, j));
                 std::string cscName=getCSCFromMap(i,j, CSCtype, CSCposition );
                 uint32_t csc_events = csc_stats[cscName];
-                float fract=z*100;
+                // float fract=z*100;
                 if (csc_events>min_events)
                   {
                     deadCFEBs[cscName]=true;

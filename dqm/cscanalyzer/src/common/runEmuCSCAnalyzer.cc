@@ -50,8 +50,6 @@
 #include "emu/dqm/common/coloredlayout.h"
 #include "emu/dqm/common/tclap/CmdLine.h"
 
-// ROOT includes
-#include <TPRegexp.h>
 
 // *******************************************************
 // Namespace Section
@@ -78,10 +76,6 @@ using namespace log4cplus::spi;
 #define IMG_HEIGHT                900
 #define DEFAULT_DDU_MASK          0xFFFFDFFF
 #define DEFAULT_BIN_MASK          0x16EBF7F6
-
-// Function shortcuts
-#define REMATCH(pat, str)         (TPRegexp(pat).MatchB(str))
-#define REREPLACE(pat, str, rep)  { TString s(str); TPRegexp(pat).Substitute(s, rep); str = s; }
 
 
 // *******************************************************
@@ -264,6 +258,14 @@ int main(int argc, char **argv)
       node = atoi(nodestr.c_str());
     }
 
+    // Try to extract Run Number from data file name (should match pattern csc_nnnnnnnn)
+    uint32_t runNumber = emu::dqm::utils::getRunNumberFromFilename(datafile);
+    std::string runNumberStr = "0";
+    std::stringstream st;
+    st.str("");
+    st << runNumber;
+    runNumberStr = st.str();
+
     // FYI: Printing information about parameters to be used
     LOG4CPLUS_INFO(logger, "[GLOBAL] cfgDir = " << cfgDir);
     LOG4CPLUS_INFO(logger, "[GLOBAL] cfgOnly = " << boolalpha << configOnly);
@@ -283,6 +285,7 @@ int main(int argc, char **argv)
     LOG4CPLUS_INFO(logger, "[ROOT] filter = " << filter);
     LOG4CPLUS_INFO(logger, "[ROOT] plotsDir = " << plotsdir);
     LOG4CPLUS_INFO(logger, "[ROOT] runName = " << runname);
+    LOG4CPLUS_INFO(logger, "[ROOT] runNumber = " << runNumber);
 
     // If -C was set - exit after configuration arguments
     // where printed on the screen...
@@ -310,6 +313,7 @@ int main(int argc, char **argv)
     plotter->setCSCMapFile(cscMapFile);
     plotter->setXMLHistosBookingCfgFile(xmlHistosBookingCfg);
     plotter->setXMLCanvasesCfgFile(xmlCanvasesCfg);
+    plotter->setRunNumber(runNumberStr);
     plotter->book();
 
     // Data is to be processed! Lets move in...

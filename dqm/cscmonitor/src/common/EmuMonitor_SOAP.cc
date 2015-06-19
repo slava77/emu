@@ -342,6 +342,7 @@ xoap::MessageReference EmuMonitor::syncToCurrentRun(xoap::MessageReference node)
                   resetMonitor();
                   runNumber_ = runNum;
                   runStartUTC_ = runStart;
+		  plotter_->setRunNumber(runNumber_.toString());
 		  if (enableDataWrite_ == xdata::Boolean(true)) createFileWriter();
 
                 }

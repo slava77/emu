@@ -26,11 +26,26 @@ void EmuPlotter::saveToROOTFile(std::string filename)
 
 
     /// Write data Format Version field
-    TObjString FormatVersion;
     std::stringstream st;
+    st.str("");
+    TObjString FormatVersion;
     st << "<FormatVersion>" << theFormatVersion << "</FormatVersion>";   
     FormatVersion.SetString(st.str().c_str()); 
     FormatVersion.Write(st.str().c_str());
+    
+    TObjString RunNumber;
+    st.str("");
+    st.clear();
+    st << "<RunNumber>" << runNumber << "</RunNumber>";
+    RunNumber.SetString(st.str().c_str()); 
+    RunNumber.Write(st.str().c_str());
+
+    TObjString AnalyzerVersion;
+    st.str("");
+    st.clear();
+    st << "<AnalyzerVersion>" << emudqmcscanalyzer::versions << "</AnalyzerVersion>";
+    AnalyzerVersion.SetString(st.str().c_str());
+    AnalyzerVersion.Write(st.str().c_str());
 
     for (itr = MEs.begin(); itr != MEs.end(); ++itr)
     {
