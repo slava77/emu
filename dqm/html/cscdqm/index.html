@@ -2712,7 +2712,9 @@ function showAllNodesStatuses()
 		   if (j>=5 && j<=9) { 
 			var diff = 0;
 			color = 'black';
-			if (nodes_prev && nodes_prev[idx][j]) { 
+			if (nodes_prev && nodes_prev[idx][j] 
+				&& (nodes[idx][3] == nodes_prev[idx][3]) 
+				&& (nodes[idx][4] == nodes_prev[idx][4])  ) { 
 				diff = nodes[idx][j]-nodes_prev[idx][j];
 				if (diff<0) { color="red";}
 				else if (diff>0) {color="green"; diff = "+"+diff;}
