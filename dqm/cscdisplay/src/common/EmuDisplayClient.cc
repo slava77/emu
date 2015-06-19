@@ -57,6 +57,8 @@ throw (xdaq::exception::Exception)
 
   errorHandler_ = toolbox::exception::bind (this, &EmuDisplayClient::onError, "onError");
 
+  fSkipUpdateTasks = false; // Skip periodic tasks update for one cycle if Nodes were synched
+
   /*
   std::stringstream workLoopName;
   workLoopName << getApplicationDescriptor()->getClassName() << "." << getApplicationDescriptor()->getInstance();
@@ -569,33 +571,9 @@ void EmuDisplayClient::getNodesRates (xgi::Input * in, xgi::Output * out)  throw
 
     }
   else
- {
+    {
 
-	*out << "var NODES_RATES=[['Run: "<< runname << "']]" << std::endl;
-/*
-      if (isCSCCountersFileAvailable(runname))
-        {
-          ifstream counters;
-          counters.open( (ResultsDir.toString()+"/"+runname+".plots/csc_counters.js").c_str());
-          if (counters.is_open())
-            {
-              *out << counters.rdbuf();
-              counters.close();
-            }
-          else
-            {
-              // == Empty map
-              *out << "var NODES_RATES=[['Run: "<< runname << "']]" << std::endl;
-            }
-          // Read CSC list from available file
-          appBSem_.give();
-          return;
-        }
-      else
-        {
-          *out << "var NODES_RATES=[['Run: "<< runname << "']]" << std::endl;
-        }
-*/
+      *out << "var NODES_RATES=[['Run: "<< runname << "']]" << std::endl;
     }
 
   appBSem_.give();
@@ -717,7 +695,7 @@ void EmuDisplayClient::getROOTFile (xgi::Input * in, xgi::Output * out)  throw (
       if (stat((ResultsDir.toString()+"/"+filename).c_str(), &attrib) == 0)
         {
 
-  
+
           ifstream rootfile;
           rootfile.open( (ResultsDir.toString()+"/"+filename).c_str());
 
@@ -725,7 +703,7 @@ void EmuDisplayClient::getROOTFile (xgi::Input * in, xgi::Output * out)  throw (
             {
               *out << rootfile.rdbuf();
               rootfile.close();
-	      // std::cout << "Sending " << (ResultsDir.toString()+"/"+filename).c_str() << std::endl;
+              // std::cout << "Sending " << (ResultsDir.toString()+"/"+filename).c_str() << std::endl;
             }
           else
             {
@@ -768,7 +746,7 @@ void EmuDisplayClient::redir (xgi::Input * in, xgi::Output * out)  throw (xgi::e
   if (f.is_open())
     {
       *out << f.rdbuf();
-      f.close(); 
+      f.close();
     }
   else
     {
@@ -979,7 +957,7 @@ int EmuDisplayClient::syncNodesToCurrentRun()
 
   std::string runNum=curRunNumber;
   std::string runStart="0";
-  
+
 //  LOG4CPLUS_INFO (logger_, "Sync Nodes to current run " << curRunNumber);
   if (!monitors.empty())
     {
@@ -991,7 +969,7 @@ int EmuDisplayClient::syncNodesToCurrentRun()
       if (sscanf(runNum.c_str(),"%d", &curRun) != 1) curRun = 0;
 
       int curStartTime = 0;
-     
+
       for (mon=monitors.begin(); mon!=monitors.end(); ++mon)
         {
           if ((*mon) == NULL) continue;
@@ -999,50 +977,51 @@ int EmuDisplayClient::syncNodesToCurrentRun()
           std::ostringstream st;
           st << (*mon)->getClassName() << "-" << (*mon)->getInstance();
           std::string nodename = st.str();
-	  
+
           int tmp_run = curRun;
           if (sscanf(nodesStatus[nodename]["runNumber"].c_str(), "%d", &tmp_run) == 1)
-	  {
-	      if (tmp_run > curRun) curRun = tmp_run;
-	  }
+            {
+              if (tmp_run > curRun) curRun = tmp_run;
+            }
 
-	  int tmp_start = curStartTime;
+          int tmp_start = curStartTime;
           if (sscanf(nodesStatus[nodename]["runStartUTC"].c_str(), "%d", &tmp_start) == 1)
-          {
+            {
               if (tmp_start > curStartTime) curStartTime = tmp_start;
-          }
+            }
         }
 
-       std::stringstream st;
-       st.str("");
-       st << curRun;
-       runNum = st.str();
+      std::stringstream st;
+      st.str("");
+      st << curRun;
+      runNum = st.str();
 
-       st.str("");
-       st.clear();
-       st << curStartTime;
-       runStart = st.str();      
+      st.str("");
+      st.clear();
+      st << curStartTime;
+      runStart = st.str();
 
 //     LOG4CPLUS_INFO (logger_, "Sync Nodes to current run " << runNum << " started at " << runStart);
 
       /* Sending requests to sync Nodes */
       for (mon=monitors.begin(); mon!=monitors.end(); ++mon)
         {
-	  if ((*mon) == NULL) continue;
+          if ((*mon) == NULL) continue;
 
           std::ostringstream st;
           st << (*mon)->getClassName() << "-" << (*mon)->getInstance();
           std::string nodename = st.str();
 
-	  // Skip nodes which don't need sync
-	  if ( nodesStatus[nodename]["readoutMode"].compare("internal") == 0) continue;
-	  if ((nodesStatus[nodename]["runNumber"].compare(runNum) == 0) 
-	    && (nodesStatus[nodename]["runStartUTC"].compare(runStart) == 0)) continue;
+          // Skip nodes which don't need sync
+          if ( nodesStatus[nodename]["readoutMode"].compare("internal") == 0) continue;
+          if ((nodesStatus[nodename]["runNumber"].compare(runNum) == 0)
+              && (nodesStatus[nodename]["runStartUTC"].compare(runStart) == 0)) continue;
 
           LOG4CPLUS_INFO (logger_, "Syncing " << nodename << " to current run " << runNum << " started at " << runStart);
 
           try
             {
+
               xoap::MessageReference msg = xoap::createMessage();
               xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
               xoap::SOAPBody body = envelope.getBody();
@@ -1070,6 +1049,9 @@ int EmuDisplayClient::syncNodesToCurrentRun()
                   XCEPT_RAISE(xoap::exception::Exception, errmsg);
                   continue;
                 }
+
+		fSkipUpdateTasks = true; // Set skip update tasks flag if node was just synched
+
             }
           catch (xcept::Exception e)
             {
@@ -1227,18 +1209,18 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
             }
 
           if ((itr = nitr->second.find("runNumber")) != nitr->second.end())
-            {              
+            {
               runNumber = nitr->second["runNumber"];
             }
 
           if ((itr = nitr->second.find("runStartUTC")) != nitr->second.end())
             {
               runStartUTC = nitr->second["runStartUTC"];
-	      time_t tmp_time = 0;
+              time_t tmp_time = 0;
               if (sscanf(runStartUTC.c_str(), "%d", &tmp_time) == 1)
-               {
-		 runStartUTC = emu::dqm::utils::now(tmp_time);
-               }
+                {
+                  runStartUTC = emu::dqm::utils::now(tmp_time);
+                }
             }
 
           if ((itr = nitr->second.find("sessionEvents")) != nitr->second.end())
@@ -1276,22 +1258,22 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
               dataSource = nitr->second["dataSource"];
             }
 
-	  if ((itr = nitr->second.find("updateTime")) != nitr->second.end())
+          if ((itr = nitr->second.find("updateTime")) != nitr->second.end())
             {
               updateTime = nitr->second["updateTime"];
             }
 
-/*
-          if ((itr = nitr->second.find("nDAQEvents")) != nitr->second.end())
-            {
-              nDAQevents = nitr->second["nDAQevents"];
-            }
+          /*
+                    if ((itr = nitr->second.find("nDAQEvents")) != nitr->second.end())
+                      {
+                        nDAQevents = nitr->second["nDAQevents"];
+                      }
 
-          if ((itr = nitr->second.find("lastEventTime")) != nitr->second.end())
-            {
-              lastEventTime = nitr->second["lastEventTime"];
-            }
-*/
+                    if ((itr = nitr->second.find("lastEventTime")) != nitr->second.end())
+                      {
+                        lastEventTime = nitr->second["lastEventTime"];
+                      }
+          */
 
           *out << "['"<< nodename << "','"<< applink << "','" << state
                << "','" << runNumber << "','" << runStartUTC << "','" << events
@@ -1390,32 +1372,32 @@ int EmuDisplayClient::updateNodesStatusFacts()
 
           //*** Prepare Facts Collection for EmuMonitor Statuses ***//
 
-      // Convert DateTime string to format supported by Expert System
-      time_t tnow = time(NULL);
-      struct tm* tm_p = localtime(&tnow);
-      strptime(stateChangeTime.c_str(), "%Y-%m-%d %H:%M:%S %Z", tm_p);
-      tnow = mktime(tm_p);
-      if (tnow != (time_t)-1)
-      {
-        stateChangeTime = emu::dqm::utils::now(tnow, "%Y-%m-%dT%H:%M:%S");
-      }
-      emu::base::Component comp(nodename);
-      emu::base::TypedFact<EmuMonitorFact> fact;
-      fact
-	.setRun( runNumber )
-	.setComponent( comp )
-	.setSeverity( emu::base::Fact::INFO )
-	.setDescription( "The status of the local DQM." )
-	.setParameter( EmuMonitorFact::state          , state           )
-	.setParameter( EmuMonitorFact::stateChangeTime, stateChangeTime )
-	.setParameter( EmuMonitorFact::dqmEvents      , events          )
-	.setParameter( EmuMonitorFact::dqmRate        , dataRate        )
-	.setParameter( EmuMonitorFact::cscRate        , cscRate         )
-	.setParameter( EmuMonitorFact::cscDetected    , cscDetected     )
-	.setParameter( EmuMonitorFact::cscUnpacked    , cscUnpacked     );
-      addFact(fact);
-      nFacts++;
-    }
+          // Convert DateTime string to format supported by Expert System
+          time_t tnow = time(NULL);
+          struct tm* tm_p = localtime(&tnow);
+          strptime(stateChangeTime.c_str(), "%Y-%m-%d %H:%M:%S %Z", tm_p);
+          tnow = mktime(tm_p);
+          if (tnow != (time_t)-1)
+            {
+              stateChangeTime = emu::dqm::utils::now(tnow, "%Y-%m-%dT%H:%M:%S");
+            }
+          emu::base::Component comp(nodename);
+          emu::base::TypedFact<EmuMonitorFact> fact;
+          fact
+          .setRun( runNumber )
+          .setComponent( comp )
+          .setSeverity( emu::base::Fact::INFO )
+          .setDescription( "The status of the local DQM." )
+          .setParameter( EmuMonitorFact::state          , state           )
+          .setParameter( EmuMonitorFact::stateChangeTime, stateChangeTime )
+          .setParameter( EmuMonitorFact::dqmEvents      , events          )
+          .setParameter( EmuMonitorFact::dqmRate        , dataRate        )
+          .setParameter( EmuMonitorFact::cscRate        , cscRate         )
+          .setParameter( EmuMonitorFact::cscDetected    , cscDetected     )
+          .setParameter( EmuMonitorFact::cscUnpacked    , cscUnpacked     );
+          addFact(fact);
+          nFacts++;
+        }
 
       // Send EmuMonitor nodes facts to expert system
       emu::base::FactFinder::sendFacts();
@@ -1522,7 +1504,6 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
   if (stateInputElement != cgi.getElements().end())
     {
       runname = (*stateInputElement).getValue();
-//      std::cout << "Run " << runname << std::endl;
     }
 
 
@@ -1544,14 +1525,10 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
     {
       std::string rootfile = ResultsDir.toString()+"/"+runname+".root";
       struct stat attrib;                   // create a file attribute structure
-      // std::vector<std::string>::iterator r_itr = find(runsList.begin(), runsList.end(), runname+".root");
-      // if (r_itr != runsList.end())
-      //  {
       if (stat(rootfile.c_str(), &attrib) == 0)    // Folder exists
         {
           rootsrc = TFile::Open( rootfile.c_str());
         }
-      //  }
 
     }
 
@@ -1578,7 +1555,6 @@ void EmuDisplayClient::getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi:
             {
               LOG4CPLUS_ERROR (logger_, "Can not book " << p_itr->first << " object " << p_itr->second);
             };
-          //usleep(200000);
         }
 
 
@@ -2264,7 +2240,7 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
                 curRunNumber = runNumber;
 
                 runStartUTC   = emu::dqm::getScalarParam(getApplicationContext(),
-                                                       getApplicationDescriptor(),  (*pos),"runStartUTC","unsignedInt");
+                                getApplicationDescriptor(),  (*pos),"runStartUTC","unsignedInt");
 
                 events = emu::dqm::getScalarParam(getApplicationContext(),
                                                   getApplicationDescriptor(), (*pos),"sessionEvents","unsignedInt");
@@ -2323,51 +2299,20 @@ DQMNodesStatus EmuDisplayClient::updateNodesStatus()
             st.str("");
             st << (*pos)->getClassName() << Form("%02d", (*pos)->getInstance() );
             nodesStatus[nodename]["nodename"] = st.str();
-	    nodesStatus[nodename]["updateTime"] = emu::dqm::utils::now();
-            /*
-                  if (useExSys)
-                    {
-
-
-                      // Convert DateTime string to format supported by Expert System
-                      time_t tnow = time(NULL);
-                      struct tm* tm_p = localtime(&tnow);
-                      strptime(stateChangeTime.c_str(), "%Y-%m-%d %H:%M:%S %Z", tm_p);
-                      tnow = mktime(tm_p);
-                      if (tnow != (time_t)-1)
-                        {
-                          stateChangeTime = emu::dqm::utils::now(tnow, "%Y-%m-%dT%H:%M:%S");
-                        }
-                      st.str("");
-                      st << (*pos)->getClassName() << Form("%02d", (*pos)->getInstance() );
-                      nodename = st.str();
-                      emu::base::Component comp(nodename);
-                      CSCDqmFact fact = CSCDqmFact(runNumber, comp, "EmuMonitorFact");
-                      fact.addParameter("state", state)
-                      .addParameter("stateChangeTime",stateChangeTime)
-                      .addParameter("dqmEvents", events)
-                      .addParameter("dqmRate", dataRate)
-                      .addParameter("cscRate", cscRate)
-                      .addParameter("cscDetected", cscDetected)
-                      .addParameter("cscUnpacked", cscUnpacked)
-                      .setSeverity("INFO")
-                      .setRun(runNumber);
-                      addFact(fact);
-                    }
-            */
+            nodesStatus[nodename]["updateTime"] = emu::dqm::utils::now();
 
           }
 
-        // Send EmuMonitor nodes facts to expert system
-        // if (useExSys) emu::base::FactFinder::sendFacts();
-
-
         LOG4CPLUS_DEBUG (logger_, "DQM Nodes Statuses are updated");
         nodesStatus.setTimeStamp(time(NULL));
-        syncMonitorsStates();
-	if (enableNodesAutoSync == xdata::Boolean(true)) {
-	  syncNodesToCurrentRun();
-	}
+
+        syncMonitorsStates(); // Sync nodes states
+
+        if ((enableNodesAutoSync == xdata::Boolean(true)) && !fSkipUpdateTasks)
+          {
+            syncNodesToCurrentRun(); // Sync nodes to current run
+
+          }
       }
   }
   return nodesStatus;
@@ -2432,6 +2377,7 @@ int EmuDisplayClient::syncMonitorsStates()
               try
                 {
                   emu::dqm::sendFSMEventToApp(action, getApplicationContext(), getApplicationDescriptor(),*mon);
+                  fSkipUpdateTasks = true; // Set skip update tasks flag if node were synched
                 }
               catch (xcept::Exception e)
                 {
@@ -3044,67 +2990,80 @@ std::string EmuDisplayClient::getHref(xdaq::ApplicationDescriptor *appDescriptor
 int EmuDisplayClient::svc()
 {
   LOG4CPLUS_INFO (logger_, "Starting Nodes Requestor task...");
-  int counter=0;
+  long counter=0;
   while (1)
     {
       usleep(10*1000000);
       counter++;
 
+      // -- Update Nodes statuses. Sync nodes states and sync nodes to current run
       appBSem_.take();
       updateNodesStatus();
       appBSem_.give();
 
-      if (counter % 2 == 0)
+      if (!fSkipUpdateTasks)
         {
-          appBSem_.take();
-          updateFoldersMap();
-          appBSem_.give();
-
-          appBSem_.take();
-          updateCSCCounters();
-          appBSem_.give();
-        }
-
-      if (counter % 3 == 0)
-        {
-          if (useExSys)
+          if (counter % 2 == 0) // Every 20 sec
             {
+              // -- Update list of CSCs from nodes
               appBSem_.take();
-              updateNodesStatusFacts();
+              updateFoldersMap();
+              appBSem_.give();
+
+              // -- Update CSC counters from nodes
+              appBSem_.take();
+              updateCSCCounters();
               appBSem_.give();
             }
 
-          appBSem_.take();
-          DQMReport report;
-          LOG4CPLUS_DEBUG (logger_, "Generating DQM Report");
-          report = updateNodesReports();
-          generateSummaryReport(curRunNumber, report);
-          dqm_report.clearReport();
-          dqm_report = report;
-
-          if (counter % 12 == 0) // Updates in 2 min
+          if (counter % 3 == 0) // Every 30 sec
             {
-              // Send DQM report facts to expert system
               if (useExSys)
                 {
-                  int nFacts = prepareReportFacts(curRunNumber);
-                  if (nFacts>0) emu::base::FactFinder::sendFacts();
+                  appBSem_.take();
+                  updateNodesStatusFacts();
+                  appBSem_.give();
                 }
+
+              // -- Update and prepare DQM report and send it to ExSys
+              appBSem_.take();
+              DQMReport report;
+              LOG4CPLUS_DEBUG (logger_, "Generating DQM Report");
+              report = updateNodesReports();
+              generateSummaryReport(curRunNumber, report);
+              dqm_report.clearReport();
+              dqm_report = report;
+
+              if (counter % 12 == 0) // Updates in 2 min
+                {
+                  // -- Send DQM report facts to expert system
+                  if (useExSys)
+                    {
+                      int nFacts = prepareReportFacts(curRunNumber);
+                      if (nFacts>0) emu::base::FactFinder::sendFacts();
+                    }
+                }
+
+              appBSem_.give();
+
             }
-
-          appBSem_.give();
+          if (counter % (6*saveResultsDelay) == 0)
+            {
+              // -- Send command to Monitors to save results
+              appBSem_.take();
+              saveNodesResults();
+              appBSem_.give();
+            }
+          if (counter % (3*2*6*saveResultsDelay) == 0) counter = 0;
         }
-      if (counter % (6*saveResultsDelay) == 0)
+      else
         {
-          // Send command to Monitors to save results
-          appBSem_.take();
-          saveNodesResults();
-          appBSem_.give();
+          fSkipUpdateTasks = false; // Reset skip tasks flag
         }
-      if (counter % (3*2*6*saveResultsDelay) == 0) counter = 0;
-
     }
+
   return 0;
+
 }
 
 emu::base::Fact EmuDisplayClient::findFact(const emu::base::Component& component, const std::string& factType)

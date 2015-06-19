@@ -962,12 +962,12 @@ void EmuMonitor::doStop()
   appBSem_.take();
   if (plotter_ != NULL && isReadoutActive)
     {
-	/*
-      if (rateMeter != NULL && rateMeter->isActive())
-        {
-          rateMeter->kill();
-        }
-	*/
+      /*
+          if (rateMeter != NULL && rateMeter->isActive())
+            {
+              rateMeter->kill();
+            }
+      */
 
       if (fSaveROOTFile_ == xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0)))
         {
@@ -1409,9 +1409,9 @@ void EmuMonitor::createDeviceReader()
                                          "Bad device type: " << inputDeviceType_.toString() <<
                                          "Use \"file\", \"spy\", or \"slink\"");
 
-	     runStartUTC_ = time(NULL);
-	       
-	      
+              runStartUTC_ = time(NULL);
+
+
             }
         }
       catch (char* e)
@@ -1552,12 +1552,12 @@ int EmuMonitor::svc()
                       LOG4CPLUS_INFO(logger_,
                                      "Restarting readout from " << inputDataFormat_.toString() << " " << inputDeviceType_.toString() <<
                                      " " << inputDeviceName_.toString());
-		      appBSem_.take();
+                      appBSem_.take();
                       destroyDeviceReader();
                       createDeviceReader();
                       readValid=true;
                       isReadoutActive = true;
-		      appBSem_.give();
+                      appBSem_.give();
 
                     }
 

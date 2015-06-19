@@ -314,7 +314,8 @@ private:
   xdata::String 	ResultsDir;
   xdata::String 	refImagePath;     
   xdata::UnsignedInteger saveResultsDelay; 	// Time delay for sending saveResults command to Monitors 
- 
+   
+  bool 			fSkipUpdateTasks;	// Skip updates tasks for one cycle if nodes were synched 
 
   FoldersMap 		foldersMap; 		// Associate DDUs and CSCs with Monitoring nodes
   CSCCounters 		cscCounters;	 	// CSC Counters from EmuMonitor nodes

@@ -132,8 +132,9 @@ xoap::MessageReference EmuMonitor::requestReport(xoap::MessageReference node) th
       xoap::SOAPName reportList = envelope.createName("ReportList", "", "");
       xoap::SOAPElement reportListElement = monitorNodeElement.addChildElement(reportList);
 
-      // appBSem_.take();
-      if ((plotter_ != NULL) && (fsm_.getCurrentState() != 'R'))
+      if ((plotter_ != NULL)
+          && (fsm_.getCurrentState() != 'R')
+          && (sessionEvents_ > xdata::UnsignedInteger(0)))
         {
 
           plotter_->updateFractionHistos();
@@ -163,9 +164,7 @@ xoap::MessageReference EmuMonitor::requestReport(xoap::MessageReference node) th
                   entryElement.addAttribute(descr, entry_itr->descr);
                   entryElement.addAttribute(severity, Form("%d",entry_itr->severity));
                 }
-
             }
-
         }
       /*
       std::cout << std::endl;
@@ -328,7 +327,7 @@ xoap::MessageReference EmuMonitor::syncToCurrentRun(xoap::MessageReference node)
                    f_itr != runStartStampElement.end(); ++f_itr)
                 {
                   runStart = f_itr->getValue();
-		  // LOG4CPLUS_INFO(logger_, "Received runStartTime " << runStart);
+                  // LOG4CPLUS_INFO(logger_, "Received runStartTime " << runStart);
                 }
 
 
@@ -336,7 +335,7 @@ xoap::MessageReference EmuMonitor::syncToCurrentRun(xoap::MessageReference node)
                   && (fsm_.getCurrentState() == 'E')
                   && (runNum > runNumber_)
                   && (runStart > xdata::UnsignedInteger(0))
-		  && (runStart > runStartUTC_)
+                  && (runStart > runStartUTC_)
                  )
                 {
                   LOG4CPLUS_INFO(logger_,"Received sync request for run: " << runNum << " (run start time: " << runStart << ")");
@@ -345,12 +344,12 @@ xoap::MessageReference EmuMonitor::syncToCurrentRun(xoap::MessageReference node)
                   runStartUTC_ = runStart;
 
                 }
-/*
-              else
-                {
-                  LOG4CPLUS_INFO(logger_,"Monitor is already synched to run " << runNum << " started at " << runStart);
-                }
-*/
+              /*
+                            else
+                              {
+                                LOG4CPLUS_INFO(logger_,"Monitor is already synched to run " << runNum << " started at " << runStart);
+                              }
+              */
             }
         }
       appBSem_.give();

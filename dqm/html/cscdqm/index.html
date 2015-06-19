@@ -334,6 +334,7 @@ var reportWindow = "";
 var imgFormat=".png";
 var RunNumber="Online";
 var RunName="Online";
+var RunStartTime = "??";
 var Folder="";
 var RunInfoIdx = -1;
 var Canvas="";
@@ -410,6 +411,8 @@ var totalCSCblocks=0;
 var totalDQMrate=0;
 var totalCSCrate=0;
 var selSeverityFilter="NONE";
+var all_nodes_status_window=false;
+var nodes_prev=false;
 
 var DQM_SEVERITY = 
 	[
@@ -475,6 +478,7 @@ function printNodeStatusLegend()
 	out += "<td><span style='background-color: #ff9090;'>Halted/Stopped</span></td>";
 	out += "<td><span style='background-color: white;'>Dead</span></td>";
 	out += "<td><span style='background-color: #C0C0C0;'>Disabled</span></td>";
+//	out += "<td><input class='button' type='button' name='action' style='background-color: #90ff90; font: bold 10px Arial;' value='Show All' onClick='return showAllNodesStatuses();' title='Click to show all EmuMonitors statuses'></td>";
 	
         out += "</tr></table>";
         return out;
@@ -1022,7 +1026,10 @@ function showNodeDetailedStatus(id) {
 			
 			out +="<td class='node_info' style='background-color: "+color+"'>"+state+"</td>";
 			for (j=3; j<nodes[idx].length; j++) {
-				out+="<td class='node_info'>"+nodes[idx][j]+"</td>";
+				var value = nodes[idx][j];
+			        // Fix run start time. should be UTC
+			        if (j==4) value = value.replace("CEST", "UTC");
+				out+="<td class='node_info'>"+value+"</td>";
 			}
 			out+="</tr>";
 			out +="</table>"	
@@ -1237,6 +1244,9 @@ function updateNodesStatus()
 					rate = nodes[i][6];
 					csc_rate = nodes[i][9];
 					RunNumber=nodes[i][3];
+					RunStartTime=nodes[i][4];
+					RunStartTime = RunStartTime.replace("CEST","UTC"); 
+					
 					// id = 'node_'+node;
 					id=node;
 					node = "<a href='' onClick='showNodeDetailedStatus(\""+node+"\");showNodeInfo(\""+node+"\");selectNode(\""+node+"\");return false;'>"+node+"</a>";
@@ -1275,6 +1285,7 @@ function updateNodesStatus()
 					totalCSCrate += parseInt(nodes[i][9]);
 					
 				}
+				
 			}
 		}
 	
@@ -1313,10 +1324,12 @@ function getNodesList()
 				// Need to strip malformed array string to satisfy IE7
 				reply = reply.replace(/,]/g,"]");
 				reply = reply.replace("var ","");
-	        	window.eval(reply);
+	        	        window.eval(reply);
 				updateNodesStatus();
 				selectNode(selNode);
 				showNodeDetailedStatus(selNode);
+				if (all_nodes_status_window && !all_nodes_status_window.closed)
+				  { showAllNodesStatuses(); }
 				req=false;
 				
 	    	} else if (req.status==404) {
@@ -2182,13 +2195,26 @@ function setCompareRun() {
 	}
 }
 
+function getCurrentRunNumber()
+{
+   var run_n = RunNumber ;
+   return run_n;
+}
+
+function getCurrentRunStartTime()
+{
+   var run_start = RunStartTime ;
+   return run_start;
+}
+
 function loadRunsList(r_list) 
 {	
 	
 	// out += "<div><table class='runs_table'>";
 	out = "<table class='runs_table'>";
 	out += "<th>Run</th><th>Analyzed on</th>";
-	out += "<tr class='RUN_TYPE_ONLINE'><td><a href='' id='Online' onClick='RunName=\"Online\";getTestsList();getCSCCounters();loadCSCList(\"Online\");return false;'>Online</a></td><td></td></tr>";
+	out += "<tr class='RUN_TYPE_ONLINE'><td><a href='' id='Online' onClick='RunName=\"Online\";getTestsList();getCSCCounters();loadCSCList(\"Online\");return false;'>Live ( " + getCurrentRunNumber() +" )</a></td>";
+	out += "<td>Started at <font color='green'>" + getCurrentRunStartTime() + "</font></td></tr>";
 	if (r_list) {
 		compare_list = document.getElementById("compare_selection");
 		
@@ -2224,6 +2250,7 @@ function loadRunsList(r_list)
 				}
 			}
 		// addlog("runs", "info");
+		runs_count = 0;
 		for (var i = 0; i< r_list.length; i++) {
 			isSelected = false;
 			child = [];		
@@ -2239,6 +2266,7 @@ function loadRunsList(r_list)
 			// if (i==0) RunNumber = run_num;
 			// addlog(run_descr, "info");
 			run_type = "RUN_TYPE_UNKNOWN";
+			runs_count = runs_count + 1;
 		        
 			out += "<tr><td class='"+run_type+"'><a href='' id='"+run_num+"' onClick='RunName=\""+run_num+"\";getTestsList();getCSCCounters();loadCSCList(\""+run_num+"\");return false;'>"+run_num+"</a></td><td>"+run_time+"</td></tr>";
 			if (selRefRun == run_num) isSelected = true;
@@ -2257,6 +2285,7 @@ function loadRunsList(r_list)
 				}
 			
 		}
+		setRunsCount(runs_count);
 		
 	} 
 	
@@ -2264,12 +2293,20 @@ function loadRunsList(r_list)
 	obj = document.getElementById("runs_list");
 	if (obj) obj.innerHTML = out;
 	
+	
 }	
+
+function setRunsCount(cnt)
+{
+    obj = document.getElementById("runs_count");
+    if (obj) obj.innerHTML = cnt;
+}
 
 function setRunsFilter()
 {
         out = "<table class='dqm_report'><tr>";
-        out += "<td><b>Run types:</b></td> ";
+	out += "<td colspan=5><b>Runs Count: <font color='blue'><span id='runs_count'></span></font></b></td></tr></tr>";
+        out += "<td><b>Run Types </b></td> ";
         for (var i=0; i<RUN_TYPES.length; i++) {
                 out += "<td><span title='"+RUN_TYPES[i].descr+"' class='RUN_TYPE_"+RUN_TYPES[i].type+"'>" + RUN_TYPES[i].name + "</span></td> ";
         }
@@ -2621,16 +2658,116 @@ function updateSysStatus()
 		getCSCListDelay-=2;
 		if (getCSCListDelay<0) getCSCListDelay=0;
 		var out="<table><tr>";
-		
+	
+	        out+= "<td class='td_status'><input class='button' type='button' name='action' style='background-color: #90ff90; font: bold 8pt Arial;' value='Show All' onClick='return showAllNodesStatuses();' title='Click to show all EmuMonitors statuses'></td>";	
 		out+= "<td><b>Total:</b></td><td class='td_status'> #DDUs: <b>"+ numDDUs+"</b></td><td class='td_status'> #CSCs: <b>"+numCSCs+"</b></td>";
 		out+= "<td class='td_status'>DAQ Evts: <b>"+totalDAQevents+"</b></td><td class='td_status'>DQM Evts: <b>"+totalDQMevents+"</b></td>"
 		out+= "<td class='td_status'>CSC blocks: <b>"+totalCSCblocks+"</b></td><td class='td_status'>DQM Rate: <b>"+totalDQMrate+"</b></td>";
 		out+= "<td class='td_status'>CSC Rate: <b>"+totalCSCrate+"</b></td>";
-		out+= "<td class='td_status'>Upd Nodes in <b>"+getNodesListDelay+"</b>s</td><td class='td_status'>Upd CSC List in <b>"+getCSCListDelay+"</b>s</td></tr></table>";
+		out+= "<td class='td_status'>Upd Nodes in <b>"+getNodesListDelay+"</b> sec</td><td class='td_status'>Upd CSC List in <b>"+getCSCListDelay+"</b> sec</td>";
+	        out+= "</tr></table>";
 		
 		obj.innerHTML=out;
 	}
 	setTimeout('updateSysStatus()', 2000);
+}
+
+function showAllNodesStatuses()
+{
+  try 
+  {
+
+      var out="";
+      var nodes=NODES_LIST;
+      if (nodes && nodes.length>1) {
+           out +="<table class='nodes_table'>";
+           // Show Table Header
+           if (nodes.length && nodes[0] && nodes[0].length) {
+              for (i=0; i< nodes[0].length-3; i++) {
+                  out+="<th class='node'>"+nodes[0][i]+"</th>";
+              }
+	      out+="<th class='node'>"+nodes[0][nodes[0].length-1]+"</th>";
+           }
+         for (i=1; i<nodes.length; i++) {
+	   var tag="EmuMonitor-"+i;
+           for (idx=1; idx<nodes.length; idx++) {
+	      if (nodes[idx][0] != tag) continue;
+              if (nodes[idx] && nodes[idx].length) {
+                 // Show Node Status 
+                out+="<tr>";
+                out+="<td class='node'><a target='shownode' href='"+nodes[idx][1]+"'>"+nodes[idx][0]+"</a></td>";
+                state = nodes[idx][2];
+                id = 'node_'+node;
+                var color='white';
+                if (state.search("Enabled") >=0) {color='#90ff90';}
+                else if (state.search("Halted") >=0) {color='#ff9090';}
+                else if (state.search("Ready") >=0) {color='#ffff90';}
+                else if (state.search("Unknown") >=0) {color='909090';}
+
+                out +="<td class='node' style='background-color: "+color+"'>"+state+"</td>";
+                for (j=3; j<nodes[idx].length-3; j++) {
+                   var value = nodes[idx][j];
+                   // Fix run start time. should be UTC
+                   if (j==4) value = value.replace("CEST", "UTC");
+		   if (j>=5 && j<=9) { 
+			var diff = 0;
+			color = 'black';
+			if (nodes_prev && nodes_prev[idx][j]) { 
+				diff = nodes[idx][j]-nodes_prev[idx][j];
+				if (diff<0) { color="red";}
+				else if (diff>0) {color="green"; diff = "+"+diff;}
+			}
+			value = value + " (<font color='"+color+ "'>" + diff +"</font>)";
+		   }
+		
+                   out+="<td class='node'>"+value+"</td>";
+                }
+		out+="<td class='node'>"+nodes[idx][nodes[idx].length-1]+"</td>";
+                out+="</tr>";
+             }
+          }
+        }
+	  out+="</table>";
+
+	  out+="<table><tr>";
+          out+= "<td class='node'><b>Total:</b></td><td class='node'> #DDUs: <b>"+ numDDUs+"</b></td><td class='node'> #CSCs: <b>"+numCSCs+"</b></td>";
+          out+= "<td class='node'>DAQ Evts: <b>"+totalDAQevents+"</b></td><td class='node'>DQM Evts: <b>"+totalDQMevents+"</b></td>"
+          out+= "<td class='node'>CSC blocks: <b>"+totalCSCblocks+"</b></td><td class='node'>DQM Rate: <b>"+totalDQMrate+"</b></td>";
+          out+= "<td class='node'>CSC Rate: <b>"+totalCSCrate+"</b></td>";
+          out+= "</tr></table>";
+      }
+ 
+     nodes_prev = nodes;
+
+
+
+     title="Monitoring Nodes Status"; 
+     var generator=window.open("","all_nodes_status","location=0,status=0,width=1100,height=800,resizable=yes");
+     if (window.focus) {generator.focus()}
+     generator.resizeTo(1100, 800);
+     generator.document.write('<html><head><title>'+title+'</title>');
+     generator.document.write("<style>body {color: #000000; background-color: #9090FF;margin: 2px;font-family:Arial; overflow: auto;}"+
+     "span.winTitle {        margin: 0;font-size: 12px;font-weight: bold;text-decoration: none;color: #000000;}"+
+     "fieldset {background-color: #ddd;      border-style: solid;border-width: 1px;border-color: black;margin: 2px;padding: 2px;}"+
+     "legend {border-style: solid;border-width: 1px;background-color:  #C0C0FF;}td.node {background-color: white; text-align: right; font-size: 8pt;"+
+     "padding: 1px;}"+
+     "a, A:link, a:visited, a:active, A:hover {color: #000000; font-weight: bold; text-decoration: none;outline-style: none;}"+
+     "th.node {background-color: lightblue; text-align: center; font-size: 8pt;"+
+     "padding: 1px;}</style>");
+     generator.document.write('</head><body>');
+     generator.document.write("<fieldset><legend><span class='winTitle'>"+title+"</span></legend>");
+     generator.document.write(out);
+     generator.document.write("</fieldset>");
+     // generator.document.write('<p><a href="javascript:self.close()">Close</a> the popup.</p>');
+     generator.document.write('</body></html>');
+     generator.document.close();
+    
+     all_nodes_status_window = generator;     
+
+     }
+  catch (exc){
+  }
+  return false;
 }
 
 function updateCSCMappings()
