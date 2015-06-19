@@ -342,6 +342,7 @@ xoap::MessageReference EmuMonitor::syncToCurrentRun(xoap::MessageReference node)
                   resetMonitor();
                   runNumber_ = runNum;
                   runStartUTC_ = runStart;
+		  if (enableDataWrite_ == xdata::Boolean(true)) createFileWriter();
 
                 }
               /*
@@ -510,7 +511,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
                       xoap::SOAPElement folderElement = monitorElement.addChildElement(folderTag);
                       folderElement.addTextNode(folder);
                       std::map<std::string, ME_List >::iterator melist_itr = MEs.find(folder);
-                      if (melist_itr != MEs.end())
+                      if (melist_itr != MEs.end() && (melist_itr->second.size() > 0))
                         {
                           // LOG4CPLUS_WARN (logger_, "Folder: " << folder);
                           if (folder.find("EMU") == 0) plotter_->updateFractionHistos();

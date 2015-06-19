@@ -1194,6 +1194,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef)
       resetMonitor();
       runNumber_ = msg->runNumber;
       runStartUTC_ = msg->runStartUTC;
+      if (enableDataWrite_ == xdata::Boolean(true)) createFileWriter();
     }
 
   int32_t nBlocks = (errorFlag >> 12)&0xF; /// Number of reconstructed event data blocks
@@ -1749,6 +1750,5 @@ void EmuMonitor::resetMonitor()
 
   destroyFileWriter();
 
-  if (enableDataWrite_ == xdata::Boolean(true)) createFileWriter();
 }
 

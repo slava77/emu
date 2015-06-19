@@ -27,7 +27,9 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
   fInterestingEvent   = false; ///< flag to mark selected event for saving into file
 
   ///**  Check and book global node specific histos
-  if (MEs.size() == 0 || ((itr = MEs.find(nodeTag)) == MEs.end()))
+  itr = MEs.find(nodeTag);
+  if (MEs.size() == 0 || (itr == MEs.end())
+	|| (itr->second.size() == 0) )
   {
     LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << nodeTag << " not found. Booking...");
     MEs["EMU"] = bookMEs("EMU","EMU_Summary");
