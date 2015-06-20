@@ -975,11 +975,10 @@ void EmuMonitor::doStop()
               rateMeter->kill();
             }
       */
+      disableReadout();
 
       if (fSaveROOTFile_ == xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0)))
         {
-          disableReadout();
-
           plotter_->updateFractionHistos();
           plotter_->updateCSCFractionHistos();
 
