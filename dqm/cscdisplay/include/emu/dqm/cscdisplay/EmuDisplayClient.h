@@ -123,6 +123,10 @@ private:
   time_t timestamp;
 };
 
+typedef DQMNodesStatus DQMNodesStatusT;
+
+typedef std::list< std::pair<time_t, DQMNodesStatusT> > DQMNodesHistory; 
+
 using namespace toolbox;
 
 class EmuDisplayClient : 
@@ -159,10 +163,11 @@ public:
   void getCSCCounters (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getDQMReport (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getROOTFile (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
-  void getNodesRates (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
+  void getNodesHistory (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
 
   void controlDQM (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void configureDQM (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
+  void controlDisplay (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void redir (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
 
 
@@ -263,6 +268,9 @@ protected:
   inline void addFact(const emu::base::Fact &fact) {
                                 collectedFacts.push_back(fact);
                         }
+
+  int addToNodesStatusHistory(time_t timestamp, DQMNodesStatus nodes_status);
+  
   int svc();
   std::string generateLoggerName();
 
@@ -287,6 +295,10 @@ private:
   CSCReadoutMappingFromFile 	cscMapping;
   std::map<std::string, int> 	tmap;
   std::vector<std::string> 	runsList;
+  std::map<std::string, std::vector<std::string> > multi_runList; 	// Run lists for multiple folders
+  std::map<std::string, int>	nodeSyncFlag;	// Flags for Nodes syncronization
+
+ 
 
 
   toolbox::exception::HandlerSignature*	 	errorHandler_;
@@ -321,6 +333,9 @@ private:
   CSCCounters 		cscCounters;	 	// CSC Counters from EmuMonitor nodes
   DQMNodesStatus 	nodesStatus; 		// DQM Monitoring Nodes Statuses
   DQMNodesStatus 	prevNodesStatus;	// Saved copy of previous DQM Monitoring Nodes Statuses
+  DQMNodesHistory        nodesStatusHistory; // Container for Historical DQM Monitoring Nodes Statuses
+  xdata::UnsignedInteger maxNodesHistorySize;
+
   BSem 			appBSem_;
   BSem			utilBSem_;
   struct timeval 	bsem_tout;
