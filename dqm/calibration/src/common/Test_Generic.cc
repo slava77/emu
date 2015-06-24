@@ -1470,12 +1470,16 @@ void Test_Generic::doBinCheck()
       // int ChamberID     = chamber->first;
       int CrateID = (chamber->first>>4) & 0xFF;
       int DMBSlot = chamber->first & 0xF;
-      if ((CrateID ==255) || (CrateID == 0) || (DMBSlot == 0) ||
+      if ((CrateID ==255) || (CrateID <= 0) || (DMBSlot <= 0) || (CrateID > 60) || (DMBSlot > 10) ||
           (chamber->second & 0x80))
         {
+	  if (((CrateID > 60) || (DMBSlot > 10)) && (CrateID <255)) {
+   	     LOG4CPLUS_ERROR(logger, "Evt#" << std::dec << nTotalEvents << "> Invalid CSC ID: Crate " << CrateID << ", DMBSlot " << DMBSlot);
+          }
           chamber++;    // = Skip chamber detection if DMB header is missing (Error code 6)
           continue;
         }
+
 
       int CSCtype   = 0;
       int CSCposition = 0;
