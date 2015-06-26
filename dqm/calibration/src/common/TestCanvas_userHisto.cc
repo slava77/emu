@@ -3,6 +3,8 @@
 TestCanvas_userHisto::TestCanvas_userHisto (std::string name, std::string title)
 {
 
+  theStyle = NULL;
+
   theName  = name.c_str();
   theTitle = title.c_str();
 
@@ -203,6 +205,7 @@ TestCanvas_userHisto::~TestCanvas_userHisto ()
 //  delete theRightTopPad;
   delete theUserHisto;
   // delete theUserPad;
+//  if (theStyle!=NULL) delete theStyle;
 }
 
 const char*  TestCanvas_userHisto::GetTitle (void)
@@ -477,21 +480,21 @@ void TestCanvas_userHisto::SetResultCode(int QualityTest)
 {
   theFillColor = theColorWhite;
   if (QualityTest == 1)
-  {
-    theFillColor = theColorGreenLight;
-  }
+    {
+      theFillColor = theColorGreenLight;
+    }
   if (QualityTest == 2)
-  {
-    theFillColor = theColorYellowLight;
-  }
+    {
+      theFillColor = theColorYellowLight;
+    }
   if (QualityTest == 3)
-  {
-    theFillColor = theColorBlueLight;
-  }
+    {
+      theFillColor = theColorBlueLight;
+    }
   if (QualityTest == 4)
-  {
-    theFillColor = theColorRedLight;
-  }
+    {
+      theFillColor = theColorRedLight;
+    }
 
   theMainCanvas->SetFillColor(theFillColor);
 }
@@ -500,11 +503,15 @@ void TestCanvas_userHisto::Draw (void)
 {
 
 // Switch off all default titles and statistics boxes
-  theStyle = new TStyle("Style", "Style");
-  theStyle->SetOptStat(0);
-  theStyle->SetOptTitle(0);
-  theStyle->SetPalette(1,0);
-  theStyle->cd();
+  if (theStyle == NULL)  theStyle = new TStyle("Style", "Style");
+  if (theStyle != NULL)
+    {
+      theStyle->SetOptStat(0);
+      theStyle->SetOptTitle(0);
+      theStyle->SetPalette(1,0);
+      theStyle->cd();
+    }
+
 
   theMainCanvas->cd();
   theTitlePad->Draw();
@@ -554,7 +561,7 @@ void TestCanvas_userHisto::Draw (void)
   } */
 
   theMainCanvas->Update();
-  delete theStyle;
+  // delete theStyle;
 }
 
 void TestCanvas_userHisto::SetCanvasSize(uint32_t w, uint32_t h)
@@ -571,10 +578,10 @@ int TestCanvas_userHisto::Write (std::string newName)
 {
   int fNBuffer = 0;
   if (theMainCanvas)
-  {
-    fNBuffer = theMainCanvas->Write(newName.c_str(),TObject::kOverwrite);
-  }
-//  theStyle->Write();
+    {
+      fNBuffer = theMainCanvas->Write(newName.c_str(),TObject::kOverwrite);
+    }
+//  if (theStyle!=NULL) theStyle->Write();
   return fNBuffer;
 }
 
@@ -582,10 +589,10 @@ int TestCanvas_userHisto::Write (void)
 {
   int fNBuffer = 0;
   if (theMainCanvas)
-  {
-    fNBuffer = theMainCanvas->Write(theMainCanvas->GetName(),TObject::kOverwrite);
-  }
-//  theStyle->Write();
+    {
+      fNBuffer = theMainCanvas->Write(theMainCanvas->GetName(),TObject::kOverwrite);
+    }
+//  if (theStyle!=NULL) theStyle->Write();
   return fNBuffer;
 }
 

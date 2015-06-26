@@ -308,7 +308,7 @@ public:
 
 protected:
   std::string getCSCFromMap(int crate, int slot, int& csctype, int& cscposition);
-  std::string getCSCTypeLabel(int endcap, int station, int ring );
+//  std::string getCSCTypeLabel(int endcap, int station, int ring );
   // int getNumStrips(std::string cscID);
   void saveCSCList();
   void doBinCheck();
