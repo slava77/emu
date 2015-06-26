@@ -737,9 +737,10 @@ void Test_CFEB03::finishCSC(std::string cscID)
                           double Qcc_max=0;
                           double Qcc_peak_time=0;
 
-                          bool fFirstStrip = (strip ==1 && icfeb==0)? true: false;
-                          bool fLastStrip = (strip ==16 && icfeb==(nCFEBs-1))? true: false;
-                          if (((cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 )) && ((strip ==1 && icfeb==4)))
+                          bool fFirstStrip = (strip==1 && icfeb==0)? true: false;
+                          // Exclude Last strip for all chambers and last strip for ME11s DCFEB4
+                          bool fLastStrip = (strip==16 && (icfeb==(nCFEBs-1) || (((cscID.find("ME+1.1")==0) || (cscID.find("ME-1.1")==0)) && (icfeb==3)) ))? true: false;
+                          if (((cscID.find("ME+1.1")==0) || (cscID.find("ME-1.1")==0 )) && ((strip==1 && icfeb==4)))
                             fFirstStrip = true;
 
                           // std::ofstream res_out;

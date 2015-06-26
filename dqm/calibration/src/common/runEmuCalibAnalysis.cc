@@ -73,11 +73,11 @@ int main(int argc, char **argv)
 
 
   if (argc <2)
-  {
-    LOG4CPLUS_FATAL(logger, argv[0] << ": Not enough parameters.");
-    usage();
-    exit(-1);
-  }
+    {
+      LOG4CPLUS_FATAL(logger, argv[0] << ": Not enough parameters.");
+      usage();
+      exit(-1);
+    }
 
 
   uint32_t NumberOfEvents = 0xFFFFFFFF;
@@ -104,9 +104,9 @@ int main(int argc, char **argv)
   std::string datafile = "";
   std::string histofile = "dqm_results.root";
   std::string SQLiteDB = cfgDir+"/csc_map.db";
-  
+
   std::string cscAFEBCalibFolder = cfgDir+"/afeb_thresholds/";
-  
+
   //for test 19 (Test_19_CFEBComparators.cc)
   //std::string cscCFEBCalibFolder = cfgDir+"/cfeb_thresholds/";
 
@@ -126,39 +126,39 @@ int main(int argc, char **argv)
   int result;
   result = getrlimit(RLIMIT_STACK, &rl);
   if (result == 0)
-  {
-    rl.rlim_cur = RLIM_INFINITY;
-    result = setrlimit(RLIMIT_STACK, &rl);
-    if (result != 0)
     {
-      fprintf(stderr, "setrlimit returned result = %d\n", result);
+      rl.rlim_cur = RLIM_INFINITY;
+      result = setrlimit(RLIMIT_STACK, &rl);
+      if (result != 0)
+        {
+          fprintf(stderr, "setrlimit returned result = %d\n", result);
+        }
     }
-  }
 
   switch (argc)
-  {
-  case 7:
-    binCheckMask = strtoul(argv[6], NULL, 0);
-  case 6:
-    dduCheckMask = strtoul(argv[5], NULL, 0);
-  case 5:
-    startEvent = atoi(argv[4]);
-  case 4:
-    histofile = argv[3];
-  case 3:
-    NumberOfEvents = atoi(argv[2]);
-  case 2:
-    datafile = argv[1];
-    break;
-  }
+    {
+    case 7:
+      binCheckMask = strtoul(argv[6], NULL, 0);
+    case 6:
+      dduCheckMask = strtoul(argv[5], NULL, 0);
+    case 5:
+      startEvent = atoi(argv[4]);
+    case 4:
+      histofile = argv[3];
+    case 3:
+      NumberOfEvents = atoi(argv[2]);
+    case 2:
+      datafile = argv[1];
+      break;
+    }
 
   struct stat stats;
   if (stat(datafile.c_str(), &stats)<0)
-  {
-    LOG4CPLUS_FATAL(logger, datafile << ": " <<
-                    strerror(errno));
-    exit(-1);
-  }
+    {
+      LOG4CPLUS_FATAL(logger, datafile << ": " <<
+                      strerror(errno));
+      exit(-1);
+    }
 
 
   emu::daq::reader::RawDataFile ddu(datafile.c_str(), emu::daq::reader::Base::DDU);
@@ -184,8 +184,8 @@ int main(int argc, char **argv)
   Test_Generic* test_analyzer = NULL;
 
   if ( (datafile.find("Test_11") != std::string::npos) ||
-            (datafile.find("test11") != std::string::npos) ||
-	    (datafile.find("Test11") != std::string::npos) )
+       (datafile.find("test11") != std::string::npos) ||
+       (datafile.find("Test11") != std::string::npos) )
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test 11: AFEB Counting Noise");
       test_analyzer = new Test_11_AFEBNoise(datafile);
@@ -193,15 +193,15 @@ int main(int argc, char **argv)
       testID = "CFEB02";
     }
   else if ( (datafile.find("ALCT_Connectivity") != std::string::npos) ||
-	    (datafile.find("Test_12") != std::string::npos) )
-    {   
+            (datafile.find("Test_12") != std::string::npos) )
+    {
       LOG4CPLUS_INFO(logger, "Detected data for Test AFEB05: Connectivity");
       test_analyzer = new Test_AFEB05(datafile);
       xmlTestCfg = "file://" + cfgDir +"/emuTest_AFEB05.xml";
       testID = "AFEB05";
     }
   else if ( (datafile.find("ALCT_Thresholds") != std::string::npos) ||
-	    (datafile.find("Test_13") != std::string::npos) )
+            (datafile.find("Test_13") != std::string::npos) )
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test AFEB06: Thresholds and Analog Noise");
       test_analyzer = new Test_AFEB06(datafile);
@@ -209,8 +209,8 @@ int main(int argc, char **argv)
       testID = "AFEB06";
     }
   else if ( (datafile.find("ALCT_Delays") != std::string::npos) ||
-	    (datafile.find("test14") != std::string::npos) ||
-	    (datafile.find("Test_14") != std::string::npos) )
+            (datafile.find("test14") != std::string::npos) ||
+            (datafile.find("Test_14") != std::string::npos) )
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test AFEB07: AFEB-ALCT Time Delays");
       test_analyzer = new Test_AFEB07(datafile);
@@ -218,8 +218,8 @@ int main(int argc, char **argv)
       testID = "AFEB07";
     }
   else if ( (datafile.find("CFEB_SCAPed") != std::string::npos) ||
-	    (datafile.find("Test_15") != std::string::npos) ||
-	    (datafile.find("test15") != std::string::npos) )
+            (datafile.find("Test_15") != std::string::npos) ||
+            (datafile.find("test15") != std::string::npos) )
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test CFEB02: Pedestals and Noise");
       test_analyzer = new Test_CFEB02(datafile);
@@ -228,7 +228,7 @@ int main(int argc, char **argv)
     }
   else if ( (datafile.find("Test_16") != std::string::npos) ||
             (datafile.find("test16") != std::string::npos) ||
-	    (datafile.find("Test16") != std::string::npos) )
+            (datafile.find("Test16") != std::string::npos) )
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test 16: CFEB Connectivity");
       test_analyzer = new Test_16_CFEBConnectivity(datafile);
@@ -236,7 +236,7 @@ int main(int argc, char **argv)
       testID = "16_CFEBConnectivity";
     }
   else if ( (datafile.find("CFEB_CrossTalk") != std::string::npos) ||
-	    (datafile.find("Test_17_") != std::string::npos) )
+            (datafile.find("Test_17_") != std::string::npos) )
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test CFEB03: Pulse Response and Cross Talks");
       test_analyzer = new Test_CFEB03(datafile);
@@ -244,8 +244,8 @@ int main(int argc, char **argv)
       testID = "CFEB03";
     }
   else if ( (datafile.find("CFEB_Gains") != std::string::npos) ||
-	    (datafile.find("Test_17b") != std::string::npos) ||
-	    (datafile.find("test17b") != std::string::npos) )
+            (datafile.find("Test_17b") != std::string::npos) ||
+            (datafile.find("test17b") != std::string::npos) )
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test CFEB04: Amplifier Gain");
       test_analyzer = new Test_CFEB04(datafile);
@@ -254,7 +254,7 @@ int main(int argc, char **argv)
     }
   else if ( (datafile.find("Test_19") != std::string::npos) ||
             (datafile.find("test19") != std::string::npos) ||
-	    (datafile.find("Test19") != std::string::npos) )
+            (datafile.find("Test19") != std::string::npos) )
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test 19: CFEB Comparator Thresholds and Noise");
       test_analyzer = new Test_19_CFEBComparators(datafile);
@@ -265,7 +265,7 @@ int main(int argc, char **argv)
             (datafile.find("test21") != std::string::npos) ||
             (datafile.find("test_21") != std::string::npos) ||
             (datafile.find("Test_21") != std::string::npos) ||
-	    (datafile.find("Test21") != std::string::npos) )
+            (datafile.find("Test21") != std::string::npos) )
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test 21: CFEB Comparator Logic (left/right half-strip) test");
       test_analyzer = new Test_21_CFEBComparatorLogic(datafile);
@@ -274,7 +274,7 @@ int main(int argc, char **argv)
     }
   else if ( (datafile.find("Test_25") != std::string::npos) ||
             (datafile.find("test25") != std::string::npos) ||
-	    (datafile.find("Test25") != std::string::npos) )
+            (datafile.find("Test25") != std::string::npos) )
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test 25: ALCT Self-Trigger");
       test_analyzer = new Test_25_ALCTTrigger(datafile);
@@ -283,7 +283,7 @@ int main(int argc, char **argv)
     }
   //note that historically this was called Step 24, but the present implementation uses step27 files as input
   else if (datafile.find("STEP_27") != std::string::npos
-	   || datafile.find("Test_27") != std::string::npos)
+           || datafile.find("Test_27") != std::string::npos)
     {
       LOG4CPLUS_INFO(logger, "Detected data for Gas Gain Test");
       test_analyzer = new Test_GasGain(datafile);
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
     }
   else if ( (datafile.find("Test_30") != std::string::npos) ||
             (datafile.find("test30") != std::string::npos) ||
-	    (datafile.find("Test30") != std::string::npos) )
+            (datafile.find("Test30") != std::string::npos) )
     {
       LOG4CPLUS_INFO(logger, "Detected data for Test 30: Pipeline depth");
       test_analyzer = new Test_30_PipelineDepth(datafile);
@@ -304,8 +304,8 @@ int main(int argc, char **argv)
       LOG4CPLUS_FATAL (logger, "Unrecognizable Test Type for data file name " << datafile);
       return -1;
     }
-  
-  
+
+
   test_analyzer->setSQLiteDBName(SQLiteDB);
   test_analyzer->init();
   // test_analyzer->setCSCMapFile(cscMapFile); ///* Getting rid of csc_map.txt based mapping access to use only sqlite
@@ -316,54 +316,57 @@ int main(int argc, char **argv)
   Logger::getInstance("CSCRawUnpacking").setLogLevel(OFF_LOG_LEVEL);
 
   if (datafile.find(".bin") != std::string::npos)
-  {
-    histofile = datafile;
-    if (histofile.rfind("/") != std::string::npos)
-      histofile.erase(0, histofile.rfind("/")+1);
-    plotsdir = histofile;
-    plotsdir = plotsdir.replace(plotsdir.find(".bin"), 4, ".plots");
-    histofile = histofile.replace(histofile.find(".bin"), 4, ".root");
-    test_analyzer->setOutDir(plotsdir);
-    test_analyzer->setRootFile(histofile);
-  }
+    {
+      histofile = datafile;
+      if (histofile.rfind("/") != std::string::npos)
+        histofile.erase(0, histofile.rfind("/")+1);
+      plotsdir = histofile;
+      plotsdir = plotsdir.replace(plotsdir.find(".bin"), 4, ".plots");
+      histofile = histofile.replace(histofile.find(".bin"), 4, ".root");
+      test_analyzer->setOutDir(plotsdir);
+      test_analyzer->setRootFile(histofile);
+    }
   if (datafile.find(".raw") != std::string::npos)
-  {
-    histofile = datafile;
-    if (histofile.rfind("/") != std::string::npos)
-      histofile.erase(0, histofile.rfind("/")+1);
-    plotsdir = histofile;
-    plotsdir = plotsdir.replace(plotsdir.find(".raw"), 4, ".plots");
-    histofile = histofile.replace(histofile.find(".raw"), 4, ".root");
-    test_analyzer->setOutDir(plotsdir);
-    test_analyzer->setRootFile(histofile);
-  }
+    {
+      histofile = datafile;
+      if (histofile.rfind("/") != std::string::npos)
+        histofile.erase(0, histofile.rfind("/")+1);
+      plotsdir = histofile;
+      plotsdir = plotsdir.replace(plotsdir.find(".raw"), 4, ".plots");
+      histofile = histofile.replace(histofile.find(".raw"), 4, ".root");
+      test_analyzer->setOutDir(plotsdir);
+      test_analyzer->setRootFile(histofile);
+    }
 
 
 
   // Try to extract Node ID from data file name (should match pattern EmuRUInn)
   if (datafile.find("EmuRUI") != std::string::npos)
-  {
-    std::string nodestr = datafile.substr(datafile.find("EmuRUI"), 8);
-    nodestr.erase(0,6); // remove "EmuRUI"
-    node = atoi(nodestr.c_str());
-    LOG4CPLUS_INFO (logger, "Found Node ID " << node);
-  }
+    {
+      std::string nodestr = datafile.substr(datafile.find("EmuRUI"), 8);
+      nodestr.erase(0,6); // remove "EmuRUI"
+      node = atoi(nodestr.c_str());
+      LOG4CPLUS_INFO (logger, "Found Node ID " << node);
+    }
+
   /*
-    if (datafile.find(".root") != std::string::npos) {
-      LOG4CPLUS_WARN (logger, "Load MEs from ROOT file " << datafile);
+  if (datafile.find(".root") != std::string::npos)
+    {
+      LOG4CPLUS_INFO (logger, "Load MEs from ROOT file " << datafile);
       histofile = datafile;
-                  if (histofile.rfind("/") != std::string::npos)
-                          histofile.erase(0, histofile.rfind("/")+1);
-                  plotsdir = histofile;
+      if (histofile.rfind("/") != std::string::npos)
+        histofile.erase(0, histofile.rfind("/")+1);
+      plotsdir = histofile;
       std::string runname = histofile;
       runname = runname.replace(runname.find(".root"), 5, "");
-                  plotsdir = plotsdir.replace(plotsdir.find(".root"), 5, ".plots");
+      plotsdir = plotsdir.replace(plotsdir.find(".root"), 5, ".plots");
       test_analyzer.loadFromROOTFile(datafile);
       test_analyzer.saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight, runname);
       test_analyzer.generateLayout("csc-layouts.py", "EMU");
       return 0;
     }
-  */
+   */
+
   /*
     test_analyzer.setHistoFile(histofile.c_str());
     if (dduCheckMask >= 0) {
@@ -379,40 +382,40 @@ int main(int argc, char **argv)
   uint32_t cnt=0;
 
   while (ddu.readNextEvent())
-  {
-    cnt++;
-    int status = 0;
-    if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type2 ) status |= 0x8000;
-    if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type3 ) status |= 0x4000;
-    if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type4 ) status |= 0x2000;
-    if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type5 ) status |= 0x1000;
-    if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type6 ) status |= 0x0800;
-    /*
-                    if( ddu.getErrorFlag()==EmuFileReader::Type2 ) status |= 0x8000;
-                    if( ddu.getErrorFlag()==EmuFileReader::Type3 ) status |= 0x4000;
-                    if( ddu.getErrorFlag()==EmuFileReader::Type4 ) status |= 0x2000;
-                    if( ddu.getErrorFlag()==EmuFileReader::Type5 ) status |= 0x1000;
-                    if( ddu.getErrorFlag()==EmuFileReader::Type6 ) status |= 0x0800;
-    */
-
-    if (status) continue;
-
-    if ((cnt>=startEvent) && (cnt<=(startEvent+NumberOfEvents)))
     {
-      LOG4CPLUS_DEBUG (logger, "Event#"<< dec << cnt << " **** Buffer size: " << ddu.dataLength() << " bytes");
-      
-      const char * dataModified = ddu.data();
-      uint8_t header1;
-      memcpy(&header1, dataModified, 1);
-      header1 &= 0x0F;
-      header1 |= (0x7 << 4);
-      memcpy((void *)dataModified, &header1, 1);
+      cnt++;
+      int status = 0;
+      if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type2 ) status |= 0x8000;
+      if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type3 ) status |= 0x4000;
+      if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type4 ) status |= 0x2000;
+      if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type5 ) status |= 0x1000;
+      if ( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type6 ) status |= 0x0800;
+      /*
+                      if( ddu.getErrorFlag()==EmuFileReader::Type2 ) status |= 0x8000;
+                      if( ddu.getErrorFlag()==EmuFileReader::Type3 ) status |= 0x4000;
+                      if( ddu.getErrorFlag()==EmuFileReader::Type4 ) status |= 0x2000;
+                      if( ddu.getErrorFlag()==EmuFileReader::Type5 ) status |= 0x1000;
+                      if( ddu.getErrorFlag()==EmuFileReader::Type6 ) status |= 0x0800;
+      */
 
-      test_analyzer->analyze(dataModified, ddu.dataLength(), status, node);
-      if (cnt%1000 == 0) LOG4CPLUS_INFO (logger, "Processed Events: "<< dec << cnt);
+      if (status) continue;
+
+      if ((cnt>=startEvent) && (cnt<=(startEvent+NumberOfEvents)))
+        {
+          LOG4CPLUS_DEBUG (logger, "Event#"<< dec << cnt << " **** Buffer size: " << ddu.dataLength() << " bytes");
+
+          const char * dataModified = ddu.data();
+          uint8_t header1;
+          memcpy(&header1, dataModified, 1);
+          header1 &= 0x0F;
+          header1 |= (0x7 << 4);
+          memcpy((void *)dataModified, &header1, 1);
+
+          test_analyzer->analyze(dataModified, ddu.dataLength(), status, node);
+          if (cnt%1000 == 0) LOG4CPLUS_INFO (logger, "Processed Events: "<< dec << cnt);
+        }
+      if (cnt+1>(startEvent+NumberOfEvents)) break;
     }
-    if (cnt+1>(startEvent+NumberOfEvents)) break;
-  }
   t1 = time(0);
 
   int dtime = t1-t0;
