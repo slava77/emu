@@ -1140,7 +1140,8 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                               double ch_val = h->GetBinContent(ch+icfeb*32);
                                               if (( ch<2 && icfeb==0 ) || ( ch>31  && (icfeb==(nCFEBs-1)) )
                                                   || ( ME11 && ch<2 && icfeb==4 ) || ( ME11 && ch>31 && icfeb==3 )
-                                                  || ( ch<2 && icfeb>0 && (badCFEBs[icfeb-1]==1) )) continue;
+                                                  || ( ch<3 && icfeb>0 && (badCFEBs[icfeb-1]==1))
+                                                  || ( ch>31 && icfeb<(nCFEBs-1) && (badCFEBs[icfeb+1]==1)) ) continue;
                                               if ( (nentries >= (40*32*nActiveCFEBs)) && (ch_val <= 0.05*avg_comp_ch_occupancy)
                                                    && !isDeadLowComps && !isNoisyComps && !isNoisyCompsChan )
                                                 {
@@ -1218,7 +1219,8 @@ int EmuPlotter::generateOnlineReport(std::string runname)
                                           double ch_val = h->GetBinContent(ch+icfeb*32);
                                           if ( ( ch<2 && icfeb==0 ) || ( ch>31  && icfeb==(nCFEBs-1) )
                                                || ( ME11 && ch<2 && icfeb==4 ) || ( ME11 && ch>31 && icfeb==3 )
-                                               || ( ch<2 && icfeb>0 && (badCFEBs[icfeb-1]==1) )) continue;
+                                               || ( ch<3 && icfeb>0 && (badCFEBs[icfeb-1]==1))
+                                               || ( ch>31 && icfeb<(nCFEBs-1) && (badCFEBs[icfeb+1]==1)) ) continue;
                                           if ( (nentries >= (40*32*nActiveCFEBs)) && (ch_val <= 0.05*avg_comp_ch_occupancy)
                                                && !isDeadLowComps && !isNoisyComps && !isNoisyCompsChan)
                                             {
