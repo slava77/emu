@@ -45,8 +45,7 @@ emu::supervisor::CIControl& emu::supervisor::CIControl::configureSequence(){
 
   
   switch ( runType_ ){
-  case global:
-    // fall through
+  case global: // fall through
   case local:
     // BEGINSEQUENCE configure
     //   DisableL1A
@@ -76,7 +75,7 @@ emu::supervisor::CIControl& emu::supervisor::CIControl::configureSequence(){
     // sendBgo( Resync );
     // mSleep( 100 );
     break;
-  case AFEBcalibration:
+  case AFEBcalibration: // fall through
   case CFEBcalibration:
     // BEGINSEQUENCE configure
     //   DisableL1A
@@ -138,11 +137,10 @@ emu::supervisor::CIControl::CIControl& emu::supervisor::CIControl::stopSequence(
   xdata::String HardReset( "HardReset" );
 
   switch ( runType_ ){
-  case global:
-    // fall through
-  case local:
-    // fall through
-  case AFEBcalibration:
+  case global:           // fall through
+  case local:            // fall through
+  case AFEBcalibration:  // fall through
+  case CFEBcalibration:
     // Hard reset is needed in order to clear the FIFO of the DDUs 
     // (in case some events have been left there) so that the resync can zero its
     // L1A counter. Otherwise, with nonzero L1A counter, the DDU would fail to be
@@ -152,8 +150,6 @@ emu::supervisor::CIControl::CIControl& emu::supervisor::CIControl::stopSequence(
     mSleep( 500 );
     sendBgo( Resync );
     mSleep( 100 );
-    break;
-  case CFEBcalibration:
     break;
   default:
     XCEPT_RAISE( xcept::Exception, "Unknown run type." );
