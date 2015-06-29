@@ -1035,11 +1035,13 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
       // xdata::String attributeValue( "Start" );
       // m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
       
-      if ( pm_ ){
+      if ( pm_ && !quit_calibration_ ){
 	LOG4CPLUS_DEBUG(logger_, "Sending Start Bgo to LPM");
 	xdata::String Start( "Start" );
 	pm_->initCyclicGenerators().sendBgo( Start );
       }
+
+      if (quit_calibration_) { break; }
       
       sendCalibrationStatus( iRun, nRuns, step_counter_, runParameters_[index].bag.loop_ );
       
@@ -1050,6 +1052,8 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
 	xdata::String Stop( "Stop" );
 	pm_->sendBgo( Stop );
       }
+
+      if (quit_calibration_) { break; }
     }
   
     sendCalibrationStatus( ( iRun+1 == nRuns ? nRuns : iRun ), nRuns, step_counter_, runParameters_[index].bag.loop_ );
@@ -1182,22 +1186,25 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
 	}
       }
        
-      if (state_table_.getState("ttc::TTCciControl", 0) != "halted") {
-	m.sendCommand( "ttc::TTCciControl", "reset" );
+      if ( ! isUsingTCDS_ ){
+	if (state_table_.getState("ttc::TTCciControl", 0) != "halted") {
+	  m.sendCommand( "ttc::TTCciControl", "reset" );
+	}
+	if (state_table_.getState("ttc::LTCControl", 0) != "halted") {
+	  m.sendCommand( "ttc::LTCControl", "reset" );
+	  // Allow ttc::LTCControl some time to halt:
+	  ::sleep(2);
+	}
       }
-      if (state_table_.getState("ttc::LTCControl", 0) != "halted") {
-	m.sendCommand( "ttc::LTCControl", "reset" );
-	// Allow ttc::LTCControl some time to halt:
-	::sleep(2);
+      else{
+	if ( pm_       ) pm_      ->halt();
+	if ( ci_plus_  ) ci_plus_ ->halt();
+	if ( ci_minus_ ) ci_minus_->halt();
+	if ( ci_tf_    ) ci_tf_   ->halt();
+	if ( pi_plus_  ) pi_plus_ ->halt();
+	if ( pi_minus_ ) pi_minus_->halt();
+	if ( pi_tf_    ) pi_tf_   ->halt();
       }
-
-      if ( pm_       ) pm_      ->halt();
-      if ( ci_plus_  ) ci_plus_ ->halt();
-      if ( ci_minus_ ) ci_minus_->halt();
-      if ( ci_tf_    ) ci_tf_   ->halt();
-      if ( pi_plus_  ) pi_plus_ ->halt();
-      if ( pi_minus_ ) pi_minus_->halt();
-      if ( pi_tf_    ) pi_tf_   ->halt();
 
       waitForAppsToReach("Halted",false,30);
 
@@ -1265,20 +1272,22 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       } 
     }
 
-    // Configure TTC
-    int index = ( isUsingTCDS_ ? keyToIndex(run_type_) : getCalibParamIndex(run_type_) );
-    if (index >= 0) {
-      m.setParameters( "ttc::TTCciControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ttcci_ ) );
-    }
-    m.sendCommand( "ttc::TTCciControl", "configure" );    
-    
-    // Configure LTC
-    if (index >= 0) {
-      m.setParameters( "ttc::LTCControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ltc_ ) );
-    }
-    m.sendCommand( "ttc::LTCControl", "configure" );
 
-    if ( isUsingTCDS_ ){
+    if ( ! isUsingTCDS_ ){
+      int index = getCalibParamIndex(run_type_);
+      // Configure TTC
+      if (index >= 0) {
+	m.setParameters( "ttc::TTCciControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ttcci_ ) );
+      }
+      m.sendCommand( "ttc::TTCciControl", "configure" );    
+      // Configure LTC
+      if (index >= 0) {
+	m.setParameters( "ttc::LTCControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ltc_ ) );
+      }
+      m.sendCommand( "ttc::LTCControl", "configure" );
+    }
+    else {
+      int index = keyToIndex(run_type_);
       // Configure TCDS
       RegDumpPreprocessor pp;
       ostringstream ppMessages;
@@ -1399,14 +1408,17 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
     
     state_table_.refresh();
     
-    if (state_table_.getState("ttc::TTCciControl", 0) != "enabled") {
-      m.sendCommand( "ttc::TTCciControl", "enable" );
+
+    if ( ! isUsingTCDS_ ){
+      if (state_table_.getState("ttc::TTCciControl", 0) != "enabled") {
+	m.sendCommand( "ttc::TTCciControl", "enable" );
+      }
+      if (state_table_.getState("ttc::LTCControl", 0) != "enabled") {
+	m.sendCommand( "ttc::LTCControl", "enable" );
+      }
+      xdata::String attributeValue( "Stop" );
+      m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
     }
-    if (state_table_.getState("ttc::LTCControl", 0) != "enabled") {
-      m.sendCommand( "ttc::LTCControl", "enable" );
-    }
-    xdata::String attributeValue( "Stop" );
-    m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
 
     // Enable TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
@@ -1414,23 +1426,25 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
       waitForTFCellOpToReach("running",10);
     }
 
-    // Enable TCDS
-    // PIs
-    if ( pi_plus_  ) pi_plus_ ->enable( run_number_ );
-    if ( pi_minus_ ) pi_minus_->enable( run_number_ );
-    if ( pi_tf_    ) pi_tf_   ->enable( run_number_ );
-    if ( pi_plus_  ) pi_plus_ ->waitForState( "Enabled", 30 );
-    if ( pi_minus_ ) pi_minus_->waitForState( "Enabled", 30 );
-    if ( pi_tf_    ) pi_tf_   ->waitForState( "Enabled", 30 );
-    // CIs
-    if ( ci_plus_  ) ci_plus_ ->enable( run_number_ );
-    if ( ci_minus_ ) ci_minus_->enable( run_number_ );
-    if ( ci_tf_    ) ci_tf_   ->enable( run_number_ );
-    if ( ci_plus_  ) ci_plus_ ->enableSequence(); // This waits for the state transition to complete.
-    if ( ci_minus_ ) ci_minus_->enableSequence(); // This waits for the state transition to complete.
-    if ( ci_tf_    ) ci_tf_   ->enableSequence(); // This waits for the state transition to complete.
-    // LPM
-    if ( pm_       ) pm_      ->enable( run_number_ ).enableSequence(); // This waits for the state transition to complete.
+    if ( isUsingTCDS_ ){
+      // Enable TCDS
+      // PIs
+      if ( pi_plus_  ) pi_plus_ ->enable( run_number_ );
+      if ( pi_minus_ ) pi_minus_->enable( run_number_ );
+      if ( pi_tf_    ) pi_tf_   ->enable( run_number_ );
+      if ( pi_plus_  ) pi_plus_ ->waitForState( "Enabled", 30 );
+      if ( pi_minus_ ) pi_minus_->waitForState( "Enabled", 30 );
+      if ( pi_tf_    ) pi_tf_   ->waitForState( "Enabled", 30 );
+      // CIs
+      if ( ci_plus_  ) ci_plus_ ->enable( run_number_ );
+      if ( ci_minus_ ) ci_minus_->enable( run_number_ );
+      if ( ci_tf_    ) ci_tf_   ->enable( run_number_ );
+      if ( ci_plus_  ) ci_plus_ ->enableSequence(); // This waits for the state transition to complete.
+      if ( ci_minus_ ) ci_minus_->enableSequence(); // This waits for the state transition to complete.
+      if ( ci_tf_    ) ci_tf_   ->enableSequence(); // This waits for the state transition to complete.
+      // LPM
+      if ( pm_       ) pm_      ->enable( run_number_ ).enableSequence(); // This waits for the state transition to complete.
+    }
 
     refreshConfigParameters();
     
@@ -1472,32 +1486,36 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
       cout << "    stop TFCellOp: " << sw.read() << endl;
     }
 
-    if (state_table_.getState("ttc::LTCControl", 0) != "halted") {
-      m.sendCommand( "ttc::LTCControl", "reset" );
-      cout << "    Halt (reset) ttc::LTCControl: " << sw.read() << endl;
-    }
-    if (state_table_.getState("ttc::TTCciControl", 0) != "halted") {
-      m.sendCommand( "ttc::TTCciControl", "reset" );
-      cout << "    Halt (reset) ttc::TTCciControl: " << sw.read() << endl;
+    if ( ! isUsingTCDS_ ){
+      if (state_table_.getState("ttc::LTCControl", 0) != "halted") {
+	m.sendCommand( "ttc::LTCControl", "reset" );
+	cout << "    Halt (reset) ttc::LTCControl: " << sw.read() << endl;
+      }
+      if (state_table_.getState("ttc::TTCciControl", 0) != "halted") {
+	m.sendCommand( "ttc::TTCciControl", "reset" );
+	cout << "    Halt (reset) ttc::TTCciControl: " << sw.read() << endl;
+      }
     }
         
-    // Stop TCDS
-    // LPM
-    if ( pm_       ) pm_      ->stop().stopSequence(); // This waits for the state transition to complete.
-    // CIs
-    if ( ci_plus_  ) ci_plus_ ->stop();
-    if ( ci_minus_ ) ci_minus_->stop();
-    if ( ci_tf_    ) ci_tf_   ->stop();
-    if ( ci_plus_  ) ci_plus_ ->waitForState( "Configured", 30 );
-    if ( ci_minus_ ) ci_minus_->waitForState( "Configured", 30 );
-    if ( ci_tf_    ) ci_tf_   ->waitForState( "Configured", 30 );
-    // PIs
-    if ( pi_plus_  ) pi_plus_ ->stop();
-    if ( pi_minus_ ) pi_minus_->stop();
-    if ( pi_tf_    ) pi_tf_   ->stop();
-    if ( pi_plus_  ) pi_plus_ ->waitForState( "Configured", 30 );
-    if ( pi_minus_ ) pi_minus_->waitForState( "Configured", 30 );
-    if ( pi_tf_    ) pi_tf_   ->waitForState( "Configured", 30 );
+    if ( isUsingTCDS_ ){
+      // Stop TCDS
+      // LPM
+      if ( pm_       ) pm_      ->stop().stopSequence(); // This waits for the state transition to complete.
+      // CIs
+      if ( ci_plus_  ) ci_plus_ ->stop();
+      if ( ci_minus_ ) ci_minus_->stop();
+      if ( ci_tf_    ) ci_tf_   ->stop();
+      if ( ci_plus_  ) ci_plus_ ->waitForState( "Configured", 30 );
+      if ( ci_minus_ ) ci_minus_->waitForState( "Configured", 30 );
+      if ( ci_tf_    ) ci_tf_   ->waitForState( "Configured", 30 );
+      // PIs
+      if ( pi_plus_  ) pi_plus_ ->stop();
+      if ( pi_minus_ ) pi_minus_->stop();
+      if ( pi_tf_    ) pi_tf_   ->stop();
+      if ( pi_plus_  ) pi_plus_ ->waitForState( "Configured", 30 );
+      if ( pi_minus_ ) pi_minus_->waitForState( "Configured", 30 );
+      if ( pi_tf_    ) pi_tf_   ->waitForState( "Configured", 30 );
+    }
 
     try {
       if ( isDAQManagerControlled("Halt") ) m.sendCommand( "emu::daq::manager::Application", 0, "Halt" );
@@ -1512,20 +1530,24 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     cout << "    Disable emu::fed::Manager: " << sw.read() << endl;
     m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "Disable" );
     cout << "    Disable emu::pc::EmuPeripheralCrateManager: " << sw.read() << endl;
-    m.sendCommand( "ttc::TTCciControl", "configure" );
-    cout << "    Configure TTCci: " << sw.read() << endl;
-    m.sendCommand( "ttc::LTCControl", "configure" );
-    cout << "    Configure LTC: " << sw.read() << endl;
 
-    // The TF FED software will fail on starting if not having just been configured 
-    // (i.e., when the previous run was 'stop'-ped) because the TF DDU L1A counter won't be 0. 
-    // Let's run the stop sequence now (which will issue a hard reset and a resync) to zero that counter
-    // to be ready to be started again.
-    // The CSC FEDs don't seem to fail this way, but let's do them, too, to be absolutely sure.
-    // Do this through the CIs as the PM is not under our control in global runs.
-    if ( ci_plus_  ) ci_plus_ ->stopSequence();
-    if ( ci_minus_ ) ci_minus_->stopSequence();
-    if ( ci_tf_    ) ci_tf_   ->stopSequence();
+    if ( ! isUsingTCDS_ ){
+      m.sendCommand( "ttc::TTCciControl", "configure" );
+      cout << "    Configure TTCci: " << sw.read() << endl;
+      m.sendCommand( "ttc::LTCControl", "configure" );
+      cout << "    Configure LTC: " << sw.read() << endl;
+    }
+    else{
+      // The TF FED software will fail on starting if not having just been configured 
+      // (i.e., when the previous run was 'stop'-ped) because the TF DDU L1A counter won't be 0. 
+      // Let's run the stop sequence now (which will issue a hard reset and a resync) to zero that counter
+      // to be ready to be started again.
+      // The CSC FEDs don't seem to fail this way, but let's do them, too, to be absolutely sure.
+      // Do this through the CIs as the PM is not under our control in global runs.
+      if ( ci_plus_  ) ci_plus_ ->stopSequence();
+      if ( ci_minus_ ) ci_minus_->stopSequence();
+      if ( ci_tf_    ) ci_tf_   ->stopSequence();
+    }
 
     writeRunInfo( isCommandFromWeb_ ); // only write runinfo if Stop was issued from the web interface
     if ( isCommandFromWeb_ ) cout << "    Write run info: " << sw.read() << endl;
@@ -1560,33 +1582,36 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
       cout << "    reset TFCellOp: " << sw.read() << endl;
     }
 
-    if (state_table_.getState("ttc::LTCControl", 0) != "halted") {
-      m.sendCommand( "ttc::LTCControl", "reset" );
-      cout << "    Halt (reset) ttc::LTCControl: " << sw.read() << endl;
-    }
+    if ( ! isUsingTCDS_ ){
+      if (state_table_.getState("ttc::LTCControl", 0) != "halted") {
+	m.sendCommand( "ttc::LTCControl", "reset" );
+	cout << "    Halt (reset) ttc::LTCControl: " << sw.read() << endl;
+      }
 
-    if (state_table_.getState("ttc::TTCciControl", 0) != "halted") {
-      m.sendCommand( "ttc::TTCciControl", "reset" );
-      cout << "    Halt (reset) ttc::TTCciControl: " << sw.read() << endl;
+      if (state_table_.getState("ttc::TTCciControl", 0) != "halted") {
+	m.sendCommand( "ttc::TTCciControl", "reset" );
+	cout << "    Halt (reset) ttc::TTCciControl: " << sw.read() << endl;
+      }
     }
-
-    // Halt TCDS
-    // LPM
-    if ( pm_       ) pm_      ->halt().waitForState( "Halted", 30 );
-    // CIs
-    if ( ci_plus_  ) ci_plus_ ->halt();
-    if ( ci_minus_ ) ci_minus_->halt();
-    if ( ci_tf_    ) ci_tf_   ->halt();
-    if ( ci_plus_  ) ci_plus_ ->waitForState( "Halted", 30 );
-    if ( ci_minus_ ) ci_minus_->waitForState( "Halted", 30 );
-    if ( ci_tf_    ) ci_tf_   ->waitForState( "Halted", 30 );
-    if ( pi_plus_  ) pi_plus_ ->halt();
-    if ( pi_minus_ ) pi_minus_->halt();
-    if ( pi_tf_    ) pi_tf_   ->halt();
-    // PIs
-    if ( pi_plus_  ) pi_plus_ ->waitForState( "Halted", 30 );
-    if ( pi_minus_ ) pi_minus_->waitForState( "Halted", 30 );
-    if ( pi_tf_    ) pi_tf_   ->waitForState( "Halted", 30 );
+    else{
+      // Halt TCDS
+      // LPM
+      if ( pm_       ) pm_      ->halt().waitForState( "Halted", 30 );
+      // CIs
+      if ( ci_plus_  ) ci_plus_ ->halt();
+      if ( ci_minus_ ) ci_minus_->halt();
+      if ( ci_tf_    ) ci_tf_   ->halt();
+      if ( ci_plus_  ) ci_plus_ ->waitForState( "Halted", 30 );
+      if ( ci_minus_ ) ci_minus_->waitForState( "Halted", 30 );
+      if ( ci_tf_    ) ci_tf_   ->waitForState( "Halted", 30 );
+      if ( pi_plus_  ) pi_plus_ ->halt();
+      if ( pi_minus_ ) pi_minus_->halt();
+      if ( pi_tf_    ) pi_tf_   ->halt();
+      // PIs
+      if ( pi_plus_  ) pi_plus_ ->waitForState( "Halted", 30 );
+      if ( pi_minus_ ) pi_minus_->waitForState( "Halted", 30 );
+      if ( pi_tf_    ) pi_tf_   ->waitForState( "Halted", 30 );
+    }
 
     m.sendCommand( "emu::fed::Manager", "Halt" );
     cout << "    Halt emu::fed::Manager: " << sw.read() << endl;
