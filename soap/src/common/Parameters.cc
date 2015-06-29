@@ -50,9 +50,11 @@ emu::soap::operator<<( ostream& os, const emu::soap::Parameters& parameters ){
     emu::soap::Parameters::const_iterator pp = p;
     ++pp;
     os << ( p == parameters.begin() ? "[" : "" )
-       << "(name:'"  << p->first << "'"
-       << " type:'"  << p->second.first->type() << "'"
-       << " value:'" << p->second.first->toString() << "'";
+       << "(name:'"  << p->first << "'";
+    if ( p->second.first != NULL ){
+      os << " type:'"  << p->second.first->type() << "'"
+	 << " value:'" << p->second.first->toString() << "'";
+    }
     if ( p->second.second != NULL ){
       os << " attributes:" << *p->second.second;
     }
