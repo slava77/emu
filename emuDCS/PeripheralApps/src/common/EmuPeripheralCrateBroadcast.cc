@@ -335,7 +335,7 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   //
   DefineBroadcastCrate();
   //
-     std::cout <<"Ready to load firmware for all components ..."<<std::endl;
+  //   std::cout <<"Ready to load firmware for all components ..."<<std::endl;
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   //
@@ -471,6 +471,7 @@ void EmuPeripheralCrateBroadcast::LoadDMBControlFPGAFirmware(xgi::Input * in, xg
   char *outp=(char *)dword;
   std::cout <<" Loading all the DMB's Controller FPGAs firmware from " << DmbControlFPGAFirmwareFile_ <<std::endl;
   broadcastDMB->epromload(MPROM,DmbControlFPGAFirmwareFile_.c_str(),1,outp);
+  std::cout << getLocalDateTime() << " Finished broadcast programming DMB Control firmware." << std::endl;
   in=NULL;
   this->LoadDMBCFEBFPGAFirmware(in, out);
 }
@@ -497,6 +498,7 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
   std::cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<std::endl;
   broadcastDMB->epromload_broadcast(VPROM,DmbVmeFPGAFirmwareFile_.c_str(),1,outp,3);
   //
+  std::cout << getLocalDateTime() << " Finished broadcast programming DMB VME firmware." << std::endl;
   this->LoadDMBCFEBFPGAFirmware(in, out);
 }
 //
@@ -878,6 +880,7 @@ void EmuPeripheralCrateBroadcast::LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Out
   std::cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<std::endl;
   broadcastDMB->epromload_broadcast(FAPROM,CfebFPGAFirmwareFile_.c_str(),1,outp,3);
   //
+  std::cout << getLocalDateTime() << " Finished broadcast programming CFEB firmware." << std::endl;
   this->LoadDMBCFEBFPGAFirmware(in, out);
   //
 }
