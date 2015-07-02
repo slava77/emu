@@ -453,7 +453,7 @@ bool TMBTester::testMezzId(){
 		 testPROMmezz3 );
   //
  }
- else if(hwv==2)
+ else if(hwv>=2)
  {
   testOK  = compareValues("Mezz FPGA ID code"  ,fpgaIdCode ,EXPECTED_TMB_MEZZ_FPGA6_IDCODE,true);  
  }
@@ -561,7 +561,7 @@ bool TMBTester::testDSN(){
   //
   (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for Mezzanine" << std::endl;
   bool mezzanineDSN = testDSN(1);
-  if(tmb_->GetHardwareVersion()==2)
+  if(tmb_->GetHardwareVersion()>=2)
   {
      (*MyOutput_) << "TMBTester: Checking Virtex-6 FPGA's DNA" << std::endl;
      unsigned char dna[8];

@@ -551,7 +551,7 @@ void emu::step::Test::hardResetOTMBs(emu::pc::Crate* crate){
   //hard-reset all OTMBs *only* (to clean the hot channel masks)
   vector<emu::pc::TMB *> tmbs = crate->tmbs();
   for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
-    if ((*tmb)->GetHardwareVersion() == 2) {
+    if ((*tmb)->GetHardwareVersion() >= 2) {
       (*tmb)->tmb_hard_reset_tmb_fpga();
     }
   }    
