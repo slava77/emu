@@ -410,7 +410,7 @@
       function printNodeStatusLegend()
       {
       	var out = "<table class='dqm_report'><tr>";
-	out+= "<td class='td_status'><input class='button' type='button' name='action' style='background-color: #90ff90; font: bold 8pt Arial;' value='Show All' onClick='return showAllNodesStatuses();' title='Click to show all EmuMonitors statuses'></td>";
+//	out+= "<td class='td_status'><input class='button' type='button' name='action' style='background-color: #90ff90; font: bold 8pt Arial;' value='Show All' onClick='return showAllNodesStatuses();' title='Click to show all EmuMonitors statuses'></td>";
         out += "<td><b>Status legend:</b></td>";
       	out += "<td><span style='background-color: #ffff90;'>Ready/Configured</span></td>";
       	out += "<td><span style='background-color: #90ff90;'>Enabled/Started</span></td>";
@@ -987,8 +987,10 @@
       function getNodeHistory(node, param)
       {
         var fullUrl = baseURL + getNodesHistory + "?";
+	var fShowTotal = false;
 	if (!param || param=="") param="ALL";
         fullUrl += "param="+param;
+	if (node=="") fShowTotal = true;
 	if (!node || node=="") node="ALL"; 
 	fullUrl += "&node="+node;
 	addlog(fullUrl, "debug");
@@ -1023,7 +1025,7 @@
                                 window.eval(reply);
 				// obj = document.getElementById("plots_div");
 				// if (obj) obj.innerHTML = "<pre>" + reply + "</pre>";
-				showNodeHistory(node, param);
+				showNodeHistory(node, param, fShowTotal);
                                 req=false;
                                 
                 } else if (req.status==404) {
@@ -1037,7 +1039,7 @@
         return false;
       }
 
-      function showNodeHistory(node, param, h) {
+      function showNodeHistory(node, param, show_total) {
  
         var stats=NODES_HISTORY;
         if (stats)
@@ -1074,37 +1076,57 @@
 	  },
 
           series: []
+
           };
 
 	  options.subtitle.text = node + ' node(s) - (parameter: '+param+')';
           options.yAxis.title.text = param + ' (evt/s)';
 
           if (history.length && history[0].stats.length) {
-	     for (j=0; j<history[0].stats.length; j++) {
-	      var serie = [];
-	      serie.name = history[0].stats[j].node;
-	      serie.data = [];
-              options.series.push(serie); 
-	  }
-	  for (i=0; i<history.length; i++ )
+	     if (show_total) {
+		var serie = [];
+                serie.name = 'Total ' + param;
+                serie.data = [];
+                options.series.push(serie);
+             } else {
+	       for (j=0; j<history[0].stats.length; j++) {
+	         var serie = [];
+	         serie.name = history[0].stats[j].node;
+	         serie.data = [];
+                 options.series.push(serie); 
+	       }
+	     }
+
+	     for (i=0; i<history.length; i++ )
 		{
                    if (history[i].stats.length)
 		    {
+		      var tstamp = new Date(eval(eval(history[i].tstamp)*1000));
+		      var val_total = 0;
 		      for (j=0; j<history[i].stats.length; j++)
 			{
 			var val = eval(eval("history[i].stats[j]."+param));
-			var tstamp = new Date(eval(eval(history[i].tstamp)*1000));
+			val_total = eval(val_total+val);
+			if (!show_total) {
 			var sample = [];
-			sample.push(Date.UTC(tstamp.getYear(), tstamp.getMonth(), tstamp.getDay(), tstamp.getHours(), tstamp.getMinutes(), tstamp.getSeconds()) );
+			sample.push(Date.UTC(tstamp.getYear(), tstamp.getMonth(), tstamp.getDate(), tstamp.getHours(), tstamp.getMinutes(), tstamp.getSeconds()) );
 			sample.push(val);
 			options.series[j].data.push(sample);
+			}
 		// 	addlog(history[i].tstamp + ": " + tstamp + " " + history[i].stats[0].cscRate, "debug");
 			}
+		      if (show_total) 
+		       {
+			var sample = [];
+                        sample.push(Date.UTC(tstamp.getYear(), tstamp.getMonth(), tstamp.getDate(), tstamp.getHours(), tstamp.getMinutes(), tstamp.getSeconds()) );
+                        sample.push(val_total);
+			options.series[0].data.push(sample);
+		       }
 		     }
 		}
-           var chart = new Highcharts.Chart(options);
-	  }
-	  }
+             var chart = new Highcharts.Chart(options);
+	   }
+	 }
         } 
 
 	return false;
@@ -1313,7 +1335,7 @@
       		var out = printNodeStatusLegend();
       		out += "<table>";	
       		nodeclass="EmuMonitor"
-      		out +="<tr><td><b>" + nodeclass + "s:</b></td>";
+      		out +="<tr><td><a href='' onClick='return showAllNodesStatuses();' title='Click to view All EmuMonitors nodes statuses'><b>" + nodeclass + "s:</b</a></td>";
       		for (var i=1; i<=36; i++) {
       			color="#C0C0C0";
       			node=i;
@@ -1321,14 +1343,14 @@
       		}
       		out +="</tr>";
       		out +="<tr>";
-      		out +="<tr><td><b>Rate Evt/s:</b></td>";
+      		out +="<tr><td><a href='' onClick='getNodeHistory(\"ALL\",\"averageRate\"); return false;' title='Click to view All Nodes DQM Rate history'><b>Rate Evts/sec</b></a></td>";
       		for (var i=1; i<=36; i++) {
       			rate="-";
       			out +="<td class='node' id='rate_node_"+i+"'>"+rate+"</td>";
       		}
       		out +="</tr>";
       		out +="<tr>";
-      		out +="<tr><td><b>Rate CSC/s:</b></td>";
+      		out +="<tr><td><a href='' onClick='getNodeHistory(\"ALL\",\"cscRate\"); return false;' title='Click to view All Nodes CSC Rate history'><b>Rate CSCs/sec:</b></a></td>";
       		for (var i=1; i<=36; i++) {
       			rate="-";
       			out +="<td class='node' id='csc_rate_node_"+i+"'>"+rate+"</td>";
@@ -1372,11 +1394,11 @@
       					}
       					cell = document.getElementById('rate_node_'+id); 
       					if (cell){
-      						cell.innerHTML="<a href='' onClick='getNodeHistory(\""+nodes[i][0]+"\",\"averageRate\"); return false;' title='Show DQM Rate history'>"+rate+"</a>";
+      						cell.innerHTML="<a href='' onClick='getNodeHistory(\""+nodes[i][0]+"\",\"averageRate\"); return false;' title='Click to view DQM Rate history'>"+rate+"</a>";
       					}
       					cell = document.getElementById('csc_rate_node_'+id); 
       					if (cell){
-      						cell.innerHTML="<a href='' onClick='getNodeHistory(\""+nodes[i][0]+"\",\"cscRate\"); return false;' title='Show DQM Rate history'>"+csc_rate+"</a>";
+      						cell.innerHTML="<a href='' onClick='getNodeHistory(\""+nodes[i][0]+"\",\"cscRate\"); return false;' title='Click to view CSC Rate history'>"+csc_rate+"</a>";
       					
       					}
       					
@@ -2774,8 +2796,8 @@
       		out+= "<td><b>Total:</b></td><td class='td_status'> #DDUs: <b>"+ numDDUs+"</b></td><td class='td_status'> #CSCs: <b>"+numCSCs+"</b></td>";
       		out+= "<td class='td_status'>DAQ Evts: <b>"+totalDAQevents+"</b></td><td class='td_status'>DQM Evts: <b>"+totalDQMevents+"</b></td>"
       		out+= "<td class='td_status'>CSC blocks: <b>"+totalCSCblocks+"</b></td>";
-		out+= "<td class='td_status'><a href='' onClick='getNodeHistory(\"ALL\",\"averageRate\"); return false;' title='Show DQM Rate history'>DQM Rate: <b>"+totalDQMrate+"</b></a></td>";
-      		out+= "<td class='td_status'><a href='' onClick='getNodeHistory(\"ALL\",\"cscRate\"); return false;' title='Show DQM Rate history'>CSC Rate: <b>"+totalCSCrate+"</b></a></td>";
+		out+= "<td class='td_status'><a href='' onClick='getNodeHistory(\"\",\"averageRate\"); return false;' title='Click to view Total DQM Rate history'>DQM Rate: <b>"+totalDQMrate+"</b></a></td>";
+      		out+= "<td class='td_status'><a href='' onClick='getNodeHistory(\"\",\"cscRate\"); return false;' title='Click to view Total CSC Rate history'>CSC Rate: <b>"+totalCSCrate+"</b></a></td>";
       		out+= "<td class='td_status'>Upd Nodes in <b>"+getNodesListDelay+"</b> sec</td><td class='td_status'>Upd CSC List in <b>"+getCSCListDelay+"</b> sec</td>";
       	        out+= "</tr></table>";
       		
@@ -3707,9 +3729,9 @@ function showChart()
     </script>
   </head>
   <body>
-    <script src="redir?url=highcharts/adapters/standalone-framework.js"></script>
+    <!--script src="redir?url=highcharts/adapters/standalone-framework.js"></script>
     <script src="redir?url=highcharts/highcharts.js"></script>
-    <script src="redir?url=highcharts/modules/exporting.js"></script>
+    <script src="redir?url=highcharts/modules/exporting.js"></script-->
     <script type="text/javascript">
       if (navigator.userAgent.toLowerCase().indexOf('msie') != -1) isIE=true;
       baseURL=document.URL;
@@ -3722,9 +3744,9 @@ function showChart()
       document.write('<script src="', baseURL+TestsMap, '" type="text/javascript"><\/script>');
       document.write('<script src="', baseURL+KnownProblemsList, '" type="text/javascript"><\/script>');
       // document.write('<script src="', baseURL+NodesStatsFile, '" type="text/javascript"><\/script>');
-      // document.write('<script src="', baseURL+"redir?url=highcharts/adapters/standalone-framework.js", '" type="text/javascript"><\/script>');
-      // document.write('<script src="', baseURL+"redir?url=highcharts/highcharts.js", '" type="text/javascript"><\/script>');
-      // document.write('<script src="', baseURL+"redir?url=highcharts/modules/exporting.js", '" type="text/javascript"><\/script>');
+      document.write('<script src="', baseURL+"redir?url=highcharts/adapters/standalone-framework.js", '" type="text/javascript"><\/script>');
+      document.write('<script src="', baseURL+"redir?url=highcharts/highcharts.js", '" type="text/javascript"><\/script>');
+      document.write('<script src="', baseURL+"redir?url=highcharts/modules/exporting.js", '" type="text/javascript"><\/script>');
       //-->
     </script>
     
