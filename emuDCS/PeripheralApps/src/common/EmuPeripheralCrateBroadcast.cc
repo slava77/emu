@@ -312,7 +312,7 @@ void EmuPeripheralCrateBroadcast::DefineBroadcastCrate() {
     {
       if(mytmbs[i] && mytmbs[i]->GetHardwareVersion()<=1 && mytmbs[i]->slot()>21)     
          broadcastTMB = mytmbs[i];
-      else if(mytmbs[i] && mytmbs[i]->GetHardwareVersion()==2 && mytmbs[i]->slot()>21)     
+      else if(mytmbs[i] && mytmbs[i]->GetHardwareVersion()>=2 && mytmbs[i]->slot()>21)
          broadcastOTMB = mytmbs[i];
     }
     if( broadcastTMB ) broadcastALCT = broadcastTMB->alctController();
