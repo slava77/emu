@@ -49,7 +49,7 @@ namespace emu{
       /// @param namespaceURI Optional XML namespace URI.
       /// @param prefix Optional XML namespace prefix.
       ///
-      QualifiedName( const string& name, const string& namespaceURI = emptyString, const string& prefix = emptyString );
+      QualifiedName( const string name, const string namespaceURI = "", const string prefix = "" );
 
       /// 
       /// Constructor from simple character string if no namespace is to be specified.
@@ -106,7 +106,6 @@ namespace emu{
       string name_;		///< XML name.
       string namespaceURI_;	///< XML namespace URI.
       string prefix_;		///< XML namespace prefix.
-      static const string emptyString;  ///< An empty string.
     };
 
   }

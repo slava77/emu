@@ -3,10 +3,7 @@
 
 using namespace std;
 
-const string emu::soap::QualifiedName::emptyString = string();
-
-
-emu::soap::QualifiedName::QualifiedName( const string& name, const string& namespaceURI, const string& prefix )
+emu::soap::QualifiedName::QualifiedName( const string name, const string namespaceURI, const string prefix )
   : name_        ( name         )
   , namespaceURI_( namespaceURI )
   , prefix_      ( prefix       )
