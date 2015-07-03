@@ -1,6 +1,6 @@
 var panels = null;
 var tmbPanel = null;
-
+var whoIsInControl = 'global';
 
 function onLoad() {
 
@@ -677,21 +677,30 @@ function Panel( name, refreshPeriod, dataURL ) {
 	    $('#'+self.name+'-a_value_State').attr( 'title', (combinedState == 'INDEFINITE' ? 'Not all TCDS CI and PI Controller applications are in the same FSM state.' : 'All TCDS CI and PI Controller applications are '+combinedState ) );
 	    
 	}).success( function(){
-	    $.getJSON( self.DataURL+'?fmt=json&flash=urn:xdaq-flashlist:tcds_cpm_rates', function(json){
-	    	var time = toUnixTime( json.table.properties.LastUpdate );
-	    	$('#'+self.name+'-td_localDateTime').text( timeToString( time ) );
-	    	var totalTriggerRate = 0;
-	    	$.each( json.table.rows, function(i,row){
-	    	    if ( row.service == 'cpm-pri' ){
-	    		totalTriggerRate = row.trg_rate_total;
-	    	    }
-	    	});
-	    	var graphPoint = { name:'Total primary CPM trigger [Hz]', time:time, value:totalTriggerRate };
-	    	self.appendPoint( graphPoint );
-	    // }).success( function(){
-		clearTimeout(self.Clock);
-		self.ageOfPageClock(0);
-	    });
+	    if ( whoIsInControl == 'global' ){
+	      $.getJSON( self.DataURL+'?fmt=json&flash=urn:xdaq-flashlist:tcds_cpm_rates', function(json){
+		  var time = toUnixTime( json.table.properties.LastUpdate );
+		  $('#'+self.name+'-td_localDateTime').text( timeToString( time ) );
+		  var totalTriggerRate = 0;
+		  $.each( json.table.rows, function(i,row){
+		      if ( row.service == 'cpm-pri' ) totalTriggerRate = row.trg_rate_total;
+		    });
+		  var graphPoint = { name:'Total primary CPM trigger [Hz]', time:time, value:totalTriggerRate };
+		  self.appendPoint( graphPoint );
+		  // }).success( function(){
+		  clearTimeout(self.Clock);
+		  self.ageOfPageClock(0);
+		});
+	    }
+	    else{
+	      // TODO: get LPM rate instead
+	      $.getJSON( self.DataURL+'?fmt=json&flash=urn:xdaq-flashlist:tcds_cpm_rates', function(json){
+		  var time = toUnixTime( json.table.properties.LastUpdate );
+		  $('#'+self.name+'-td_localDateTime').text( timeToString( time ) );
+		  clearTimeout(self.Clock);
+		  self.ageOfPageClock(0);
+		});
+	    }
 	});
     }
 
@@ -853,6 +862,7 @@ function Panel( name, refreshPeriod, dataURL ) {
 			           $('#DAQ-a_value_RunType' ).attr('href' ,$(this).attr('valueURL')).attr('title',$(this).attr('valueDescription')).text($(this).attr('value'));
 			       }
 			       else if ( $(this).attr('name') == 'ctrl' ){
+				   whoIsInControl = $(this).attr('value');
 				   $('#DAQ-a_name_RunCtrl'  ).attr('href' ,$(this).attr('nameURL' )).attr('title',$(this).attr('nameDescription' )).text($(this).attr('name' ));
 			           $('#DAQ-a_value_RunCtrl' ).attr('href' ,$(this).attr('valueURL')).attr('title',$(this).attr('valueDescription')).text($(this).attr('value'));
 			       }
