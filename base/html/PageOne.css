@@ -10,9 +10,8 @@ td { background-color:#111111; text-align:center; }
 th.title { color:#222222; background-color:#aaaaaa; width: 100%; }
 td.time { font-size:70%; }
 td.Halted, td.halted { background-color:#7777FF; }
-td.halted_configure_configured { background-color:#999933; }
-td.Ready, td.ready { background-color:#dddd00; }
-td.Configured, td.configured { background-color:#dddd00; }
+td.halted_configure_configured, td.Configuring, td.configuring { background-color:#999933; }
+td.Ready, td.ready, td.Configured, td.configured { background-color:#dddd00; }
 td.suspended, td.paused, td.Pausing, td.Paused { background-color:#AACC77; }
 td.Enabled, td.enabled, td.running { background-color:#33cc33; }
 td.ON { background-color:#33cc33; }
