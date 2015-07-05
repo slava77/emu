@@ -316,6 +316,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCnewPRBS, "MPCnewPRBS");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCPRBSError, "MPCPRBSError");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCGTPReset, "MPCGTPReset");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CCBCheckConfig, "CCBCheckConfig");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MPCCheckConfig, "MPCCheckConfig");
  
   //
   //-----------------------------------------------
@@ -1359,8 +1361,10 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
 void EmuPeripheralCrateConfig::CrateTests(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  if(!parsed) ParsingXML();  
-  MyHeader(in,out,"CrateTests");
+    if(!parsed)
+	{ this->Default(in,out);
+      return;
+    }
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << cgicc::legend("Crate Tests").set("style","color:blue") ;
@@ -1983,6 +1987,10 @@ void EmuPeripheralCrateConfig::CrateDumpConfiguration(xgi::Input * in, xgi::Outp
 void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
+  if(!parsed)
+  { this->Default(in,out);
+    return;
+  }
   char Name[100];
   sprintf(Name,"CSC Configuration Status");
   //
@@ -3189,6 +3197,11 @@ void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out 
 void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //
+  if(!parsed)
+  { this->Default(in,out);
+    return;
+  }
+  //
   MyHeader(in,out,"CSC DOC daily checklist");
   //
   int initial_crate = current_crate_;
@@ -4005,6 +4018,11 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
 ////////////////////////////////////////////////////////////////////////////////////
 void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  //
+  if(!parsed)
+  { this->Default(in,out);
+    return;
+  }
   //
   int initial_crate = current_crate_;
   //
