@@ -1366,6 +1366,8 @@ void EmuPeripheralCrateConfig::CrateTests(xgi::Input * in, xgi::Output * out )
       return;
     }
   //
+  MyHeader(in,out,"CrateTests");
+  //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << cgicc::legend("Crate Tests").set("style","color:blue") ;
   //
