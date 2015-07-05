@@ -338,9 +338,10 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     //
     int value;
     int tmbHwVersion = 0;
-    if (fillInt("hardware_version", value)) { tmbHwVersion = value;  }     
-
-    TMB * tmb_ = new TMB(theCrate, theChamber, slot, tmbHwVersion);
+    if (fillInt("hardware_version", value)) { tmbHwVersion = value;  }
+    int gemEnabled = 0;
+    if (fillInt("gem_enabled",value)) {gemEnabled = value; }
+    TMB * tmb_ = new TMB(theCrate, theChamber, slot, tmbHwVersion, gemEnabled);
     //
     // need still to put in 
     //   . ddd_oe mask

@@ -433,7 +433,7 @@ public:
   //friend class TMBParser;
   friend class EMUjtag;
   //
-  explicit TMB(Crate * , Chamber *, int, int );
+  explicit TMB(Crate * , Chamber *, int, int, int gem_enabled = 0 );
   virtual ~TMB();
   //
   //
@@ -511,6 +511,8 @@ public:
   //
   //  inline void SetHardwareVersion(int version) {hardware_version_ = version;} //in TMB constructor now
   inline int GetHardwareVersion() {return hardware_version_;}
+  inline int GetGemEnabled() {return gem_enabled_;}
+  inline int GetNGemEnabledLinks() {if (GetGemEnabled()) return 1; else return 0;} //change this to 4 when we get there
   //
   //!read the Firmware date from the TMB
   int  FirmwareDate();
@@ -2459,6 +2461,46 @@ public:
   inline void SetMPCFramesFifoCtrlRdEn(int mpc_frames_fifo_ctrl_rd_en) { mpc_frames_fifo_ctrl_rd_en_ = mpc_frames_fifo_ctrl_rd_en; }
   inline int  GetMPCFramesFifoCtrlRdEn() { return mpc_frames_fifo_ctrl_rd_en_; }
   inline int  GetReadMPCFramesFifoCtrlRdEn() { return read_mpc_frames_fifo_ctrl_rd_en_; }
+  //-----------------------------------------------------------------------------
+  // 0X300 - 0X306 = ADR_GEM_GTX_RX[0-3]: GTX link control and monitoring for GEM
+  //-----------------------------------------------------------------------------
+  //Enable this GTX optical input,  disables copper input
+  inline void SetGtxGemRxEnable(int gemNum, int gtx_gem_rx_enable) { gtx_gem_rx_enable_[gemNum] = gtx_gem_rx_enable; }
+  inline int  GetGtxGemRxEnable(int gemNum) { return gtx_gem_rx_enable_[gemNum]; }
+  inline int  GetReadGtxGemRxEnable(int gemNum) { return read_gtx_gem_rx_enable_[gemNum]; }
+
+  //Reset this GTX
+  inline void SetGtxGemRxReset(int gemNum, int gtx_gem_rx_reset) { gtx_gem_rx_reset_[gemNum] = gtx_gem_rx_reset; }
+  inline int  GetGtxGemRxReset(int gemNum) { return gtx_gem_rx_reset_[gemNum]; }
+  inline int  GetReadGtxGemRxReset(int gemNum) { return read_gtx_gem_rx_reset_[gemNum]; }
+
+  //Select this GTX for PRBS test input mode
+  inline void SetGtxGemRxPrbsTestEnable(int gemNum, int gtx_gem_rx_prbs_test_enable) { gtx_gem_rx_prbs_test_enable_[gemNum] = gtx_gem_rx_prbs_test_enable; }
+  inline int  GetGtxGemRxPrbsTestEnable(int gemNum) { return gtx_gem_rx_prbs_test_enable_[gemNum]; }
+  inline int  GetReadGtxGemRxPrbsTestEnable(int gemNum) { return read_gtx_gem_rx_prbs_test_enable_[gemNum]; }
+
+  //Writes all GTX control registers to FPGA
+  void WriteGtxGemControlRegisters();
+
+  //GTX ready
+  inline int  GetReadGtxGemRxReady(int gemNum) { return read_gtx_gem_rx_ready_[gemNum]; }
+
+  //GTX link is locked (over 15 BX with clean data frames)
+  inline int  GetReadGtxGemRxLinkGood(int gemNum) { return read_gtx_gem_rx_link_good_[gemNum]; }
+
+  //GTX link had an error (bad data frame) since last reset
+  inline int  GetReadGtxGemRxLinkHadError(int gemNum) { return read_gtx_gem_rx_link_had_error_[gemNum]; }
+
+  //GTX link had over 100 errors since last reset
+  inline int  GetReadGtxGemRxLinkBad(int gemNum) { return read_gtx_gem_rx_link_bad_[gemNum]; }
+
+  //GTX 5,6 [ie dcfeb 4,5] have swapped rx board routes
+  inline int  GetReadGtxGemRxPolSwap(int gemNum) { return read_gtx_gem_rx_pol_swap_[gemNum]; }
+
+  //GTX link error count (full scale count is hex E0)
+  inline int  GetReadGtxGemRxErrorCount(int gemNum) { return read_gtx_gem_rx_error_count_[gemNum]; }
+
+  //
   //
   // **********************************************************************************
   //
@@ -3839,6 +3881,16 @@ private:
   int read_cfeb_badbits_nbx_;
   //
   //
+  //------------------------------------------------------------------
+  //0X126,128,12A = ADR_BADBITS001,BADBITS023,BADBITS045 = CFEB0 BadBits Masks
+  //0X12C,12E,130 = ADR_BADBITS101,BADBITS123,BADBITS145 = CFEB1 BadBits Masks
+  //0X132,134,136 = ADR_BADBITS201,BADBITS223,BADBITS245 = CFEB2 BadBits Masks
+  //0X138,13A,13C = ADR_BADBITS301,BADBITS323,BADBITS345 = CFEB3 BadBits Masks
+  //0X13E,140,142 = ADR_BADBITS401,BADBITS423,BADBITS445 = CFEB4 BadBits Masks
+  //------------------------------------------------------------------
+  int read_badbits_[MAX_NUM_LAYERS][MAX_NUM_DISTRIPS_PER_LAYER_EXT];
+  //
+  //
   //---------------------------------------------------------------------
   // 0X146 = ADR_ALCT_STARTUP_STATUS: ALCT startup delay machine status
   //---------------------------------------------------------------------
@@ -3957,16 +4009,6 @@ private:
   // 0X192 = ADR_GTX_SYNC_DONE_TIME
   //---------------------------------------------------------------------
   int read_gtx_sync_done_time_;
-
-  //------------------------------------------------------------------
-  //0X126,128,12A = ADR_BADBITS001,BADBITS023,BADBITS045 = CFEB0 BadBits Masks
-  //0X12C,12E,130 = ADR_BADBITS101,BADBITS123,BADBITS145 = CFEB1 BadBits Masks
-  //0X132,134,136 = ADR_BADBITS201,BADBITS223,BADBITS245 = CFEB2 BadBits Masks
-  //0X138,13A,13C = ADR_BADBITS301,BADBITS323,BADBITS345 = CFEB3 BadBits Masks
-  //0X13E,140,142 = ADR_BADBITS401,BADBITS423,BADBITS445 = CFEB4 BadBits Masks
-  //------------------------------------------------------------------
-  int read_badbits_[MAX_NUM_LAYERS][MAX_NUM_DISTRIPS_PER_LAYER_EXT];
-  //
   //
   //------------------------------------------------------------------
   //0X184 = ADR_MPC_FRAMES_FIFO_CTRL:  Controls FIFO
@@ -3984,6 +4026,22 @@ private:
   int read_mpc_frames_fifo_ctrl_sbiterr_;
   int read_mpc_frames_fifo_ctrl_sditter_;
   //
+  //-----------------------------------------------------------------------------
+  // 0X300 - 0X306 = ADR_GEM_GTX_RX[0-3]: GTX link control and monitoring for GEM
+  //-----------------------------------------------------------------------------
+  int gtx_gem_rx_enable_[4];
+  int gtx_gem_rx_reset_[4];
+  int gtx_gem_rx_prbs_test_enable_[4];
+  //
+  int read_gtx_gem_rx_enable_[4];
+  int read_gtx_gem_rx_reset_[4];
+  int read_gtx_gem_rx_prbs_test_enable_[4];
+  int read_gtx_gem_rx_ready_[4];
+  int read_gtx_gem_rx_link_good_[4];
+  int read_gtx_gem_rx_link_had_error_[4];
+  int read_gtx_gem_rx_link_bad_[4];
+  int read_gtx_gem_rx_pol_swap_[4];
+  int read_gtx_gem_rx_error_count_[4];
   //
   //
   //*******************************************************************
@@ -4197,6 +4255,7 @@ private:
   int h25_firmware_version_date_code_ ;
   //
   int hardware_version_;
+  int gem_enabled_;
 };
 
   } // namespace emu::pc

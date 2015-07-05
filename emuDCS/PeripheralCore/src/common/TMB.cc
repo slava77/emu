@@ -560,7 +560,7 @@ namespace emu {
   namespace pc {
 
 
-  TMB::TMB(Crate * theCrate, Chamber * theChamber, int slot, int hardware_version) :
+  TMB::TMB(Crate * theCrate, Chamber * theChamber, int slot, int hardware_version, int gem_enabled) :
   VMEModule(theCrate, slot),
   EMUjtag(this),
   EmuLogger(),
@@ -569,6 +569,8 @@ namespace emu {
   csc_(theChamber)
 {
   hardware_version_=hardware_version;
+  gem_enabled_ = gem_enabled;
+
   //
   debug_ = false;
   //
@@ -701,7 +703,7 @@ void TMB::ReadTmbIdCodes() {
     tmb_idcode_[device++] = bits_to_int(GetDRtdo(),GetRegLength(),0);
   }
  }
- else if(hardware_version_==2)
+ else if(hardware_version_>=2)
  {
   unsigned short comd=VTX6_IDCODE;
   unsigned temp=0, data=0;
@@ -1938,7 +1940,7 @@ std::string TMB::CounterName(int counter){
   if( counter == 17) name = "CLCT: Pretrigger on CFEB3                               ";
   if( counter == 18) name = "CLCT: Pretrigger on CFEB4                               ";
   //firmware check for new oTMB to determine the next counters
-  if( GetHardwareVersion() == 2){ 
+  if( GetHardwareVersion() >= 2){
     adjustcounter  = 2;
     if( counter == 19) name = "CLCT: Pretrigger on CFEB5                               ";
     if( counter == 20) name = "CLCT: Pretrigger on CFEB6                               ";
@@ -2073,14 +2075,14 @@ int * TMB::NewCounters(){
   for(unsigned short add=0x122; add<=0x142; add+=2) read_later(add);
   read_later(vme_dsn_adr); // adding one extra word to align the data at 32-bit
   //for 7DCFEB firmware
-  if( GetHardwareVersion() == 2){  
+  if( GetHardwareVersion() >= 2){
     read_later(vme_dsn_adr); // adding one extra word to align the data at 32-bit
     for(unsigned short add=0x15c; add<=0x168; add+=2) read_later(add);
   }
   // time since last hard_reset (in seconds)
   read_now(0xE8, (char *)FinalCounter);
   buf2[2*GetMaxCounter()+17]=0;
-  if( GetHardwareVersion() == 2)  buf2[2*GetMaxCounter()+18]=0;
+  if( GetHardwareVersion() >= 2)  buf2[2*GetMaxCounter()+18]=0;
   //
   return (int *)FinalCounter;
 }
@@ -6037,13 +6039,13 @@ void TMB::DefineTMBConfigurationRegisters_(){
   }
   //
   // GTX link control and monitoring
-  //TMBConfigurationRegister.push_back(v6_gtx_rx0_adr) ;  //0x14C GTX link control and monitoring for DCFEB0
-  //TMBConfigurationRegister.push_back(v6_gtx_rx1_adr) ;  //0x14E GTX link control and monitoring for DCFEB1
-  //TMBConfigurationRegister.push_back(v6_gtx_rx2_adr) ;  //0x150 GTX link control and monitoring for DCFEB2
-  //TMBConfigurationRegister.push_back(v6_gtx_rx3_adr) ;  //0x152 GTX link control and monitoring for DCFEB3
-  //TMBConfigurationRegister.push_back(v6_gtx_rx4_adr) ;  //0x154 GTX link control and monitoring for DCFEB4
-  //TMBConfigurationRegister.push_back(v6_gtx_rx5_adr) ;  //0x156 GTX link control and monitoring for DCFEB5
-  //TMBConfigurationRegister.push_back(v6_gtx_rx6_adr) ;  //0x158 GTX link control and monitoring for DCFEB6
+  //TMBConfigurationRegister.push_back(dcfeb_gtx_rx0_adr) ;  //0x14C GTX link control and monitoring for DCFEB0
+  //TMBConfigurationRegister.push_back(dcfeb_gtx_rx1_adr) ;  //0x14E GTX link control and monitoring for DCFEB1
+  //TMBConfigurationRegister.push_back(dcfeb_gtx_rx2_adr) ;  //0x150 GTX link control and monitoring for DCFEB2
+  //TMBConfigurationRegister.push_back(dcfeb_gtx_rx3_adr) ;  //0x152 GTX link control and monitoring for DCFEB3
+  //TMBConfigurationRegister.push_back(dcfeb_gtx_rx4_adr) ;  //0x154 GTX link control and monitoring for DCFEB4
+  //TMBConfigurationRegister.push_back(dcfeb_gtx_rx5_adr) ;  //0x156 GTX link control and monitoring for DCFEB5
+  //TMBConfigurationRegister.push_back(dcfeb_gtx_rx6_adr) ;  //0x158 GTX link control and monitoring for DCFEB6
   
   // Not put into xml file, but may want to enable scope for test runs...
   //  TMBConfigurationRegister.push_back(scp_ctrl_adr);         //0x98 scope control
@@ -6555,6 +6557,17 @@ void TMB::SetTMBRegisterDefaults() {
   //------------------------------------------------------------------
   //defaults are pulled from the main parameter fields
 
+  //
+  //-----------------------------------------------------------------------------
+  // 0X300 - 0X306 = ADR_GEM_GTX_RX[0-3]: GTX link control and monitoring for GEM
+  //-----------------------------------------------------------------------------
+  for (int i=0; i < 4; ++i) {
+      gtx_gem_rx_enable_[i] = gtx_rx_enable_default;
+      gtx_gem_rx_reset_[i] = gtx_rx_reset_default;
+      gtx_gem_rx_prbs_test_enable_[i] = gtx_rx_prbs_test_enable_default;
+    }
+
+  //defaults are pulled from the main parameter fields
   return;
 }
 //
@@ -7463,7 +7476,7 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_r12_fok_ = ExtractValueFromData(data,r12_fok_bitlo,r12_fok_bithi);
     read_mmcm_lostlock_ = ExtractValueFromData(data,mmcm_lostlock_bitlo,mmcm_lostlock_bithi);
     read_qpll_lostlock_count_ = ExtractValueFromData(data,qpll_lostlock_count_bitlo,qpll_lostlock_count_bithi);
-  } else if ( address == v6_gtx_rx_all_adr) {
+  } else if ( address == dcfeb_gtx_rx_all_adr) {
     //---------------------------------------------------------------------
     // 0X14A = ADR_V6_GTX_RX_ALL: Virtex-6 Virtex-6 master GTX control status
     //---------------------------------------------------------------------
@@ -7477,13 +7490,13 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_gtx_rx_pol_swap_all_ = ExtractValueFromData(data,gtx_rx_pol_swap_bitlo,gtx_rx_pol_swap_bithi);
     read_gtx_rx_error_count_all_ = ExtractValueFromData(data,gtx_rx_error_count_bitlo,gtx_rx_error_count_bithi);
     //
-  } else if ( address == v6_gtx_rx0_adr || address == v6_gtx_rx1_adr || address == v6_gtx_rx2_adr ||
-              address == v6_gtx_rx3_adr || address == v6_gtx_rx4_adr || address == v6_gtx_rx5_adr ||
-              address == v6_gtx_rx6_adr) {
+  } else if ( address == dcfeb_gtx_rx0_adr || address == dcfeb_gtx_rx1_adr || address == dcfeb_gtx_rx2_adr ||
+              address == dcfeb_gtx_rx3_adr || address == dcfeb_gtx_rx4_adr || address == dcfeb_gtx_rx5_adr ||
+              address == dcfeb_gtx_rx6_adr ) {
     //---------------------------------------------------------------------
     // 0X14C - 0X158 = ADR_V6_GTX_RX[CFEB]: GTX link control and monitoring
     //---------------------------------------------------------------------
-    int inputNum = (address - v6_gtx_rx0_adr) / 2;
+    int inputNum = (address - dcfeb_gtx_rx0_adr) / 2;
     
     read_gtx_rx_enable_[inputNum] = ExtractValueFromData(data,gtx_rx_enable_bitlo,gtx_rx_enable_bithi);
     read_gtx_rx_reset_[inputNum] = ExtractValueFromData(data,gtx_rx_reset_bitlo,gtx_rx_reset_bithi);
@@ -7503,13 +7516,13 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_dcfeb_badbits_block_   = ExtractValueFromData(data,dcfeb_badbits_block_bitlo  ,dcfeb_badbits_block_bithi  );
     read_dcfeb_badbits_found_   = ExtractValueFromData(data,dcfeb_badbits_found_bitlo  ,dcfeb_badbits_found_bithi  );
   } else if ( address == badbits001_adr || address == badbits023_adr || address == badbits045_adr ||
-      address == badbits101_adr || address == badbits123_adr || address == badbits145_adr ||
-      address == badbits201_adr || address == badbits223_adr || address == badbits245_adr ||
-      address == badbits301_adr || address == badbits323_adr || address == badbits345_adr ||
-      address == badbits401_adr || address == badbits423_adr || address == badbits445_adr ||
-      (hardware_version_ >= 2 && (
-        address == badbits501_adr || address == badbits523_adr || address == badbits545_adr ||
-        address == badbits601_adr || address == badbits623_adr || address == badbits645_adr)) ) {
+              address == badbits101_adr || address == badbits123_adr || address == badbits145_adr ||
+              address == badbits201_adr || address == badbits223_adr || address == badbits245_adr ||
+              address == badbits301_adr || address == badbits323_adr || address == badbits345_adr ||
+              address == badbits401_adr || address == badbits423_adr || address == badbits445_adr ||
+              (hardware_version_ >= 2 && (
+              address == badbits501_adr || address == badbits523_adr || address == badbits545_adr ||
+              address == badbits601_adr || address == badbits623_adr || address == badbits645_adr)) ) {
     //------------------------------------------------------------------
     //0X126,128,12A = ADR_BADBITS001,BADBITS023,BADBITS045 = CFEB0 Hot Channel Masks
     //0X12C,12E,130 = ADR_BADBITS101,BADBITS123,BADBITS145 = CFEB1 Hot Channel Masks
@@ -7550,7 +7563,29 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_gtx_phaser_lock_time_ = ExtractValueFromData(data,0,15);
   } else if ( address == gtx_sync_done_time_adr) {
     read_gtx_sync_done_time_ = ExtractValueFromData(data,0,15);
+  } else if (address == gem_gtx_rx0_adr || address == gem_gtx_rx1_adr ||
+          address == gem_gtx_rx2_adr || address == gem_gtx_rx3_adr) {
+    //---------------------------------------------------------------------
+    // 0X300 - 0X306 = ADR_GEM_GTX_RX[0-3]_GEM: GTX link control and monitoring for GEM
+    //---------------------------------------------------------------------
+    int inputNum = (address - gem_gtx_rx0_adr) / 2;
+
+    read_gtx_gem_rx_enable_[inputNum] = ExtractValueFromData(data,gtx_rx_enable_bitlo,gtx_rx_enable_bithi);
+    read_gtx_gem_rx_reset_[inputNum] = ExtractValueFromData(data,gtx_rx_reset_bitlo,gtx_rx_reset_bithi);
+    read_gtx_gem_rx_prbs_test_enable_[inputNum] = ExtractValueFromData(data,gtx_rx_prbs_test_enable_bitlo,gtx_rx_prbs_test_enable_bithi);
+    read_gtx_gem_rx_ready_[inputNum] = ExtractValueFromData(data,gtx_rx_ready_bitlo,gtx_rx_ready_bithi);
+    read_gtx_gem_rx_link_good_[inputNum] = ExtractValueFromData(data,gtx_rx_link_good_bitlo,gtx_rx_link_good_bithi);
+    read_gtx_gem_rx_link_had_error_[inputNum] = ExtractValueFromData(data,gtx_rx_link_had_error_bitlo,gtx_rx_link_had_error_bithi);
+    read_gtx_gem_rx_link_bad_[inputNum] = ExtractValueFromData(data,gtx_rx_link_bad_bitlo,gtx_rx_link_bad_bithi);
+    read_gtx_gem_rx_pol_swap_[inputNum] = ExtractValueFromData(data,gtx_rx_pol_swap_bitlo,gtx_rx_pol_swap_bithi);
+    read_gtx_gem_rx_error_count_[inputNum] = ExtractValueFromData(data,gtx_rx_error_count_bitlo,gtx_rx_error_count_bithi);
+
   }
+
+
+
+
+
   //
   // combinations of bits which say which trgmode_ we are using....
   //
@@ -8529,9 +8564,9 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    FPGA MMCM lost its lock since last reset  = " << read_mmcm_lostlock_ << std::endl;
     (*MyOutput_) << "    QPLL lost-lock count                      = " << read_qpll_lostlock_count_ << std::endl;
     //
-  } else if ( address == v6_gtx_rx0_adr || address == v6_gtx_rx1_adr || address == v6_gtx_rx2_adr ||
-              address == v6_gtx_rx3_adr || address == v6_gtx_rx4_adr || address == v6_gtx_rx5_adr ||
-              address == v6_gtx_rx6_adr) {
+  } else if ( address == dcfeb_gtx_rx0_adr || address == dcfeb_gtx_rx1_adr || address == dcfeb_gtx_rx2_adr ||
+              address == dcfeb_gtx_rx3_adr || address == dcfeb_gtx_rx4_adr || address == dcfeb_gtx_rx5_adr ||
+              address == dcfeb_gtx_rx6_adr) {
     //---------------------------------------------------------------------
     // 0X14C - 0X158 = ADR_V6_GTX_RX[CFEB]: GTX link control and monitoring
     //---------------------------------------------------------------------
@@ -8583,7 +8618,56 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    Mask of DCFEBs to block badbits         = 0x" << std::hex << (read_dcfeb_badbits_block_) << std::endl;
     (*MyOutput_) << "    Mask of DCFEBs with at least one badbit = 0x" << std::hex << (read_dcfeb_badbits_found_) << std::endl;
     //
-  } else {
+  } else if (address == gem_gtx_rx0_adr || address == gem_gtx_rx1_adr ||
+             address == gem_gtx_rx2_adr || address == gem_gtx_rx3_adr) {
+    //---------------------------------------------------------------------
+    // 0X300 - 0X306 = ADR_GEM_GTX_RX[0-3]_GEM: GTX link control and monitoring for GEM
+    //---------------------------------------------------------------------
+    //Since this is more or less an outdated output section it will not be combined with the other GTX Register outputs
+
+    int NumOfGEMs = 1;
+    //When all 4 gems are added this section may be un-commented
+	//NumOfGEMs = 1;
+    (*MyOutput_) << " ->GEM GTX optical input control and monitoring:" << std::endl;
+
+    (*MyOutput_) << "    Input enable [GEMs 0-3]: \t\t[ ";
+    for (int i=0; i < NumOfGEMs; i++) { (*MyOutput_) << read_gtx_rx_enable_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+
+    (*MyOutput_) << "    Input reset [GEMs 0-3]: \t\t[ ";
+    for (int i=0; i < NumOfGEMs; i++) { (*MyOutput_) << read_gtx_rx_reset_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+
+    (*MyOutput_) << "    PRBS test enable [GEMs 0-3]: \t[ ";
+    for (int i=0; i < NumOfGEMs; i++) { (*MyOutput_) << read_gtx_rx_prbs_test_enable_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+
+    (*MyOutput_) << "    Input ready [GEMs 0-3]: \t\t[ ";
+    for (int i=0; i < NumOfGEMs; i++) { (*MyOutput_) << read_gtx_rx_ready_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+
+    (*MyOutput_) << "    Link good [GEMs 0-3]: \t\t[ ";
+    for (int i=0; i < NumOfGEMs; i++) { (*MyOutput_) << read_gtx_rx_link_good_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+
+    (*MyOutput_) << "    Link had errors [GEMs 0-3]: \t[ ";
+    for (int i=0; i < NumOfGEMs; i++) { (*MyOutput_) << read_gtx_rx_link_had_error_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+
+    (*MyOutput_) << "    Link unstable [GEMs 0-3]: \t[ ";
+    for (int i=0; i < NumOfGEMs; i++) { (*MyOutput_) << read_gtx_rx_link_bad_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+
+    //    Not sure if the comment below has any applicability to the GEMs
+    //    (*MyOutput_) << "    GTX 4 and 5 have swapped rx board routes [GEMs 0-3]: \t\t[ ";
+    //    for (int i=0; i < 4; i++) { (*MyOutput_) << read_gtx_rx_pol_swap_[i] << " "; }
+    //    (*MyOutput_) << "]" << std::endl;
+
+    (*MyOutput_) << "    Link error count [GEMs 0-3]: \t[ ";
+    for (int i=0; i < NumOfGEMs; i++) { (*MyOutput_) << read_gtx_rx_error_count_[i] << " "; }
+    (*MyOutput_) << "]" << std::endl;
+
+    }else {
     //
     (*MyOutput_) << " -> Unable to decode register: PLEASE DEFINE" << std::endl;
     //
@@ -8695,7 +8779,7 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //------------------------------------------------------------------
     //0X1C = ADR_DDDOE:  3D3444 Delay Chip Output Enables 
     //------------------------------------------------------------------
-      if (GetHardwareVersion() == 2) {
+      if (GetHardwareVersion() >= 2) {
           data_word = 0xff7; // enable all clocks except the RPC clock (which otherwise causes problems in OTMB->ALCT communication for certain ALCT TOF delay settings)
           //data_word = 0x005; // disable all unused clocks in OTMB (according to Jason)
       } else {
@@ -9184,7 +9268,7 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //---------------------------------------------------------------------
     InsertValueIntoDataWord(qpll_nrst_,qpll_nrst_bithi,qpll_nrst_bitlo,&data_word);
     //
-  } else if (address == v6_gtx_rx_all_adr) {
+  } else if (address == dcfeb_gtx_rx_all_adr) {
     //---------------------------------------------------------------------
     // 0X14A = ADR_V6_GTX_RX_ALL: GTX link control and monitoring
     //---------------------------------------------------------------------
@@ -9192,13 +9276,13 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(gtx_rx_reset_all_,gtx_rx_reset_bithi,gtx_rx_reset_bitlo,&data_word);
     InsertValueIntoDataWord(gtx_rx_prbs_test_enable_all_,gtx_rx_prbs_test_enable_bithi,gtx_rx_prbs_test_enable_bitlo,&data_word);
     //
-  } else if ( address == v6_gtx_rx0_adr || address == v6_gtx_rx1_adr || address == v6_gtx_rx2_adr ||
-              address == v6_gtx_rx3_adr || address == v6_gtx_rx4_adr || address == v6_gtx_rx5_adr ||
-              address == v6_gtx_rx6_adr) {
+  } else if ( address == dcfeb_gtx_rx0_adr || address == dcfeb_gtx_rx1_adr || address == dcfeb_gtx_rx2_adr ||
+              address == dcfeb_gtx_rx3_adr || address == dcfeb_gtx_rx4_adr || address == dcfeb_gtx_rx5_adr ||
+              address == dcfeb_gtx_rx6_adr ) {
     //---------------------------------------------------------------------
     // 0X14C - 0X158 = ADR_V6_GTX_RX: GTX link control and monitoring
-    //---------------------------------------------------------------------
-    int inputNum = (address - v6_gtx_rx0_adr) / 2;
+	//---------------------------------------------------------------------
+    int inputNum = (address - dcfeb_gtx_rx0_adr) / 2;
     InsertValueIntoDataWord(gtx_rx_enable_[inputNum],gtx_rx_enable_bithi,gtx_rx_enable_bitlo,&data_word);
     InsertValueIntoDataWord(gtx_rx_reset_[inputNum],gtx_rx_reset_bithi,gtx_rx_reset_bitlo,&data_word);
     InsertValueIntoDataWord(gtx_rx_prbs_test_enable_[inputNum],gtx_rx_prbs_test_enable_bithi,gtx_rx_prbs_test_enable_bitlo,&data_word);
@@ -9247,6 +9331,15 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //------------------------------------------------------------------
     InsertValueIntoDataWord(mpc_frames_fifo_ctrl_wr_en_, mpc_frames_fifo_ctrl_wr_en_bithi, mpc_frames_fifo_ctrl_wr_en_bitlo, &data_word);
     InsertValueIntoDataWord(mpc_frames_fifo_ctrl_rd_en_, mpc_frames_fifo_ctrl_rd_en_bithi, mpc_frames_fifo_ctrl_rd_en_bitlo, &data_word);
+  } else if ( address == gem_gtx_rx0_adr || address == gem_gtx_rx1_adr ||
+              address == gem_gtx_rx2_adr || address == gem_gtx_rx3_adr) {
+    //---------------------------------------------------------------------
+    // 0X300 - 0X306 = ADR_GEM_GTX_RX[0-3]: GTX link control and monitoring for GEM
+    //---------------------------------------------------------------------
+    int inputNum = (address - gem_gtx_rx0_adr) / 2;
+    InsertValueIntoDataWord(gtx_gem_rx_enable_[inputNum],gtx_rx_enable_bithi,gtx_rx_enable_bitlo,&data_word);
+    InsertValueIntoDataWord(gtx_gem_rx_reset_[inputNum],gtx_rx_reset_bithi,gtx_rx_reset_bitlo,&data_word);
+    InsertValueIntoDataWord(gtx_gem_rx_prbs_test_enable_[inputNum],gtx_rx_prbs_test_enable_bithi,gtx_rx_prbs_test_enable_bitlo,&data_word);
     //
   } else {
     //
@@ -10338,13 +10431,13 @@ int TMB::DCSvoltages(char *databuf)
 
   int extrabytes=0;
   /* OTMB: read GTX RX status, stored at the end of TMB voltages, at position 14 */
-  if(hardware_version_==2)
+  if(hardware_version_>=2)
   {
      for(int i=0; i<6; i++)
      {
-         read_later(v6_gtx_rx0_adr+i*2);
+         read_later(dcfeb_gtx_rx0_adr+i*2);
      }
-     read_now(v6_gtx_rx0_adr+12, (char *)adc_out);
+     read_now(dcfeb_gtx_rx0_adr+12, (char *)adc_out);
      unsigned short bits=0;
      for(int i=6; i>=0; i--)
      {
@@ -10504,7 +10597,7 @@ void TMB::program_virtex6(const char *mcsfile)
 
 unsigned TMB::virtex6_readreg(int reg)
 {
-  if(hardware_version_==2)
+  if(hardware_version_>=2)
   {
      setup_jtag(ChainTmbMezz);
      //restore idle;
@@ -10536,7 +10629,7 @@ unsigned TMB::virtex6_readreg(int reg)
 
 void TMB::virtex6_writereg(int reg, unsigned value)
 {
-  if(hardware_version_==2)
+  if(hardware_version_>=2)
   {
      setup_jtag(ChainTmbMezz);
      //restore idle;
@@ -10565,7 +10658,7 @@ std::vector<float> TMB::virtex6_monitor()
 
   readout.clear();
   int hversion=GetHardwareVersion();
-  if(hversion==2)
+  if(hversion>=2)
   {
      setup_jtag(ChainTmbMezz);
      comd=VTX6_SYSMON;
@@ -10665,14 +10758,20 @@ int TMB::virtex6_sysmon(int chn)
 }
 
 void TMB::WriteGtxControlRegisters() {
-    WriteRegister(v6_gtx_rx_all_adr);
-    WriteRegister(v6_gtx_rx0_adr);
-    WriteRegister(v6_gtx_rx1_adr);
-    WriteRegister(v6_gtx_rx2_adr);
-    WriteRegister(v6_gtx_rx3_adr);
-    WriteRegister(v6_gtx_rx4_adr);
-    WriteRegister(v6_gtx_rx5_adr);
-    WriteRegister(v6_gtx_rx6_adr);
+    WriteRegister(dcfeb_gtx_rx_all_adr);
+    WriteRegister(dcfeb_gtx_rx0_adr);
+    WriteRegister(dcfeb_gtx_rx1_adr);
+    WriteRegister(dcfeb_gtx_rx2_adr);
+    WriteRegister(dcfeb_gtx_rx3_adr);
+    WriteRegister(dcfeb_gtx_rx4_adr);
+    WriteRegister(dcfeb_gtx_rx5_adr);
+    WriteRegister(dcfeb_gtx_rx6_adr);
+    /*
+    WriteRegister(gem_gtx_rx0_adr);
+	WriteRegister(gem_gtx_rx1_adr);
+	WriteRegister(gem_gtx_rx2_adr);
+	WriteRegister(gem_gtx_rx3_adr);
+     */
 }
 
 // *****************************************************************************

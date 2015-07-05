@@ -4947,14 +4947,22 @@ throw (xgi::exception::Exception) {
               crateHasOtmbs = true;
               std::string label = thisChamber->GetLabel();
               
-              thisTMB->ReadRegister(v6_gtx_rx0_adr);
-              thisTMB->ReadRegister(v6_gtx_rx1_adr);
-              thisTMB->ReadRegister(v6_gtx_rx2_adr);
-              thisTMB->ReadRegister(v6_gtx_rx3_adr);
-              thisTMB->ReadRegister(v6_gtx_rx4_adr);
-              thisTMB->ReadRegister(v6_gtx_rx5_adr);
-              thisTMB->ReadRegister(v6_gtx_rx6_adr);
-              
+              thisTMB->ReadRegister(dcfeb_gtx_rx0_adr);
+              thisTMB->ReadRegister(dcfeb_gtx_rx1_adr);
+              thisTMB->ReadRegister(dcfeb_gtx_rx2_adr);
+              thisTMB->ReadRegister(dcfeb_gtx_rx3_adr);
+              thisTMB->ReadRegister(dcfeb_gtx_rx4_adr);
+              thisTMB->ReadRegister(dcfeb_gtx_rx5_adr);
+              thisTMB->ReadRegister(dcfeb_gtx_rx6_adr);
+              /*
+	      SK: FIXME: can we comment it out?
+              if (thisTMB->GetGemEnabled()) {
+                thisTMB->ReadRegister(gem_gtx_rx0_adr);
+                //thisTMB->ReadRegister(gem_gtx_rx1_adr);
+                //thisTMB->ReadRegister(gem_gtx_rx2_adr);
+                //thisTMB->ReadRegister(gem_gtx_rx3_adr);
+              }
+              */
               //initialize the map
               if (result.find(label) == result.end()) {
                 std::vector< std::vector<int> > dcfebs;
@@ -7751,6 +7759,8 @@ void EmuPeripheralCrateConfig::TMBDumpAllRegisters(xgi::Input * in, xgi::Output 
 //
 void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
   //
+  //the follow line of code can be uncommented once the gem update is complete jmn
+  int number_of_gems = 1; //4;
   cgicc::Cgicc cgi(in);
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
@@ -7780,10 +7790,12 @@ void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out)
   //
   bool is_all = false;
   int fiber_num = 0;
+  int gem_num;
   if (fiber == "all") {
     is_all = true;
   } else {
     fiber_num = atoi(fiber.c_str());
+    gem_num = fiber_num - (int)TMB_N_FIBERS;
   }
   if (mode == "toggle") {
     if (tmb_fiber_status_read_) {
@@ -7791,11 +7803,14 @@ void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out)
       int to_write;
       unsigned long int adr;
       if (is_all) {
-        adr = v6_gtx_rx_all_adr;
+        adr = dcfeb_gtx_rx_all_adr;
         to_write = thisTMB->GetReadGtxRxAllEnable();
-      } else {
-        adr = v6_gtx_rx0_adr + (unsigned long int) (2 * fiber_num);
+      } else if(fiber_num < (int)TMB_N_FIBERS){
+        adr = dcfeb_gtx_rx0_adr + (unsigned long int) (2 * fiber_num);
         to_write = thisTMB->GetReadGtxRxEnable(fiber_num);
+      } else {
+        adr = gem_gtx_rx0_adr + (unsigned long int) (2 * gem_num);
+        to_write = thisTMB->GetReadGtxGemRxEnable(gem_num);
       }
 
       std::cout << "Enable before: " << to_write << std::endl;
@@ -7803,8 +7818,10 @@ void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out)
 
       if (is_all)
         thisTMB->SetGtxRxAllEnable(to_write);
-      else
+      else if(fiber_num < (int)TMB_N_FIBERS)
         thisTMB->SetGtxRxEnable(fiber_num, to_write);
+      else
+        thisTMB->SetGtxGemRxEnable(gem_num, to_write);
       std::cout << "Enable after: " << to_write << std::endl;
       thisTMB->WriteRegister(adr);
       thisTMB->ReadRegister(adr);
@@ -7812,21 +7829,34 @@ void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out)
   } else if (mode == "reset") {
     if (is_all) {
       thisTMB->SetGtxRxAllReset(1);
-      thisTMB->WriteRegister(v6_gtx_rx_all_adr);
+      thisTMB->WriteRegister(dcfeb_gtx_rx_all_adr);
       thisTMB->SetGtxRxAllReset(0);
-      thisTMB->WriteRegister(v6_gtx_rx_all_adr);
-    } else {
+      thisTMB->WriteRegister(dcfeb_gtx_rx_all_adr);
+    } else if(fiber_num < (int)TMB_N_FIBERS){
       thisTMB->SetGtxRxReset(fiber_num, 1);
-      thisTMB->WriteRegister(v6_gtx_rx0_adr + (unsigned long int) (2 * fiber_num));
+      thisTMB->WriteRegister(dcfeb_gtx_rx0_adr + (unsigned long int) (2 * fiber_num));
       thisTMB->SetGtxRxReset(fiber_num, 0);
-      thisTMB->WriteRegister(v6_gtx_rx0_adr + (unsigned long int) (2 * fiber_num));
+      thisTMB->WriteRegister(dcfeb_gtx_rx0_adr + (unsigned long int) (2 * fiber_num));
+    } else {
+      thisTMB->SetGtxGemRxReset(gem_num, 1);
+      thisTMB->WriteRegister(gem_gtx_rx0_adr + (unsigned long int) (2 * gem_num));
+      thisTMB->SetGtxGemRxReset(gem_num, 0);
+      thisTMB->WriteRegister(gem_gtx_rx0_adr + (unsigned long int) (2 * gem_num));
     }
   }
 
-  thisTMB->ReadRegister(v6_gtx_rx_all_adr);
+  thisTMB->ReadRegister(dcfeb_gtx_rx_all_adr);
   for (unsigned int i = 0; i < TMB_N_FIBERS; ++i) {
-    unsigned long int adr = v6_gtx_rx0_adr + (unsigned long int) (2 * i);
+    unsigned long int adr = dcfeb_gtx_rx0_adr + (unsigned long int) (2 * i);
     thisTMB->ReadRegister(adr);
+  }
+  for (int i = 0; i < (int)TMB_N_FIBERS; ++i) {
+      unsigned long int adr = dcfeb_gtx_rx0_adr + (unsigned long int) (2 * i);
+      thisTMB->ReadRegister(adr);
+  }
+  for (int i = 0; i < number_of_gems; ++i) {
+      unsigned long int adr = gem_gtx_rx0_adr + (unsigned long int) (2 * i);
+      thisTMB->ReadRegister(adr);
   }
   tmb_fiber_status_read_ = true;
   //
@@ -9412,14 +9442,14 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     *out << cgicc::legend("Optical input status").set("style","color:blue") << std::endl ;
     *out << cgicc::pre();
     thisTMB->RedirectOutput(out);
-    thisTMB->ReadRegister(v6_gtx_rx0_adr);
-    thisTMB->ReadRegister(v6_gtx_rx1_adr);
-    thisTMB->ReadRegister(v6_gtx_rx2_adr);
-    thisTMB->ReadRegister(v6_gtx_rx3_adr);
-    thisTMB->ReadRegister(v6_gtx_rx4_adr);
-    thisTMB->ReadRegister(v6_gtx_rx5_adr);
-    thisTMB->ReadRegister(v6_gtx_rx6_adr);
-    *out << " ->GTX optical input control and monitoring:" << std::endl;
+    thisTMB->ReadRegister(dcfeb_gtx_rx0_adr);
+    thisTMB->ReadRegister(dcfeb_gtx_rx1_adr);
+    thisTMB->ReadRegister(dcfeb_gtx_rx2_adr);
+    thisTMB->ReadRegister(dcfeb_gtx_rx3_adr);
+    thisTMB->ReadRegister(dcfeb_gtx_rx4_adr);
+    thisTMB->ReadRegister(dcfeb_gtx_rx5_adr);
+    thisTMB->ReadRegister(dcfeb_gtx_rx6_adr);
+    *out << " ->CFEB GTX optical input control and monitoring:" << std::endl;
     *out << "    Input enable [DCFEBs 0-6]: \t\t[ ";
     for (int i=0; i < 7; i++) { *out << thisTMB->GetReadGtxRxEnable(i) << " "; }
     *out << "]" << std::endl;
@@ -9462,12 +9492,66 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     *out << "    Link error count [DCFEBs 0-6]: \t[ ";
     for (int i=0; i < 7; i++) { *out << thisTMB->GetReadGtxRxErrorCount(i) << " "; }
     *out << "]" << std::endl;
-//  thisTMB->PrintTMBRegister(v6_gtx_rx0_adr);
+//  thisTMB->PrintTMBRegister(dcfeb_gtx_rx0_adr);
 //  the above line of code is an alternative output without the colors
+    //
+
+    if (thisTMB->GetGemEnabled()) {
+      unsigned long int gem_gtx_rx_addrs[4] = {gem_gtx_rx0_adr, gem_gtx_rx1_adr, gem_gtx_rx2_adr, gem_gtx_rx3_adr};
+      int number_of_gems = thisTMB->GetNGemEnabledLinks();
+      for (int ig = 0; ig < number_of_gems; ++ng ){
+	thisTMB->ReadRegister(gem_gtx_rx_addrs[ig]);
+      }
+      *out << std::endl;
+      *out << std::endl;
+      *out << " ->GEM GTX optical input control and monitoring: " << std::endl;
+      *out << "    Input enable [GEMs 0]: \t\t[ ";
+      for (int i=0; i < number_of_gems; ++i){ *out << thisTMB->GetReadGtxGemRxEnable(i) << " "; }
+      *out << "]" << std::endl;
+      *out << "    Input reset [GEMs 0]: \t\t[ ";
+      for (int i=0; i < number_of_gems; ++i) { *out << thisTMB->GetReadGtxGemRxReset(i) << " "; }
+      *out << "]" << std::endl;
+      *out << "    PRBS test enable [GEMs 0]: \t\t[ ";
+      for (int i=0; i < number_of_gems; ++i){ *out << thisTMB->GetReadGtxGemRxPrbsTestEnable(i) << " "; }
+      *out << "]" << std::endl;
+      *out << "    Input ready [GEMs 0]: \t\t[ ";
+      for (int i=0; i < number_of_gems; ++i){ *out << thisTMB->GetReadGtxGemRxReady(i) << " "; }
+      *out << "]" << std::endl;
+      *out << "    Link good [GEMs 0]: \t\t[ ";
+      for (int i=0; i < number_of_gems; ++i) {
+        int read_gtx_rx_link_good_temp = thisTMB->GetReadGtxGemRxLinkGood(i);
+        if (read_gtx_rx_link_good_temp == 1)
+          *out<< cgicc::span().set("style","color:green");
+        else
+          *out<< cgicc::span().set("style","color:red");
+        *out << read_gtx_rx_link_good_temp << " ";
+        *out << cgicc::span();
+      }
+      *out << "]" << std::endl;
+      *out << "    Link had errors [GEMs 0]: \t\t[ ";
+      for (int i=0; i < number_of_gems; ++i){ *out << thisTMB->GetReadGtxGemRxLinkHadError(i) << " "; }
+      *out << "]" << std::endl;
+      *out << "    Link unstable [GEMs 0]: \t\t[ ";
+      for (int i=0; i < number_of_gems; ++i) {
+        int read_gtx_rx_link_good_temp = thisTMB->GetReadGtxGemRxLinkBad(i);
+        if (read_gtx_rx_link_good_temp == 1){
+          *out<< cgicc::span().set("style","color:red");
+        } else {
+          *out<< cgicc::span().set("style","color:green");
+	}
+        *out << read_gtx_rx_link_good_temp << " ";
+        *out << cgicc::span();
+      }
+      *out << "]" << std::endl;
+      *out << "    Link error count [GEMs 0]: \t\t[ ";
+      for (int i=0; i < number_of_gems; ++i){ *out << thisTMB->GetReadGtxGemRxErrorCount(i) << " "; }
+      *out << "]" << std::endl;
+    }//if (thisTMB->GetGemEnabled())
+
     thisTMB->RedirectOutput(&std::cout);
     *out << cgicc::pre();
     *out << cgicc::fieldset();
-  }
+  } //thisTMB->GetHardwareVersion() >= 2
   //
   *out << cgicc::fieldset();
   *out << cgicc::legend("Sync Error status").set("style","color:blue") << std::endl ;
@@ -9928,6 +10012,8 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
 
   if (thisTMB->GetHardwareVersion()==2) {
+    int number_of_gems = thisTMB->GetNGemEnabledLinks();
+
     std::string TMBFiberReset = toolbox::toString("/%s/TMBFiberReset",
 						  getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method", "GET").set("action", TMBFiberReset);
@@ -9963,10 +10049,17 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     std::string button_name = "Force Enable All";
     std::string status = "N/A";
     std::string reset_button = "Reset All";
-    for (int i = -1; i < ((int) TMB_N_FIBERS); ++i) {
+    std::string gem_button_name = "GEM ";
+    for (int i = -1; i < ((int) TMB_N_FIBERS + number_of_gems); ++i) {
+      int gem_num = i - (int)TMB_N_FIBERS;
       *out << cgicc::tr();
       *out << cgicc::td();
-      *out << button_name;
+      if (i < (int)TMB_N_FIBERS) {
+	*out << button_name;
+      }
+      else {
+	*out << gem_button_name << gem_num;
+      }
       *out << cgicc::td();
       *out << cgicc::td();
       //
@@ -9974,9 +10067,9 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
         bool read_status = false;
         if (i < 0) {
           read_status = thisTMB->GetReadGtxRxAllEnable();
-        } else {
+        } else if (i < (int)TMB_N_FIBERS) {
           read_status = thisTMB->GetReadGtxRxEnable(i);
-        }
+        } else read_status = thisTMB->GetReadGtxGemRxEnable(gem_num);
         std::string color;
         std::string toggle_button;
         if (read_status) {
@@ -10029,7 +10122,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
       ss << i + 1;
       bn << i + 1;
       fiber_num = ss.str();
-      button_name = ss.str();
+      button_name = bn.str();
       reset_button = "Reset";
     }
     *out << cgicc::table();
