@@ -156,7 +156,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
                     "Booking Histos for " << cscTag);
     MEs[cscTag] = bookMEs("CSC",cscTag);
     MECanvases[cscTag] = bookMECanvases("CSC", cscTag, Form(" Crate ID = %02d. DMB ID = %02d", crateID, dmbID));
-    cscCounters[cscTag] = bookCounters();
+    cscCounters[cscTag] = bookCounters(cscName);
     // printMECollection(MEs[cscTag]);
   }
 

@@ -124,8 +124,10 @@ private:
 };
 
 typedef DQMNodesStatus DQMNodesStatusT;
-
 typedef std::list< std::pair<time_t, DQMNodesStatusT> > DQMNodesHistory; 
+
+typedef CSCCounters CSCCountersT;
+typedef std::list< std::pair<time_t, CSCCountersT> > CSCCountersHistory;
 
 using namespace toolbox;
 
@@ -161,6 +163,7 @@ public:
   void getPlot (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getRefPlot (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getCSCCounters (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
+  void getCSCCountersHistory (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getDQMReport (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getROOTFile (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getNodesHistory (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
@@ -270,6 +273,7 @@ protected:
                         }
 
   int addToNodesStatusHistory(time_t timestamp, DQMNodesStatus nodes_status);
+  int addToCSCCountersHistory(time_t timestamp, CSCCounters counters);
   
   int svc();
   std::string generateLoggerName();
@@ -333,8 +337,10 @@ private:
   CSCCounters 		cscCounters;	 	// CSC Counters from EmuMonitor nodes
   DQMNodesStatus 	nodesStatus; 		// DQM Monitoring Nodes Statuses
   DQMNodesStatus 	prevNodesStatus;	// Saved copy of previous DQM Monitoring Nodes Statuses
-  DQMNodesHistory        nodesStatusHistory; // Container for Historical DQM Monitoring Nodes Statuses
+  DQMNodesHistory       nodesStatusHistory; 	// Container for Historical DQM Monitoring Nodes Statuses data
   xdata::UnsignedInteger maxNodesHistorySize;
+  CSCCountersHistory    cscCountersHistory;	// Container for Historical DQM CSC Counters data
+  xdata::UnsignedInteger maxCSCCountersHistorySize;
 
   BSem 			appBSem_;
   BSem			utilBSem_;

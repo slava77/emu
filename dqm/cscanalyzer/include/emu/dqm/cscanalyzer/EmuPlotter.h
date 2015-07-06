@@ -285,7 +285,7 @@ protected:
 
   ME_List bookMEs(std::string factoryID, std::string prefix);
   MECanvases_List bookMECanvases(std::string factoryID, std::string prefix, std::string title="");
-  CSCCounters bookCounters();
+  CSCCounters bookCounters(std::string cscName="");
 
   void init();
   std::string getCSCFromMap(int crate, int slot, int& csctype, int& cscposition);

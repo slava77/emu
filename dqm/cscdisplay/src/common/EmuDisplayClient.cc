@@ -55,6 +55,8 @@ throw (xdaq::exception::Exception)
 
   nodesStatusHistory.clear();
   maxNodesHistorySize = 720; // ~ 2 hours  of Nodes history
+  cscCountersHistory.clear();
+  maxCSCCountersHistorySize = 360; // ~2 hours of CSC Counter history
 
   curRunNumber      = "";
   tmap        = emu::dqm::utils::getCSCTypeToBinMap();
@@ -80,6 +82,7 @@ throw (xdaq::exception::Exception)
   xgi::bind(this, &EmuDisplayClient::getTestsList,  "getTestsList");
   xgi::bind(this, &EmuDisplayClient::getRunsList,   "getRunsList");
   xgi::bind(this, &EmuDisplayClient::getCSCCounters,  "getCSCCounters");
+  xgi::bind(this, &EmuDisplayClient::getCSCCountersHistory,  "getCSCCountersHistory");
   xgi::bind(this, &EmuDisplayClient::getNodesHistory,  "getNodesHistory");
   xgi::bind(this, &EmuDisplayClient::getDQMReport,  "getDQMReport");
   xgi::bind(this, &EmuDisplayClient::getROOTFile,  "getROOTFile");
@@ -533,6 +536,97 @@ void EmuDisplayClient::getCSCCounters (xgi::Input * in, xgi::Output * out)  thro
 
 }
 
+void EmuDisplayClient::getCSCCountersHistory (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
+{
+  appBSem_.take();
+
+  std::string runname = "";
+  std::string csc="ALL";
+  std::string parameter="ALL";
+
+  cgicc::Cgicc cgi(in);
+  cgicc::const_form_iterator stateInputElement = cgi.getElement("run");
+
+  if (stateInputElement != cgi.getElements().end())
+    {
+      runname = (*stateInputElement).getValue();
+      //       std::cout << runname << std::endl;
+    }
+
+  cgicc::const_form_iterator cscInputElement = cgi.getElement("csc");
+  if (cscInputElement != cgi.getElements().end())
+    {
+      csc = (*cscInputElement).getValue();
+    }
+
+  cgicc::const_form_iterator parameterInputElement = cgi.getElement("param");
+  if (parameterInputElement != cgi.getElements().end())
+    {
+      parameter = (*parameterInputElement).getValue();
+    }
+
+  (out->getHTTPResponseHeader()).addHeader("Content-Type","text/javascript");
+  if (runname.find("Online") != std::string::npos || runname =="")
+    {
+
+      *out << "var CSC_COUNTERS_HISTORY = {";
+      *out << " \"history\": \n[" << std::endl;
+      try
+        {
+          if (!cscCountersHistory.empty())
+            {
+              CSCCountersHistory::iterator hitr;
+              for (hitr=cscCountersHistory.begin(); hitr != cscCountersHistory.end(); ++hitr)
+                {
+                  *out << "{\"tstamp\": \"" << hitr->first << "\",\"stats\" :["<< std::endl;
+
+                  CSCCountersT::iterator itr;
+                  CSCCountersT& cscs = hitr->second;
+                  for (itr=cscs.begin(); itr != cscs.end(); ++itr)   // == Loop and Output Counters
+                    {
+                      if ( (csc == "ALL") || (itr->first.compare(csc) ==0) )
+                        {
+                          *out << "\t{\"csc\": \""<< itr->first << "\",";
+
+                          std::map<std::string, std::string>::iterator sitr;
+                          for (sitr = itr->second.begin(); sitr != itr->second.end(); ++sitr)
+                            {
+                              if ((parameter == "ALL") || (sitr->first.compare(parameter) == 0) )
+                                {
+                                  *out << "\"" << sitr->first << "\": \"" << sitr->second << "\",";
+                                }
+                            }
+
+                          *out << "}," << std::endl;
+                        }
+                    }
+
+                  *out << "\t]}," << std::endl;
+                }
+            }
+        }
+      catch (xoap::exception::Exception &e)
+        {
+          if (debug) LOG4CPLUS_ERROR(logger_, "Failed to getCSCCountersHistory: "
+                                       << xcept::stdformat_exception_history(e));
+
+        }
+
+      *out << "]};" << std::endl;
+
+    }
+  else
+    {
+
+      *out << "var CSC_COUNTERS_HISTORY=[['Run: "<< runname << "']]" << std::endl;
+    }
+
+  appBSem_.give();
+
+}
+
+
+
 void EmuDisplayClient::getNodesHistory (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
 {
   appBSem_.take();
@@ -582,14 +676,14 @@ void EmuDisplayClient::getNodesHistory (xgi::Input * in, xgi::Output * out)  thr
                   DQMNodesStatusT& nodes = hitr->second;
                   for (itr=nodes.begin(); itr != nodes.end(); ++itr)   // == Loop and Output Counters
                     {
-                      if ( (node == "ALL") || (itr->first.find(node) != std::string::npos) )
+                      if ( (node == "ALL") || (itr->first.compare(node) ==0) )
                         {
                           *out << "\t{\"node\": \""<< itr->first << "\",";
 
                           std::map<std::string, std::string>::iterator sitr;
                           for (sitr = itr->second.begin(); sitr != itr->second.end(); ++sitr)
                             {
-                              if ((parameter == "ALL") || (sitr->first.find(parameter) != std::string::npos) )
+                              if ((parameter == "ALL") || (sitr->first.compare(parameter) == 0) )
                                 {
                                   *out << "\"" << sitr->first << "\": \"" << sitr->second << "\",";
                                 }
@@ -2255,7 +2349,9 @@ CSCCounters EmuDisplayClient::updateCSCCounters()
                 }
             }
           LOG4CPLUS_DEBUG (logger_, "CSC Counters are updated");
-          cscCounters.setTimeStamp(time(NULL));
+	  time_t tstamp = time(NULL);
+          cscCounters.setTimeStamp(tstamp);
+	  addToCSCCountersHistory(tstamp, cscCounters);
         }
     }
   return cscCounters;
@@ -3197,4 +3293,13 @@ int EmuDisplayClient::addToNodesStatusHistory(time_t timestamp, DQMNodesStatus n
     nodesStatusHistory.pop_front();
   return 0;
 }
+
+int EmuDisplayClient::addToCSCCountersHistory(time_t timestamp, CSCCounters counters)
+{
+  cscCountersHistory.push_back( std::make_pair(timestamp, counters) );
+  while (cscCountersHistory.size() > maxCSCCountersHistorySize)
+    cscCountersHistory.pop_front();
+  return 0;
+}
+
 

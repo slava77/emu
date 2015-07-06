@@ -2327,6 +2327,8 @@ int EmuPlotter::save_CSCCounters(std::string rootfile, std::string path, std::st
 
   TDirectory *sourcedir = gDirectory;
 
+  int theFormatVersion = getFormatVersion(sourcedir);
+
   std::vector<std::string> CSC_folders=getListOfFolders("CSC", sourcedir);
 
 
@@ -2353,6 +2355,16 @@ int EmuPlotter::save_CSCCounters(std::string rootfile, std::string path, std::st
           trigCnts["ALCT"] =  (uint32_t)me->GetBinContent(1);
           trigCnts["CLCT"] =  (uint32_t)me->GetBinContent(2);
           trigCnts["CFEB"] =  (uint32_t)me->GetBinContent(3);
+        }
+
+      me = findME(CSC_folders[i], "Actual_DMB_CFEB_DAV_Rate",  sourcedir);
+      if (me)
+        {
+          int nCFEBs = emu::dqm::utils::getNumCFEBs(cscName, theFormatVersion);
+          for (int i=0; i<nCFEBs; i++)
+            {
+              trigCnts[Form("CFEB%d", i+1)] =  (uint32_t)me->GetBinContent(i+1);
+            }
         }
 
       me = findME(CSC_folders[i], "Actual_DMB_FEB_DAV_Frequency",  sourcedir);

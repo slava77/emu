@@ -331,7 +331,7 @@ ME_List EmuPlotter::bookMEs(std::string factoryID, std::string prefix)
   return  mes;
 }
 
-CSCCounters EmuPlotter::bookCounters()
+CSCCounters EmuPlotter::bookCounters(std::string cscName)
 {
   CSCCounters trigCnts;
   trigCnts["ALCT"] = 0;
@@ -339,6 +339,14 @@ CSCCounters EmuPlotter::bookCounters()
   trigCnts["CFEB"] = 0;
   trigCnts["DMB"] = 0;
   trigCnts["BAD"] = 0;
+  if (cscName != "")
+    {
+      int nCFEBs = emu::dqm::utils::getNumCFEBs(cscName, theFormatVersion);
+      for (int i=0; i<nCFEBs; i++)
+        {
+          trigCnts[Form("CFEB%d", i+1)] = 0;
+        }
+    }
   nDetectedCSCs++;
   return trigCnts;
 }
