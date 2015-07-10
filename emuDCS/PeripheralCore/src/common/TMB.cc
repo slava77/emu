@@ -1739,7 +1739,7 @@ void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
 
   unsigned long int scope_ram[256][nrams];
   int scp_raw_data[nbits];
-  char *scope_ch[256];
+  const char *scope_ch[256];
   int scope_raw_decode = 1;
 
   unsigned long int runstop;
@@ -1908,8 +1908,8 @@ void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
     for(itbin=0;itbin<256;itbin++) {                      //256 time bins per channel
       //
       ibit = ((scope_ram[itbin][iram]) >> (ich%16) ) & 1; //logic levels vs tbin for this chan	      
-      if(ibit == 0) scope_ch[itbin] = '_';       //display symbol for logic 0
-      if(ibit == 1) scope_ch[itbin] = '-';       //display symbol for logic 1
+      if(ibit == 0) scope_ch[itbin] = "_";       //display symbol for logic 0
+      if(ibit == 1) scope_ch[itbin] = "-";       //display symbol for logic 1
       (*MyOutput_) << scope_ch[itbin];
       //
       // Construct integer for special channel groups
