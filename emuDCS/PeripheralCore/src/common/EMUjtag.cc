@@ -7,6 +7,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <cmath>
 #include <time.h>
 #include <string.h>
 //
@@ -467,7 +468,7 @@ void EMUjtag::packCharBuffer(int * bitVector,
   // bitVector[0]     = LSB of charVector[0]
   // bitVector[Nbits] = MSB of charVector[Nbits/8]
   //
-  int nChars = ceil(Nbits/8.); 
+  int nChars = std::ceil(Nbits/8.); 
   for (int i=0; i<nChars; i++) 
     charVector[i] = 0;
   //
