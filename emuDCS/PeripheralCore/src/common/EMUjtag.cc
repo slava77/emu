@@ -467,7 +467,8 @@ void EMUjtag::packCharBuffer(int * bitVector,
   // bitVector[0]     = LSB of charVector[0]
   // bitVector[Nbits] = MSB of charVector[Nbits/8]
   //
-  for (int i=0; i<Nbits/8; i++) 
+  int nChars = ceil(Nbits/8.); 
+  for (int i=0; i<nChars; i++) 
     charVector[i] = 0;
   //
   int bufferbit = 0;
