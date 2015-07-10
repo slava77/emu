@@ -1154,7 +1154,7 @@ void VMECC::prg_vcc_prom_ver(const char *path,const char *ver)
 	  std::cout << "Programming..." << std::endl;
           CNFG_ptr cp=read_crs();
           print_crs(cp);
-          if((cp->rst_misc & RST_CR_MSGLVL != RST_CR_MSGLVL) || (cp->ether & ETH_CR_SPONT != ETH_CR_SPONT)){
+          if( ( (cp->rst_misc & RST_CR_MSGLVL) != RST_CR_MSGLVL) || ( (cp->ether & ETH_CR_SPONT) != ETH_CR_SPONT)){
 	    std::cout << "Messages were not enabled; Will enable them now" << std::endl;
             set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
             set_clr_bits(SET, ETHER, ETH_CR_SPONT);
