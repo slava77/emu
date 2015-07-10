@@ -657,7 +657,7 @@ bool TMBTester::testADC(){
 		      test1p5 &&
 		      testTcrit);
 
-  float adc_voltage[13];
+  float adc_voltage[14];
 
   tmb_->ADCvoltages(adc_voltage);
 
