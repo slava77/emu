@@ -574,7 +574,7 @@ void ChamberUtilities::CFEBTiming_Configure(int * tof) {
   thisTMB->ReadRegister(phaser_cfeb2_rxd_adr); //
   thisTMB->ReadRegister(phaser_cfeb3_rxd_adr); //
   thisTMB->ReadRegister(phaser_cfeb4_rxd_adr); //
-  int initial_cfeb_phase[5] = { thisTMB->GetReadCfeb0RxClockDelay(),
+  /*SK: unused:  int initial_cfeb_phase[5] = { thisTMB->GetReadCfeb0RxClockDelay(),
 				thisTMB->GetReadCfeb1RxClockDelay(),
 				thisTMB->GetReadCfeb2RxClockDelay(),
 				thisTMB->GetReadCfeb3RxClockDelay(),
@@ -583,23 +583,23 @@ void ChamberUtilities::CFEBTiming_Configure(int * tof) {
 				thisTMB->GetReadCfeb1RxPosNeg(),
 				thisTMB->GetReadCfeb2RxPosNeg(),
 				thisTMB->GetReadCfeb3RxPosNeg(),
-				thisTMB->GetReadCfeb4RxPosNeg() };
+				thisTMB->GetReadCfeb4RxPosNeg() };      ********* */
   //
   thisTMB->ReadRegister(seq_trig_en_adr);
-  int initial_clct_pretrig_enable           = thisTMB->GetReadClctPatternTrigEnable();    //0x68
+  //SK: unused:  int initial_clct_pretrig_enable           = thisTMB->GetReadClctPatternTrigEnable();    //0x68
   //
   thisTMB->ReadRegister(tmb_trig_adr);
-  int initial_clct_trig_enable              = thisTMB->GetReadTmbAllowClct();             //0x86
+  //SK: unused:  int initial_clct_trig_enable              = thisTMB->GetReadTmbAllowClct();             //0x86
   //
   thisTMB->ReadRegister(seq_clct_adr);
-  int initial_clct_halfstrip_pretrig_thresh = thisTMB->GetReadHsPretrigThresh();          //0x70
-  int initial_clct_pattern_thresh           = thisTMB->GetReadMinHitsPattern();           //0x70
+  //SK: unused:  int initial_clct_halfstrip_pretrig_thresh = thisTMB->GetReadHsPretrigThresh();          //0x70
+  //SK: unused:  int initial_clct_pattern_thresh           = thisTMB->GetReadMinHitsPattern();           //0x70
   //
   thisTMB->ReadRegister(layer_trg_mode_adr);
-  int initial_layer_trig_enable             = thisTMB->GetReadEnableLayerTrigger();       //0xf0
+  //SK: unused:  int initial_layer_trig_enable             = thisTMB->GetReadEnableLayerTrigger();       //0xf0
   //
   thisTMB->ReadRegister(ccb_trig_adr);
-  int initial_ignore_ccb_startstop          = thisTMB->GetReadIgnoreCcbStartStop();       //0x2c
+  //SK: unused:  int initial_ignore_ccb_startstop          = thisTMB->GetReadIgnoreCcbStartStop();       //0x2c
   //
   // Set up for this test...
   thisTMB->SetClctPatternTrigEnable(1);
@@ -903,8 +903,8 @@ inline bool ChamberUtilities::CFEBTiming_CheckCLCT(int cfeb, unsigned int layer_
   }
   thisTMB->DecodeCLCT();
   thisTMB->GetCLCT0keyHalfStrip();
-  is_good &= thisTMB->GetCLCT0Nhit() == n_layers;
-  is_good &= thisTMB->GetCLCT0PatternId() == pattern;
+  is_good &= (unsigned int)thisTMB->GetCLCT0Nhit() == n_layers;
+  is_good &= (unsigned int)thisTMB->GetCLCT0PatternId() == pattern;
   return is_good;
 }
     //
@@ -1109,7 +1109,7 @@ inline void ChamberUtilities::ConfigureTMB(const CFEBTiming_Configuration & conf
 inline void ChamberUtilities::CFEBTiming_ConfigureLevel(CFEBTiming_Configuration & config, int level, int after) {
   //(*MyOutput_) << "CFEBTiming Configure Level " << level << std::endl;
   
-  if(level < 0 | level == 0 | (after & level <= 0)) {
+  if(level < 0 || level == 0 || (after && level <= 0)) {
     thisCCB_->setCCBMode(CCB::VMEFPGA);
     thisCCB_->hardReset();
     thisCCB_->setCCBMode(CCB::DLOG);
@@ -1136,14 +1136,14 @@ inline void ChamberUtilities::CFEBTiming_ConfigureLevel(CFEBTiming_Configuration
       thisDMB->settrgsrc(0); // disable DMB's own trigger, LCT
     usleep(100);
   }
-  if(level < 0 | level == 1 | (after & level <= 1)) {
+  if(level < 0 || level == 1 || (after && level <= 1)) {
     thisCCB_->setCCBMode(CCB::DLOG);
     ConfigureTMB(config);
     usleep(1000);
   }
   if(level == 2) {
     if(is_me11_) {
-      for(int cfeb=0; cfeb<thisDMB->cfebs_.size(); ++cfeb) {
+      for(int cfeb=0, int ncfeb=thisDMB->cfebs_.size(); cfeb<ncfeb; ++cfeb) {
 	if((config.cfeb_mask & 0x7f) >> thisDMB->cfebs_[cfeb].number()) {
 	  
 	  // Should not set dcfeb_clock_phase with the following function for regular scan, but should pick up the dcfeb_clock_phase that is set in xml
@@ -1173,7 +1173,7 @@ inline void ChamberUtilities::CFEBTiming_ConfigureLevel(CFEBTiming_Configuration
       thisTMB->FireDDDStateMachine();	
     }
   }
-  if(level < 0 | level == 3 | (after & level <= 3)) {
+  if(level < 0 || level == 3 || (after && level <= 3)) {
     if(is_me11_) {
       SetTMBInternalL1A(config.tmb_internal_l1a); // Disable the tmb's internal l1a
       usleep(1000);
@@ -1199,9 +1199,9 @@ inline void ChamberUtilities::CFEBTiming_ConfigureLevel(CFEBTiming_Configuration
 void ChamberUtilities::CFEBTiming_PulseInject(bool is_inject_scan, int cfeb, unsigned int layer_mask, unsigned int pattern, 
 					      unsigned int halfstrip, unsigned int n_pulses, unsigned int pulse_delay) {
   if (debug_ >= 5) std::cout << "Start: " << __PRETTY_FUNCTION__  << std::endl;
-  const int MaxCFEB = is_me11_ ? 7: 5;//this isn't really used
-  const int MaxTimeDelay=25;
-  const bool is_cfeb_scan = cfeb < 0;
+  //SK: unused:  const int MaxCFEB = is_me11_ ? 7: 5;//this isn't really used
+  //SK: unused:  const int MaxTimeDelay=25;
+  //SK: unused:  const bool is_cfeb_scan = cfeb < 0;
   
   char test_hs[6]; memset(test_hs, 0, sizeof(test_hs));// hs[0-6] is 1-32 have strips in layers 0-6
   int test_hs_int[6]; memset(test_hs_int, 0, sizeof(test_hs_int));
@@ -1213,7 +1213,7 @@ void ChamberUtilities::CFEBTiming_PulseInject(bool is_inject_scan, int cfeb, uns
   if(is_inject_scan){
     // Build half strip array (specify a half strip to pulse for each layer)
     for(int layer=0; layer<6; ++layer){
-      int val = output_halfstrip+CFEBPatterns[pattern-0x2][layer];
+      //SK: unused:      int val = output_halfstrip+CFEBPatterns[pattern-0x2][layer];
       if(GetInputCFEBByHalfStrip(output_halfstrip) == cfeb) {
 	test_hs_int[layer] = GetInputHalfStrip(output_halfstrip) & 0x1f;
 	test_hs[layer] = test_hs_int[layer];
@@ -1499,7 +1499,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
   const bool is_random_halfstrip = halfstrip < 0;
   const bool is_cfeb_clock_phase_scan = cfeb_clock_phase < 0;
   const bool is_cfeb_clock_phase_inherited =  cfeb_clock_phase == 32;
-  const bool is_single_pulse = !(is_timing_scan|is_cfeb_scan|is_random_halfstrip);
+  //SK: unused:  const bool is_single_pulse = !(is_timing_scan|is_cfeb_scan|is_random_halfstrip);
   
   if(time_delay >= MaxTimeDelay) return;
   if(cfeb_num >= MaxCFEB) return;
@@ -1507,7 +1507,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
   if(cfeb_clock_phase > MaxCFEBClockPhase) return; // cfeb_clock_phase==MaxCFEBClockPhase is legal
   
   thisTMB->ReadRegister(non_trig_readout_adr);
-  int tmb_compile_type = thisTMB->GetReadTMBFirmwareCompileType();
+  //SK: unused:  int tmb_compile_type = thisTMB->GetReadTMBFirmwareCompileType();
   
   (*MyOutput_) << "*************************************" << std::endl;
   (*MyOutput_) << "          Test CFEB Timing           " << std::endl;
@@ -1567,7 +1567,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
     usleep(1000000);
     CFEBTiming_CheckConfiguration(config);
     
-    for(int cfeb=0; cfeb<thisDMB->cfebs_.size(); ++cfeb) {	
+    for(int cfeb=0, int ncfebs=thisDMB->cfebs_.size(); cfeb<ncfebs; ++cfeb) {	
       
       char tmp[2];
       // Reads out and saves current DCFEB clock phase for each DCFEB
@@ -1722,7 +1722,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
   
   int timing_2d_results[2][MaxCFEBClockPhase][MaxTimeDelay]; memset(timing_2d_results, 0, sizeof(timing_2d_results));
   
-  int ihs = 0;
+  //SK: unused:  int ihs = 0;
   
   if(is_random_halfstrip)
     halfstrip = -1;
@@ -1741,7 +1741,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
   
   bool done = false;
   
-  int CLCT1_bad_valid=0;
+  //SK: unused:  int CLCT1_bad_valid=0;
   
   int last_halfstrip[MaxCFEB]; for(int i=0; i<MaxCFEB; ++i) last_halfstrip[i] = -1;
   
@@ -1979,7 +1979,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
   }
   
   int n_pulses = pulse_max * ihs_max, best_rx_a[2], best_rx_b[2]; memset(best_rx_a, 0, sizeof(best_rx_a)); memset(best_rx_b, 0, sizeof(best_rx_b));
-  int bad_cfeb_a, bad_cfeb_b, bad_cfeb, good_cfebs[2]; memset(good_cfebs, 0, sizeof(good_cfebs));
+  int bad_cfeb_a=0, bad_cfeb_b=0, bad_cfeb=0, good_cfebs[2]; memset(good_cfebs, 0, sizeof(good_cfebs));
   bool initial_in_special_region, test_in_special_region;
   
   int test_cfeb_tof_delay[MaxCFEB], side_low, side_high;
@@ -2396,7 +2396,7 @@ int ChamberUtilities::me11_wraparound_best_center(int errors[25]) {
   
   int windows[n_windows][2]; memset(windows, 0, sizeof(windows));
   
-  int win_start, win_end=0;
+  int win_start=0, win_end=0;
   
   for(int win=0; win<n_windows; ++win) {
     
@@ -2502,7 +2502,7 @@ int ChamberUtilities::non_me11_wraparound_best_weighted_center(int errors[25], i
   
   int windows[n_windows][2]; memset(windows, 0, sizeof(windows));
   
-  int win_start, win_end=0;
+  int win_start=0, win_end=0;
   
   for(int win=0; win<n_windows; ++win) {
     
@@ -2542,14 +2542,14 @@ int ChamberUtilities::non_me11_wraparound_best_weighted_center(int errors[25], i
     win_width= windows[win][win_end] - windows[win][win_start] + 1;
     if(win_width <= 0) win_width += 25;
     
-    for(int position=0; position<win_width; ++position) {
+    for(int iposition=0; iposition<win_width; ++iposition) {
       
-      rx = (windows[win][win_start] + position)%25;
+      rx = (windows[win][win_start] + iposition)%25;
       
-      weighted_centers[win] += position * weights[rx]; // weights window positions
+      weighted_centers[win] += iposition * weights[rx]; // weights window positions
       total_weights += weights[rx];
       
-      position++;
+      iposition++; //SK: FIXME: WHY DO WE SKIP ONE HERE ??
     }
     
     position = weighted_centers[win] / total_weights; // gives average window position
@@ -5448,7 +5448,7 @@ int ChamberUtilities::RatTmbDelayScan() {
   //                                [2]=loop_tmb
   //                                [3]=free_tx0
   int initial_data = thisTMB->ReadRegister(vme_ratctrl_adr);
-  int write_data = initial_data & 0xfffe | 0x0001;
+  int write_data = (initial_data & 0xfffe) | 0x0001;
   thisTMB->WriteRegister(vme_ratctrl_adr,write_data);
   //
   //enable RAT input into TMB...
