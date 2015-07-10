@@ -142,9 +142,10 @@ public:
     int cfeb_rx_posneg;
     int cfeb_rx_clock_delay;
     
+    int cfeb_clock_phase;
+
     int cfeb_mask;
     
-    int cfeb_clock_phase;
     inline CFEBTiming_Configuration():
       cfeb_pipeline_depth(0),
       dac(0),
