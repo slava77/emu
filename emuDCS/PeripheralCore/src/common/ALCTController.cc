@@ -1834,7 +1834,7 @@ void ALCTController::ReadStandbyRegister_() {
 void ALCTController::PrintStandbyRegister_() {
   //
   const int buffersize = RegSizeAlctSlowFpga_RD_STANDBY_REG/8;
-  char tempBuffer[buffersize] = {};
+  char tempBuffer[buffersize+1] = {}; //SK: minimize line changes; code below already assumes it's 42-bit input
   tmb_->packCharBuffer(read_standby_register_,
 		       RegSizeAlctSlowFpga_RD_STANDBY_REG,
 		       tempBuffer);
