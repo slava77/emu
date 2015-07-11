@@ -915,10 +915,10 @@ void Crate::MonitorDCS2(int cycle, char * buf, unsigned mask, bool read_dcfeb)
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myDmbs.size(); ++i) 
   {
-    int imask= 0xFF & (myDmbs[i]->GetPowerMask());
-    //SK: not used//    bool chamber_on = (imask!=0xFF);
+    //SK: not used:    int imask= 0xFF & (myDmbs[i]->GetPowerMask());
+    //SK: not used:    bool chamber_on = (imask!=0xFF);
     int Dversion=myDmbs[i]->GetHardwareVersion();
-    //SK: not used//    int Tversion=myTmbs[i]->GetHardwareVersion();
+    //SK: not used:    int Tversion=myTmbs[i]->GetHardwareVersion();
 
     if(IsAlive() && Dversion==2 && (dmask & (1<<i))==0)
     {  
