@@ -630,7 +630,7 @@ void EmuPeripheralCrateConfig::VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out 
     n = vmecc->eth_read();
     if(n>6){
       for(i=0;i<vmecc->nwbuf;i++){
-	if(vmecc->rbuf[DATA_OFF+i]&0xFF != lb_tst[i]&0xFF) tst_err = true;
+	if( (vmecc->rbuf[DATA_OFF+i]&0xFF) != (lb_tst[i]&0xFF) ) tst_err = true;
       }
       if(tst_err){
         VCC_UTIL_cmn_tsk_lpbk = "failed";

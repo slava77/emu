@@ -72,7 +72,7 @@ private:
   xdata::UnsignedShort fastloop, slowloop, extraloop;
   bool newfile, file_loaded[2], file_checked[2], file_valid[2], compared, identical;
   int error_idx[200], bit_error, byte_error;
-  char *temp_mcsname[2];
+  const char *temp_mcsname[2];
   std::string original_file[2];
   char comment1_buf[4096], comment2_buf[4096];
   char *bbuf1, *bbuf2;

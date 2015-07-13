@@ -138,7 +138,7 @@ void EmuCompareMcsFiles::MainPage(xgi::Input * in, xgi::Output * out )
 
      *out << cgicc::textarea().set("name","commands").set("WRAP","OFF").set("rows","20").set("cols","60");
         char bitprint[100];
-        char *bittitle=" Address         File #1         File #2       \n";
+        const char *bittitle=" Address         File #1         File #2       \n";
         memcpy(bitprint, bittitle, strlen(bittitle));
         *out << bittitle << std::endl;
         // display difference
@@ -307,7 +307,7 @@ int EmuCompareMcsFiles::binsize(int mcs, FILE *finp)
    unsigned ext_add, loc_add, dsize, current_ext=0, current_add;
    char buf[1024], addbuf[5]={0,0,0,0,0}, lenbuf[3]={0,0,0};
    int finish=0, segmented=0, lines=0, badlines=0;
-   char *tag1="995566AA", *tag2="5599AA66";
+   const char *tag1="995566AA", *tag2="5599AA66";
    int found1=0, found2=0, byte_swap=0;
 
    if (mcs<1 || mcs>2) return 0;

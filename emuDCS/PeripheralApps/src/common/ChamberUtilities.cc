@@ -1143,7 +1143,7 @@ inline void ChamberUtilities::CFEBTiming_ConfigureLevel(CFEBTiming_Configuration
   }
   if(level == 2) {
     if(is_me11_) {
-      for(int cfeb=0, int ncfeb=thisDMB->cfebs_.size(); cfeb<ncfeb; ++cfeb) {
+      for(int cfeb=0, ncfeb=thisDMB->cfebs_.size(); cfeb<ncfeb; ++cfeb) {
 	if((config.cfeb_mask & 0x7f) >> thisDMB->cfebs_[cfeb].number()) {
 	  
 	  // Should not set dcfeb_clock_phase with the following function for regular scan, but should pick up the dcfeb_clock_phase that is set in xml
@@ -1567,7 +1567,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
     usleep(1000000);
     CFEBTiming_CheckConfiguration(config);
     
-    for(int cfeb=0, int ncfebs=thisDMB->cfebs_.size(); cfeb<ncfebs; ++cfeb) {	
+    for(int cfeb=0, ncfebs=thisDMB->cfebs_.size(); cfeb<ncfebs; ++cfeb) {	
       
       char tmp[2];
       // Reads out and saves current DCFEB clock phase for each DCFEB
@@ -2312,7 +2312,7 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
       (*MyOutput_) << "Reverting back to original DCFEB clock phase values..." << std::endl << std::endl;
       web_backup << "Reverting back to original DCFEB clock phase values..." << std::endl << std::endl;
       //
-      for(int cfeb=0; cfeb<thisDMB->cfebs_.size(); ++cfeb) {
+      for(int cfeb=0, ncfebs=thisDMB->cfebs_.size(); cfeb<ncfebs; ++cfeb) {
 	if((config.cfeb_mask & 0x7f) >> thisDMB->cfebs_[cfeb].number()) {
 	  
 	  thisDMB->dcfeb_fine_delay(thisDMB->cfebs_[cfeb], initial_cfeb_tof_delay[cfeb]);
