@@ -1086,12 +1086,16 @@ std::string emu::utils::removeSelectedNode( const std::string& XML,
       case DOMNode::ELEMENT_NODE:
       case DOMNode::TEXT_NODE:
       case DOMNode::PROCESSING_INSTRUCTION_NODE:
-      case DOMNode::COMMENT_NODE:
+      case DOMNode::COMMENT_NODE: {
 	(*dn)->getParentNode()->removeChild( *dn );
 	break;
-      case DOMNode::ATTRIBUTE_NODE:
+      }
+      case DOMNode::ATTRIBUTE_NODE: {
 	DOMAttr *attr = dynamic_cast<DOMAttr*>(*dn);
 	attr->getOwnerElement()->removeAttributeNode( attr );
+	break;
+      }
+      default:
 	break;
 	// We don't handle other types of nodes
       }
