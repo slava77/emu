@@ -1296,7 +1296,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 					// Match usercode against PROM code
 					slotTable(iDDU + 1,3 + iprom).setClass("bad");
 					
-				} else if (fpgaCode & 0x000ff000 != promCode & 0x00ff0000) {
+				} else if ((fpgaCode & 0x000ff000) != (promCode & 0x00ff0000)) {
 					// Match usercode against FPGA code
 					slotTable(iDDU + 1,3 + iprom).setClass("questionable");
 				}
@@ -1308,7 +1308,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 			} else if (dduPROMTypes[iprom] == INPROM0 || dduPROMTypes[iprom] == INPROM1) {
 				// INPROMs have a special FPGA code
 				
-				if (fpgaCode & 0x00ffffff != promCode & 0x00ffffff) {
+			        if ((fpgaCode & 0x00ffffff) != (promCode & 0x00ffffff)) {
 					slotTable(iDDU + 1,3 + iprom).setClass("bad");
 				}
 			}
@@ -4297,9 +4297,9 @@ void emu::fed::EmuFCrateHyperDAQ::VMEPARA(xgi::Input *in, xgi::Output *out)
 				.set("class",iComment->second);
 		}
 		statusTable(1,1).setClass("ok");
-		if ((parallelStat >> 8) & 0xF == 0x4) statusTable(1,1).setClass("warning");
-		else if ((parallelStat >> 8) & 0xF == 0x1) statusTable(1,1).setClass("questionable");
-		else if ((parallelStat >> 8) & 0xF != 0x8) statusTable(1,1).setClass("bad");
+		if (((parallelStat >> 8) & 0xF) == 0x4) statusTable(1,1).setClass("warning");
+		else if (((parallelStat >> 8) & 0xF) == 0x1) statusTable(1,1).setClass("questionable");
+		else if (((parallelStat >> 8) & 0xF) != 0x8) statusTable(1,1).setClass("bad");
 
 		int dduFMM = (parallelStat >> 8) & 0xf;
 		statusTable(2,0) << "DDU FMM status";
@@ -4312,9 +4312,9 @@ void emu::fed::EmuFCrateHyperDAQ::VMEPARA(xgi::Input *in, xgi::Output *out)
 				.set("class",iComment->second);
 		}
 		statusTable(2,1).setClass("ok");
-		if (dduFMM & 0xF == 0x4) statusTable(2,1).setClass("warning");
-		else if (dduFMM & 0xF == 0x1) statusTable(2,1).setClass("questionable");
-		else if (dduFMM & 0xF != 0x8) statusTable(2,1).setClass("bad");
+		if ((dduFMM & 0xF) == 0x4) statusTable(2,1).setClass("warning");
+		else if ((dduFMM & 0xF) == 0x1) statusTable(2,1).setClass("questionable");
+		else if ((dduFMM & 0xF) != 0x8) statusTable(2,1).setClass("bad");
 
 		*out << statusTable.printSummary() << std::endl;
 
@@ -4619,8 +4619,8 @@ void emu::fed::EmuFCrateHyperDAQ::VMESERI(xgi::Input *in, xgi::Output *out)
 		ramStatusTable(1,0) << "Serial Flash RAM Status";
 		ramStatusTable(1,1) << std::showbase << std::hex << ramStatus;
 		ramStatusTable(1,1).setClass("ok");
-		if (ramStatus & 0x003c != 0x000c) ramStatusTable(1,1).setClass("warning");
-		if (ramStatus & 0x0080 != 0x0080) ramStatusTable(1,1).setClass("bad");
+		if ((ramStatus & 0x003c) != 0x000c) ramStatusTable(1,1).setClass("warning");
+		if ((ramStatus & 0x0080) != 0x0080) ramStatusTable(1,1).setClass("bad");
 
 		// Print the table summary
 		*out << ramStatusTable.printSummary() << std::endl;
