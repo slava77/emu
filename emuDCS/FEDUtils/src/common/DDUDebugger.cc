@@ -35,7 +35,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FPGAStatus(const enum 
 				if (0x00400000&stat) returnMe["InRDctrl Error"] = "red";
 				if (0x00200000&stat) returnMe["DAQ Stop bit set"] = "blue";
 				if (0x00100000&stat) returnMe["DAQ says Not Ready"] = "blue";
-				if (0x00300000&stat == 0x00200000) returnMe["DAQ Applied Backpressure"] = "blue";
+				if ( (0x00300000&stat) == 0x00200000) returnMe["DAQ Applied Backpressure"] = "blue";
 			}
 			if (stat&0x000F0000) {
 				if (0x00080000&stat) returnMe["TMB Error"] = "orange";
@@ -1414,7 +1414,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FFError(const uint16_t
 	}
 	
 	if (0x4000 & stat) returnMe["L1A FIFO Empty"] = "none";
-	if (0x4000 & stat == 0) returnMe["L1A FIFO Not Empty"] = "none";
+	if ( (0x4000 & stat) == 0) returnMe["L1A FIFO Not Empty"] = "none";
 	if (0x0200 & stat) returnMe["GbE FIFO Full occurred"] = "yellow";
 	if (0x0100 & stat) returnMe["L1A FIFO Full occurred"] = "red";
 	
@@ -1485,7 +1485,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStatus(const enum 
 			if (stat & 0xb300) {
 
 				if (0x0040 & stat) returnMe["L1A FIFO Empty"] = "none";
-				if (0x0040 & stat == 0) returnMe["L1A FIFO Not Empty"] = "none";
+				if ( (0x0040 & stat) == 0) returnMe["L1A FIFO Not Empty"] = "none";
 				if (0x0080 & stat) returnMe["DDU C-code L1A error"] = "blue";
 				if (0x0002 & stat) returnMe["GbE FIFO Almost-Full occurred"] = "none";
 				if (0x0001 & stat) returnMe["L1A FIFO Almost-Full occurred"] = "blue";
@@ -1539,7 +1539,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStatus(const enum 
 			if (0x0010 & stat) returnMe["L1A FIFO " + fifoName + " Almost Full"] = "blue";
 			if (0x0004 & stat) returnMe["MemCtrl " + fifoName + " Almost Full"] = "blue";
 			if (0x0001 & stat) returnMe["L1A FIFO " + fifoName + " Empty"] = "none";
-			if (0x0001 & stat == 0) returnMe["L1A FIFO " + fifoName + " Not Empty"] = "none";
+			if ( (0x0001 & stat) == 0) returnMe["L1A FIFO " + fifoName + " Not Empty"] = "none";
 		}
 		if (stat & 0x00AA) {
 			std::string fifoName = (dev == INFPGA0 ? "2" : "4");
@@ -1547,7 +1547,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStatus(const enum 
 			if (0x0020 & stat) returnMe["L1A FIFO " + fifoName + " Almost Full"] = "blue";
 			if (0x0008 & stat) returnMe["MemCtrl " + fifoName + " Almost Full"] = "blue";
 			if (0x0002 & stat) returnMe["L1A FIFO " + fifoName + " Empty"] = "none";
-			if (0x0002 & stat == 0) returnMe["L1A FIFO " + fifoName + " Not Empty"] = "none";
+			if ( (0x0002 & stat) == 0) returnMe["L1A FIFO " + fifoName + " Not Empty"] = "none";
 		}
 	} else {
 		// FIXME error
@@ -1704,13 +1704,13 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::AvailableMemory(const 
 	
 	std::ostringstream status;
 	status << "Fibers " << (dev == INFPGA0 ? 0 : 8) << "-" << (dev == INFPGA0 ? 3 : 11) << ": " << (stat & 0x1f) << " units";
-	if (stat & 0x1f == 1) returnMe[status.str()] = "orange";
+	if ( (stat & 0x1f) == 1) returnMe[status.str()] = "orange";
 	else if (!(stat & 0x1f)) returnMe[status.str()] = "red";
 	else returnMe[status.str()] = "none";
 
 	status.str("");
 	status << "Fibers " << (dev == INFPGA0 ? 4 : 12) << "-" << (dev == INFPGA0 ? 7 : 14) << ": " << ((stat >> 5) & 0x1f) << " units";
-	if ((stat >> 5) & 0x1f == 1) returnMe[status.str()] = "orange";
+	if ( ((stat >> 5) & 0x1f) == 1) returnMe[status.str()] = "orange";
 	else if (!((stat >> 5) & 0x1f)) returnMe[status.str()] = "red";
 	else returnMe[status.str()] = "none";
 	
