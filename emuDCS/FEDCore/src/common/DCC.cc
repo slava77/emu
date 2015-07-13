@@ -22,7 +22,7 @@ slink2_id_(0)
 
 	// MPROM is one element
 	JTAGChain chainMPROM;
-	chainMPROM.push_back(new JTAGElement("MPROM", MPROM, 2, MPROM_BYPASS_L | (MPROM_BYPASS_H << 8), 16, 0x00002000, false));
+	chainMPROM.push_back(new JTAGElement("MPROM", MPROM, 2, int16_t(MPROM_BYPASS_L | (MPROM_BYPASS_H << 8)), 16, 0x00002000, false));
 	JTAGMap[MPROM] = chainMPROM;
 
 	// INPROM is one element
