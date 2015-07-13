@@ -31,7 +31,8 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
 },
 {
 "objID": "ME+1/2/13", "name": "ME+1/2/13", "list": [
-    {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB5 DAV 0.000%", "severity": "3", "obj": "CFEB5"}
+    {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB5 DAV 0.000%", "severity": "3", "obj": "CFEB5"},
+    {"testID": "CSC_WITH_BWORDS", "scope": "CSC", "descr": "CFEB B-Words because of CFEB5", "severity": "3", "obj": "CFEB"}
     ]
 },
 {
@@ -103,13 +104,48 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
     ]
 },
 {
+"objID": "ME+1/3/13", "name": "ME+1/3/13", "list": [
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer3 Ch#29 HStrip61", "severity": "1", "obj": "CFEB2 Layer3 Ch#29"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer3 Ch#30 HStrip62", "severity": "1", "obj": "CFEB2 Layer3 Ch#30"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer3 Ch#31 HStrip63", "severity": "1", "obj": "CFEB2 Layer3 Ch#31"}
+    ]
+},
+{
+"objID": "ME+1/3/15", "name": "ME+1/3/15", "list": [
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer2 Ch#5 HStrip101", "severity": "1", "obj": "CFEB4 Layer2 Ch#5"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer2 Ch#6 HStrip102", "severity": "1", "obj": "CFEB4 Layer2 Ch#6"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer2 Ch#7 HStrip103", "severity": "1", "obj": "CFEB4 Layer2 Ch#7"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer2 Ch#8 HStrip104", "severity": "1", "obj": "CFEB4 Layer2 Ch#8"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer3 Ch#5 HStrip101", "severity": "1", "obj": "CFEB4 Layer3 Ch#5"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer3 Ch#6 HStrip102", "severity": "1", "obj": "CFEB4 Layer3 Ch#6"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer3 Ch#7 HStrip103", "severity": "1", "obj": "CFEB4 Layer3 Ch#7"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer3 Ch#8 HStrip104", "severity": "1", "obj": "CFEB4 Layer3 Ch#8"}
+    ]
+},
+{
 "objID": "ME+1/3/22", "name": "ME+1/3/22", "list": [
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer1 Ch#17 HStrip113", "severity": "1", "obj": "CFEB4 Layer1 Ch#17"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer1 Ch#18 HStrip114", "severity": "1", "obj": "CFEB4 Layer1 Ch#18"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer1 Ch#19 HStrip115", "severity": "1", "obj": "CFEB4 Layer1 Ch#19"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer1 Ch#20 HStrip116", "severity": "1", "obj": "CFEB4 Layer1 Ch#20"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer4 Ch#17 HStrip113", "severity": "1", "obj": "CFEB4 Layer4 Ch#17"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer4 Ch#18 HStrip114", "severity": "1", "obj": "CFEB4 Layer4 Ch#18"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer4 Ch#19 HStrip115", "severity": "1", "obj": "CFEB4 Layer4 Ch#19"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer4 Ch#20 HStrip116", "severity": "1", "obj": "CFEB4 Layer4 Ch#20"},
     {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB1 DAV 7.000%", "severity": "2", "obj": "CFEB1"},
     {"testID": "CSC_CFEB_SCA_DEAD_CHANNEL", "scope": "CSC", "descr": "Dead SCA channel: CFEB1 Layer6 Ch#1", "severity": "1", "obj": "CFEB1 Layer6 Ch#1"}
     ]
 },
 {
 "objID": "ME+1/3/26", "name": "ME+1/3/26", "list": [
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer1 Ch#1 HStrip33", "severity": "1", "obj": "CFEB2 Layer1 Ch#1"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer1 Ch#2 HStrip34", "severity": "1", "obj": "CFEB2 Layer1 Ch#2"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer1 Ch#3 HStrip35", "severity": "1", "obj": "CFEB2 Layer1 Ch#3"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer1 Ch#4 HStrip36", "severity": "1", "obj": "CFEB2 Layer1 Ch#4"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer4 Ch#1 HStrip33", "severity": "1", "obj": "CFEB2 Layer4 Ch#1"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer4 Ch#2 HStrip34", "severity": "1", "obj": "CFEB2 Layer4 Ch#2"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer4 Ch#3 HStrip35", "severity": "1", "obj": "CFEB2 Layer4 Ch#3"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer4 Ch#4 HStrip36", "severity": "1", "obj": "CFEB2 Layer4 Ch#4"},
     {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB Low SCA Efficiency: CFEB3 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3"},
     {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB3 ( < 20.0% from average)", "severity": "2", "obj": "CFEB3"}
     ]
@@ -132,6 +168,18 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
 {
 "objID": "ME+2/1/03", "name": "ME+2/1/03", "list": [
     {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB4 DAV", "severity": "2", "obj": "CFEB4"}
+    ]
+},
+{
+"objID": "ME+2/1/14", "name": "ME+2/1/14", "list": [
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer1 Ch#5 HStrip37", "severity": "1", "obj": "CFEB2 Layer1 Ch#5"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer1 Ch#6 HStrip38", "severity": "1", "obj": "CFEB2 Layer1 Ch#6"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer1 Ch#7 HStrip39", "severity": "1", "obj": "CFEB2 Layer1 Ch#7"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer1 Ch#8 HStrip40", "severity": "1", "obj": "CFEB2 Layer1 Ch#8"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer4 Ch#5 HStrip37", "severity": "1", "obj": "CFEB2 Layer4 Ch#5"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer4 Ch#6 HStrip38", "severity": "1", "obj": "CFEB2 Layer4 Ch#6"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer4 Ch#6 HStrip39", "severity": "1", "obj": "CFEB2 Layer4 Ch#7"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer4 Ch#8 HStrip40", "severity": "1", "obj": "CFEB2 Layer4 Ch#8"}
     ]
 },
 {
@@ -277,7 +325,8 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
 "objID": "ME+3/2/30", "name": "ME+3/2/30", "list": [
     {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB3 DAV 0.000%", "severity": "3", "obj": "CFEB3"},
     {"testID": "CSC_CFEB_COMPARATORS_NOISY", "scope": "CSC", "descr": "CFEB Hot/Noisy CFEB Comparators: CFEB1 Layer4", "severity": "3", "obj": "CFEB1 Layer4"},
-    {"testID": "CSC_CFEB_COMPARATORS_NOISY_CHANNEL", "scope": "CSC", "descr": "CFEB Hot/Noisy Comparator channels CFEB1 Layer4 HStrip", "severity": "2", "obj": "CFEB1 Layer4"}
+    {"testID": "CSC_CFEB_COMPARATORS_NOISY_CHANNEL", "scope": "CSC", "descr": "CFEB Hot/Noisy Comparator channels CFEB1 Layer4", "severity": "2", "obj": "CFEB1 Layer4"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: Multiple channels CFEB1 Layer4 (unkown reason)", "severity": "1", "obj": "CFEB1 Layer4"}
     ]
 },
 {
@@ -449,6 +498,12 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
     ]
 },
 {
+"objID": "ME-1/3/15", "name": "ME-1/3/15", "list": [
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer1 Multiple channels (cable issue)", "severity": "1", "obj": "CFEB4 Layer1"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer4 Multiple channels (cable issue)", "severity": "1", "obj": "CFEB4 Layer4"}
+    ]
+},
+{
 "objID": "ME-1/3/30", "name": "ME-1/3/30", "list": [
     {"testID": "CSC_ALCT_AFEB_NOISY", "scope": "CSC", "descr": "Noisy Anodes Segment: AFEB7 Layer2", "severity": "2", "obj": "AFEB7 Layer2"},
     {"testID": "CSC_ALCT_AFEB_NOISY", "scope": "CSC", "descr": "Noisy Anodes Segment: AFEB10 Layer2", "severity": "2", "obj": "AFEB10 Layer2"}
@@ -460,6 +515,18 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
     ]
 },
 {
+"objID": "ME-1/3/34", "name": "ME-1/3/34", "list": [
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB1 Layer1 Ch#21 HStrip21", "severity": "1", "obj": "CFEB1 Layer1 Ch#21"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB1 Layer1 Ch#22 HStrip22", "severity": "1", "obj": "CFEB1 Layer1 Ch#22"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB1 Layer1 Ch#23 HStrip23", "severity": "1", "obj": "CFEB1 Layer1 Ch#23"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB1 Layer1 Ch#24 HStrip24", "severity": "1", "obj": "CFEB1 Layer1 Ch#24"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB1 Layer4 Ch#21 HStrip21", "severity": "1", "obj": "CFEB1 Layer4 Ch#21"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB1 Layer4 Ch#22 HStrip22", "severity": "1", "obj": "CFEB1 Layer4 Ch#22"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB1 Layer4 Ch#23 HStrip23", "severity": "1", "obj": "CFEB1 Layer4 Ch#23"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB1 Layer4 Ch#24 HStrip24", "severity": "1", "obj": "CFEB1 Layer4 Ch#24"}
+    ]
+},
+{
 "objID": "ME-2/1/06", "name": "ME-2/1/06", "list": [
     {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB1 DAV 0.000%", "severity": "3", "obj": "CFEB1"}
     ]
@@ -467,6 +534,7 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
 {
 "objID": "ME-2/1/17", "name": "ME-2/1/17", "list": [
     {"testID": "CSC_CFEB_SCA_DEAD_CHANNEL", "scope": "CSC", "descr": "Dead SCA channel: CFEB3 Layer2 Ch#1", "severity": "1", "obj": "CFEB3 Layer2 Ch#1"},
+    {"testID": "CSC_CFEB_COMPARATORS_NOISY_CHANNEL", "scope": "CSC", "descr": "CFEB Hot/Noisy Comparator channel: CFEB4 Layer1 Ch#24 HStrip120", "severity": "2", "obj": "CFEB4 Layer1 Ch#24"},
     {"testID": "CSC_WITHOUT_ALCT", "scope": "CSC", "descr": "No ALCT Data: (because of Hot CFEB5)", "severity": "4", "obj": "ALCT"},
     {"testID": "CSC_WITHOUT_CLCT", "scope": "CSC", "descr": "No CLCT Data: (because of Hot CFEB5)", "severity": "4", "obj": "CLCT"},
     {"testID": "CSC_HOT_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Hot: CFEB5 DAV ( > 60% )", "severity": "3", "obj": "CFEB5"}
@@ -491,7 +559,8 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
     {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB1 Layer1 Ch#6 HStrip6", "severity": "1", "obj": "CFEB1 Layer1 Ch#6"},
     {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB1 Layer4 Ch#6 HStrip6", "severity": "1", "obj": "CFEB1 Layer4 Ch#6"},
     {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer2 Ch#25 HStrip121", "severity": "1", "obj": "CFEB4 Layer2 Ch#25"},
-    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer2 Ch#26 HStrip122", "severity": "1", "obj": "CFEB4 Layer2 Ch#26"}
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer2 Ch#26 HStrip122", "severity": "1", "obj": "CFEB4 Layer2 Ch#26"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB4 Layer2 Ch#27 HStrip123", "severity": "1", "obj": "CFEB4 Layer2 Ch#27"}
     ]
 },
 {
@@ -684,6 +753,18 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
 {
 "objID": "ME-4/1/01", "name": "ME-4/1/01", "list": [
     {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Low efficiency: CFEB3 DAV", "severity": "2", "obj": "CFEB3"}
+    ]
+},
+{
+"objID": "ME-4/1/05", "name": "ME-4/1/05", "list": [
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB3 Layer5 Ch#21 HStrip85", "severity": "1", "obj": "CFEB3 Layer5 Ch#21"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB3 Layer5 Ch#22 HStrip86", "severity": "1", "obj": "CFEB3 Layer5 Ch#22"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB3 Layer5 Ch#23 HStrip87", "severity": "1", "obj": "CFEB3 Layer5 Ch#23"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB3 Layer5 Ch#24 HStrip88", "severity": "1", "obj": "CFEB3 Layer5 Ch#24"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB3 Layer6 Ch#21 HStrip85", "severity": "1", "obj": "CFEB3 Layer6 Ch#21"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB3 Layer6 Ch#22 HStrip86", "severity": "1", "obj": "CFEB3 Layer6 Ch#22"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB3 Layer6 Ch#23 HStrip87", "severity": "1", "obj": "CFEB3 Layer6 Ch#23"},
+    {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB3 Layer6 Ch#24 HStrip88", "severity": "1", "obj": "CFEB3 Layer6 Ch#24"}
     ]
 },
 {
