@@ -8,24 +8,16 @@
 #include <sstream>
 #include <set>
 #include <map>
-#include <cstdlib>  // strtol()
 #include <iomanip>
-#include <sys/time.h>  // gettimeofday()
 
-#include "xdaq/NamespaceURI.h"
-#include "xoap/Method.h"
-#include "xoap/MessageFactory.h"  // createMessage()
-#include "xoap/SOAPPart.h"
-#include "xoap/SOAPEnvelope.h"
-#include "xoap/SOAPBody.h"
-#include "xoap/SOAPSerializer.h"
-#include "xoap/domutils.h"
 #include "toolbox/task/WorkLoopFactory.h" // getWorkLoopFactory()
 
 #include "xoap/DOMParser.h"
 #include "xoap/DOMParserFactory.h"
 #include "xoap/domutils.h"
 #include "xdata/soap/Serializer.h"
+
+#include "log4cplus/fileappender.h"
 
 #include "cgicc/HTMLClasses.h"
 #include "xgi/Utils.h"
@@ -50,6 +42,7 @@
 #include "emu/base/Alarm.h"
 #include "emu/soap/ToolBox.h"
 #include "emu/soap/Messenger.h"
+#include "emu/utils/System.h"
 
 using namespace std;
 using namespace cgicc;
@@ -250,13 +243,22 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   state_table_.addApplication("emu::daq::manager::Application");
   state_table_.addApplication("ttc::TTCciControl");
   state_table_.addApplication("ttc::LTCControl");
-  // state_table_.addApplication("tcds::deadwood::DeadWood");
   state_table_.addApplication("tcds::ici::ICIController");
   state_table_.addApplication("tcds::pi::PIController");
   state_table_.addApplication("tcds::lpm::LPMController");
-  // last_log_.size(N_LOG_MESSAGES);
+
+  setUpLogger();
   
-  LOG4CPLUS_INFO(logger_, "emu::supervisor::Application constructed for " << state_table_ );
+  LOG4CPLUS_INFO(getApplicationLogger(), "emu::supervisor::Application constructed for " << state_table_ );
+}
+
+void emu::supervisor::Application::setUpLogger(){
+  std::string fileName = "/tmp/emu-supervisor-" + emu::utils::getDateTime( true ) + ".log";
+  log4cplus::SharedAppenderPtr myAppender( new log4cplus::FileAppender( fileName.c_str() ) );
+  myAppender->setName(getApplicationDescriptor()->getClassName() + "Appender");
+  std::auto_ptr<Layout> myLayout = std::auto_ptr<Layout>( new log4cplus::PatternLayout("%D{%m/%d/%Y %H:%M:%S.%q} %-5p %c, %m%n") );
+  myAppender->setLayout( myLayout );
+  getApplicationLogger().addAppender( myAppender );
 }
 
 xdaq::ApplicationDescriptor* emu::supervisor::Application::findAppDescriptor( const string& klass, const string& service ){
@@ -274,7 +276,7 @@ void emu::supervisor::Application::getAppDescriptors(){
     daq_descr_ = getApplicationContext()->getDefaultZone()
       ->getApplicationDescriptor("emu::daq::manager::Application", 0);
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
-    LOG4CPLUS_ERROR(logger_, "Failed to get application descriptor for local DAQ Manager. "
+    LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to get application descriptor for local DAQ Manager. "
 		    << xcept::stdformat_exception_history(e));
     stringstream ss;
     ss <<  "Failed to get application descriptor for local DAQ Manager. ";
@@ -287,10 +289,10 @@ void emu::supervisor::Application::getAppDescriptors(){
       ->getApplicationDescriptor("ttc::TTCciControl", 0);
     isUsingTCDS_ = ( ttc_descr_ == NULL );
     if ( ! isUsingTCDS_ ){
-      LOG4CPLUS_WARN(logger_, "Legacy TTC application is found and will be used instead of TCDS.");
+      LOG4CPLUS_WARN(getApplicationLogger(), "Legacy TTC application is found and will be used instead of TCDS.");
     }
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
-    LOG4CPLUS_ERROR(logger_, "Failed to get application descriptor for ttc::TTCciControl. "
+    LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to get application descriptor for ttc::TTCciControl. "
 		    << xcept::stdformat_exception_history(e));
     stringstream ss;
     ss <<  "Failed to get application descriptor for ttc::TTCciControl. ";
@@ -305,7 +307,7 @@ void emu::supervisor::Application::getAppDescriptors(){
     stringstream ss;
     ss << "No Track Finder application \"" << TFCellClass_.toString() 
        << "\" of instance " << TFCellInstance_.value_ << " found.";
-    LOG4CPLUS_ERROR(logger_, ss.str() << xcept::stdformat_exception_history(e));
+    LOG4CPLUS_ERROR(getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e));
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
   }  
@@ -325,7 +327,7 @@ void emu::supervisor::Application::getTCDSAppDescriptors(){
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
     stringstream ss;
     ss << "Failed to get application descriptor for tcds::pi::PIController, service pi-cscp ";
-    LOG4CPLUS_ERROR( logger_, ss.str() << xcept::stdformat_exception_history(e) );
+    LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e) );
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
   }
@@ -337,7 +339,7 @@ void emu::supervisor::Application::getTCDSAppDescriptors(){
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
     stringstream ss;
     ss << "Failed to get application descriptor for tcds::pi::PIController, service pi-cscm ";
-    LOG4CPLUS_ERROR( logger_, ss.str() << xcept::stdformat_exception_history(e) );
+    LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e) );
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
   }
@@ -349,7 +351,7 @@ void emu::supervisor::Application::getTCDSAppDescriptors(){
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
     stringstream ss;
     ss << "Failed to get application descriptor for tcds::pi::PIController, service pi-csctf ";
-    LOG4CPLUS_ERROR( logger_, ss.str() << xcept::stdformat_exception_history(e) );
+    LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e) );
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
   }
@@ -365,7 +367,7 @@ void emu::supervisor::Application::getTCDSAppDescriptors(){
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
     stringstream ss;
     ss << "Failed to get application descriptor for tcds::ici::ICIController, service ici-cscp ";
-    LOG4CPLUS_ERROR( logger_, ss.str() << xcept::stdformat_exception_history(e) );
+    LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e) );
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
   }
@@ -377,7 +379,7 @@ void emu::supervisor::Application::getTCDSAppDescriptors(){
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
     stringstream ss;
     ss << "Failed to get application descriptor for tcds::ici::ICIController, service ici-cscm ";
-    LOG4CPLUS_ERROR( logger_, ss.str() << xcept::stdformat_exception_history(e) );
+    LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e) );
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
   }
@@ -389,7 +391,7 @@ void emu::supervisor::Application::getTCDSAppDescriptors(){
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
     stringstream ss;
     ss << "Failed to get application descriptor for tcds::ici::ICIController, service ici-csctf ";
-    LOG4CPLUS_ERROR( logger_, ss.str() << xcept::stdformat_exception_history(e) );
+    LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e) );
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
   }
@@ -405,7 +407,7 @@ void emu::supervisor::Application::getTCDSAppDescriptors(){
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
     stringstream ss;
     ss << "Failed to get application descriptor for tcds::lpm::LPMController, service lpm-csc ";
-    LOG4CPLUS_ERROR( logger_, ss.str() << xcept::stdformat_exception_history(e) );
+    LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e) );
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
   }
@@ -760,7 +762,6 @@ void emu::supervisor::Application::webDefault(xgi::Input *in, xgi::Output *out)
 
   // Message logs
   *out << hr() << endl;
-  // last_log_.webOutput(out);
   
   *out << body() << html() << endl;
 }
@@ -1004,7 +1005,7 @@ bool emu::supervisor::Application::haltAction(toolbox::task::WorkLoop *wl)
 
 bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl)
 {
-  LOG4CPLUS_DEBUG(logger_, "calibrationAction " << "(begin)");
+  LOG4CPLUS_DEBUG(getApplicationLogger(), "calibrationAction " << "(begin)");
   
   if ( isUsingTCDS_ ){
 
@@ -1013,7 +1014,7 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
     unsigned int nRuns = ( bool( isInCalibrationSequence_ ) ? runParameters_.size() : 1 );
     unsigned int iRun  = ( bool( isInCalibrationSequence_ ) ? index                : 0 );
     
-    LOG4CPLUS_DEBUG( logger_, "Calibration"
+    LOG4CPLUS_DEBUG( getApplicationLogger(), "Calibration"
 		     << "\n   command: " << runParameters_[index].bag.command_.toString()
 		     << "\n   loop: "    << runParameters_[index].bag.loop_.toString()
 		     << "\n   delay: "   << runParameters_[index].bag.delay_.toString()
@@ -1028,15 +1029,12 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
     
     for (step_counter_ = 0; step_counter_ < runParameters_[index].bag.loop_; ++step_counter_) {
       if (quit_calibration_) { break; }
-      LOG4CPLUS_DEBUG(logger_, "calibrationAction: " << step_counter_);
+      LOG4CPLUS_DEBUG(getApplicationLogger(), "calibrationAction: step " << step_counter_ );
       
       m.sendCommand( "emu::pc::EmuPeripheralCrateManager", runParameters_[index].bag.command_.toString() );
 
-      // xdata::String attributeValue( "Start" );
-      // m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
-      
       if ( pm_ && !quit_calibration_ ){
-	LOG4CPLUS_DEBUG(logger_, "Sending Start Bgo to LPM");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Sending Start Bgo to LPM");
 	xdata::String Start( "Start" );
 	pm_->initCyclicGenerators().sendBgo( Start );
       }
@@ -1048,7 +1046,7 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
       sleep( runParameters_[index].bag.delay_ );
 
       if ( pm_ ){
-	LOG4CPLUS_DEBUG(logger_, "Sending Stop Bgo to LPM");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Sending Stop Bgo to LPM");
 	xdata::String Stop( "Stop" );
 	pm_->sendBgo( Stop );
       }
@@ -1064,7 +1062,7 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
     unsigned int nRuns = ( bool( isInCalibrationSequence_ ) ? calib_params_.size() : 1 );
     unsigned int iRun  = ( bool( isInCalibrationSequence_ ) ? index                : 0 );
     
-    LOG4CPLUS_DEBUG( logger_, "Calibration" << endl
+    LOG4CPLUS_DEBUG( getApplicationLogger(), "Calibration" << endl
 		     << "command: " << calib_params_[index].bag.command_.toString()       << endl
 		     << "loop: "    << calib_params_[index].bag.loop_.toString()	        << endl
 		     << "delay: "   << calib_params_[index].bag.delay_.toString()	        << endl
@@ -1075,7 +1073,7 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
     
     for (step_counter_ = 0; step_counter_ < calib_params_[index].bag.loop_; ++step_counter_) {
       if (quit_calibration_) { break; }
-      LOG4CPLUS_DEBUG(logger_, "calibrationAction: " << step_counter_);
+      LOG4CPLUS_DEBUG(getApplicationLogger(), "calibrationAction: step " << step_counter_);
       
       m.sendCommand( "emu::pc::EmuPeripheralCrateManager", calib_params_[index].bag.command_.toString() );
       
@@ -1093,7 +1091,7 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
     submit(halt_signature_);
   }
 
-  LOG4CPLUS_DEBUG(logger_, "calibrationAction " << "(end)");
+  LOG4CPLUS_DEBUG(getApplicationLogger(), "calibrationAction " << "(end)");
 
   return false;
 }
@@ -1101,7 +1099,7 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
 bool emu::supervisor::Application::calibrationSequencer(toolbox::task::WorkLoop *wl)
 {
   // Do all calibrations in one go.
-  LOG4CPLUS_DEBUG(logger_, "calibrationSequencer " << "(begin)");
+  LOG4CPLUS_DEBUG(getApplicationLogger(), "calibrationSequencer " << "(begin)");
   isInCalibrationSequence_ = true;
   size_t nRunTypes = ( isUsingTCDS_ ? runParameters_.size() : calib_params_.size() );
   for ( size_t i=0; i<nRunTypes && fsm_.getCurrentState() != 'F'; ++i ){
@@ -1120,7 +1118,7 @@ bool emu::supervisor::Application::calibrationSequencer(toolbox::task::WorkLoop 
   isInCalibrationSequence_ = false;
   // Keep refreshing the web page so that it can be seen that the sequence has finished.
   keep_refresh_ = true;
-  LOG4CPLUS_DEBUG(logger_, "calibrationSequencer " << "(end)");
+  LOG4CPLUS_DEBUG(getApplicationLogger(), "calibrationSequencer " << "(end)");
   return false;
 }
 
@@ -1141,7 +1139,7 @@ void emu::supervisor::Application::sendCalibrationStatus( unsigned int iRun, uns
 					       .add( "calibStepIndex", &calibStepIndex ) );
   }
   catch( xcept::Exception &e ){
-    LOG4CPLUS_WARN( logger_, "Failed to send calibration status to emu::daq::manager::Application : " << xcept::stdformat_exception_history(e) );
+    LOG4CPLUS_WARN( getApplicationLogger(), "Failed to send calibration status to emu::daq::manager::Application : " << xcept::stdformat_exception_history(e) );
   }
 
 }
@@ -1149,9 +1147,9 @@ void emu::supervisor::Application::sendCalibrationStatus( unsigned int iRun, uns
 void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt) 
   throw (toolbox::fsm::exception::Exception)
 {
-  LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
-  LOG4CPLUS_DEBUG(logger_, "runtype: " << run_type_.toString()
-		  << " runnumber: " << run_number_ << " nevents: " << nevents_.toString());
+  LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
+  LOG4CPLUS_INFO(getApplicationLogger(), "runtype: " << run_type_.toString()
+		 << " runnumber: " << run_number_ << " nevents: " << nevents_.toString());
   
 
   rcmsStateNotifier_.findRcmsStateListener();      	
@@ -1223,7 +1221,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     xdata::Boolean isGlobalInControl( true );
     if ( isCalibrationMode() || bool( controlTFCellOp_ ) ) isGlobalInControl = false;
     try {
-      LOG4CPLUS_INFO( logger_, "Sending to emu::daq::manager::Application : maxNumberOfEvents " << nevents_ .toString() 
+      LOG4CPLUS_INFO( getApplicationLogger(), "Sending to emu::daq::manager::Application : maxNumberOfEvents " << nevents_ .toString() 
 		      << ", runType " << ( isCalibrationMode() ? run_type_.toString() : "Monitor" )
 		      << ", isGlobalInControl " << isGlobalInControl.toString()
 		      << ", writeBadEventsOnly " << localDAQWriteBadEventsOnly_.toString() );
@@ -1235,7 +1233,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
 		       .add( "writeBadEventsOnly", &localDAQWriteBadEventsOnly_ )
 		       );
     } catch (xcept::Exception& e) {
-      LOG4CPLUS_WARN( logger_, "Failed to send to emu::daq::manager::Application : maxNumberOfEvents " << nevents_ .toString() 
+      LOG4CPLUS_WARN( getApplicationLogger(), "Failed to send to emu::daq::manager::Application : maxNumberOfEvents " << nevents_ .toString() 
 		      << ", runType " << run_type_.toString()
 		      << ", isGlobalInControl " << isGlobalInControl.toString() 
 		      << ", writeBadEventsOnly " << localDAQWriteBadEventsOnly_.toString() 
@@ -1249,6 +1247,52 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       if ( isDAQManagerControlled("Configure") ) m.sendCommand( "emu::daq::manager::Application", 0, "Configure" );
     } catch (xcept::Exception ignored) {}
     
+    if ( isUsingTCDS_ ){
+      int index = keyToIndex(run_type_);
+      // Configure TCDS
+      // See https://indico.cern.ch/event/403280/contribution/3/material/slides/0.pdf for the proper order.
+      RegDumpPreprocessor pp;
+      ostringstream ppMessages;
+      pp.setOptions( RegDumpPreprocessor::expandRanges ).setMessageStream( ppMessages );
+      xdata::String pi_conf   ( pp.setTitle("PI"   ).process( runParameters_[index].bag.pi_.toString() ) );
+      xdata::String ci_p_conf ( pp.setTitle("CI P" ).process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_p_ .toString() ) );
+      xdata::String ci_m_conf ( pp.setTitle("CI M" ).process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_m_ .toString() ) );
+      xdata::String ci_tf_conf( pp.setTitle("CI TF").process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_tf_.toString() ) );
+      xdata::String pm_conf   ( pp.setTitle("PM"   ).process( runParameters_[index].bag.pm_.toString() ) );
+      if ( ppMessages.str().length() > 0 ){
+	LOG4CPLUS_WARN( getApplicationLogger(), string( "TCDS register preprocessor says: " ) + ppMessages.str() );
+      }
+      //
+      // Configure TCDS apps
+      //
+      // Configure LPM and wait for it to finish.
+      if ( pm_       ) pm_      ->setRunType( run_type_ ).configure( pm_conf ).waitForState( "Configured", 30 );
+      // Configure CIs and wait for them to finish.
+      if ( ci_plus_  ) ci_plus_ ->setRunType( run_type_ ).configure( ci_p_conf  );
+      if ( ci_minus_ ) ci_minus_->setRunType( run_type_ ).configure( ci_m_conf  );
+      if ( ci_tf_    ) ci_tf_   ->setRunType( run_type_ ).configure( ci_tf_conf );
+      if ( ci_plus_  ) ci_plus_ ->waitForState( "Configured", 30 );
+      if ( ci_minus_ ) ci_minus_->waitForState( "Configured", 30 );
+      if ( ci_tf_    ) ci_tf_   ->waitForState( "Configured", 30 );
+      // Configure PIs and wait for them to finish.
+      if ( pi_plus_  ) pi_plus_ ->setRunType( run_type_ ).configure( pi_conf );
+      if ( pi_minus_ ) pi_minus_->setRunType( run_type_ ).configure( pi_conf );
+      if ( pi_tf_    ) pi_tf_   ->setRunType( run_type_ ).configure( pi_conf );
+      if ( pi_plus_  ) pi_plus_ ->waitForState( "Configured", 30 );
+      if ( pi_minus_ ) pi_minus_->waitForState( "Configured", 30 );
+      if ( pi_tf_    ) pi_tf_   ->waitForState( "Configured", 30 );
+      //
+      // Emu-specific TCDS commands
+      //
+      // Execute our explicit CI commands. Must be done before TF is configured or else
+      // the non-simultaneous resync issued here would not allow the SPs to properly align their fibers.
+      if ( ci_plus_  ) ci_plus_ ->configureSequence();
+      if ( ci_minus_ ) ci_minus_->configureSequence();
+      if ( ci_tf_    ) ci_tf_   ->configureSequence();
+      // Execute our explicit PM commands:
+      if ( pm_       ) pm_      ->configureSequence();
+    }
+
     if (!isCalibrationMode()) {
       m.setResponseTimeout( 600 ); // Allow PCrates ample time to be configured.
       m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "Configure" );
@@ -1272,7 +1316,6 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       } 
     }
 
-
     if ( ! isUsingTCDS_ ){
       int index = getCalibParamIndex(run_type_);
       // Configure TTC
@@ -1285,38 +1328,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
 	m.setParameters( "ttc::LTCControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ltc_ ) );
       }
       m.sendCommand( "ttc::LTCControl", "configure" );
-    }
-    else {
-      int index = keyToIndex(run_type_);
-      // Configure TCDS
-      RegDumpPreprocessor pp;
-      ostringstream ppMessages;
-      pp.setOptions( RegDumpPreprocessor::expandRanges ).setMessageStream( ppMessages );
-      xdata::String pi_conf   ( pp.setTitle("PI"   ).process( runParameters_[index].bag.pi_.toString() ) );
-      xdata::String ci_p_conf ( pp.setTitle("CI P" ).process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_p_ .toString() ) );
-      xdata::String ci_m_conf ( pp.setTitle("CI M" ).process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_m_ .toString() ) );
-      xdata::String ci_tf_conf( pp.setTitle("CI TF").process( runParameters_[index].bag.ci_.toString(), runParameters_[index].bag.ci_tf_.toString() ) );
-      xdata::String pm_conf   ( pp.setTitle("PM"   ).process( runParameters_[index].bag.pm_.toString() ) );
-      if ( ppMessages.str().length() > 0 ){
-	LOG4CPLUS_WARN( logger_, string( "TCDS register preprocessor says: " ) + ppMessages.str() );
-      }
-      // PIs
-      if ( pi_plus_  ) pi_plus_ ->setRunType( run_type_ ).configure( pi_conf );
-      if ( pi_minus_ ) pi_minus_->setRunType( run_type_ ).configure( pi_conf );
-      if ( pi_tf_    ) pi_tf_   ->setRunType( run_type_ ).configure( pi_conf );
-      if ( pi_plus_  ) pi_plus_ ->waitForState( "Configured", 30 );
-      if ( pi_minus_ ) pi_minus_->waitForState( "Configured", 30 );
-      if ( pi_tf_    ) pi_tf_   ->waitForState( "Configured", 30 );
-      // CIs
-      if ( ci_plus_  ) ci_plus_ ->setRunType( run_type_ ).configure( ci_p_conf  );
-      if ( ci_minus_ ) ci_minus_->setRunType( run_type_ ).configure( ci_m_conf  );
-      if ( ci_tf_    ) ci_tf_   ->setRunType( run_type_ ).configure( ci_tf_conf );
-      if ( ci_plus_  ) ci_plus_ ->configureSequence(); // This waits for the state transition to complete.
-      if ( ci_minus_ ) ci_minus_->configureSequence(); // This waits for the state transition to complete.
-      if ( ci_tf_    ) ci_tf_   ->configureSequence(); // This waits for the state transition to complete.
-      // LPM
-      if ( pm_       ) pm_      ->setRunType( run_type_ ).configure( pm_conf ).configureSequence(); // This waits for the state transition to complete.
-    } // if ( isUsingTCDS_ )
+    } // if ( ! isUsingTCDS_ )
 
     xdata::String runType( "global" );
     if      ( isCalibrationMode()     ) runType = "calibration";
@@ -1367,21 +1379,35 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
   }
   
   state_table_.refresh();
-  LOG4CPLUS_DEBUG(logger_,  "Current state is: [" << fsm_.getStateName (fsm_.getCurrentState()) << "]");
-  LOG4CPLUS_DEBUG(logger_, evt->type() << "(end of this function)");
+  LOG4CPLUS_DEBUG(getApplicationLogger(),  "Current state is: [" << fsm_.getStateName (fsm_.getCurrentState()) << "]");
+  LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end of this function)");
 }
 
 void emu::supervisor::Application::startAction(toolbox::Event::Reference evt) 
   throw (toolbox::fsm::exception::Exception)
 {
-  LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
-  LOG4CPLUS_DEBUG(logger_, "runtype: " << run_type_.toString()
-		  << " runnumber: " << run_number_ << " nevents: " << nevents_.toString());
+  LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
+  LOG4CPLUS_INFO(getApplicationLogger(), "runtype: " << run_type_.toString()
+		 << " runnumber: " << run_number_ << " nevents: " << nevents_.toString());
   
   emu::soap::Messenger m( this );
 
   try {
     state_table_.refresh();
+
+    if ( isUsingTCDS_ ){
+      // Send a resync to clear DDUs' L1A scaler or else the subsequent 
+      // check by the FED software may fail if it's found non zero.
+      // It's the TF DDU that sometimes has non-zero L1A scaler (maybe the SPs smetimes spew out 
+      // something while being configured?) but let's do this for all DDUs, just to be sure.
+      // Note that this itself will not result in a proper SP input alignment. Nor does
+      // it prevent them from being properly alinged later on the simultaneous resync 
+      // issued by the LPM or CPM on being enabled.
+      xdata::String Resync( "Resync" );
+      if ( ci_plus_  ) ci_plus_ ->sendBgo( Resync );
+      if ( ci_minus_ ) ci_minus_->sendBgo( Resync );
+      if ( ci_tf_    ) ci_tf_   ->sendBgo( Resync );
+    }
 
     m.setParameters( "emu::fed::Manager", emu::soap::Parameters().add( "runNumber", &run_number_ ) );
     m.sendCommand( "emu::fed::Manager", "Enable" );
@@ -1439,9 +1465,9 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
       if ( ci_plus_  ) ci_plus_ ->enable( run_number_ );
       if ( ci_minus_ ) ci_minus_->enable( run_number_ );
       if ( ci_tf_    ) ci_tf_   ->enable( run_number_ );
-      if ( ci_plus_  ) ci_plus_ ->enableSequence(); // This waits for the state transition to complete.
-      if ( ci_minus_ ) ci_minus_->enableSequence(); // This waits for the state transition to complete.
-      if ( ci_tf_    ) ci_tf_   ->enableSequence(); // This waits for the state transition to complete.
+      if ( ci_plus_  ) ci_plus_ ->enableSequence(); // This waits for the state transition to complete before issuing any commands.
+      if ( ci_minus_ ) ci_minus_->enableSequence(); // This waits for the state transition to complete before issuing any commands.
+      if ( ci_tf_    ) ci_tf_   ->enableSequence(); // This waits for the state transition to complete before issuing any commands.
       // LPM
       if ( pm_       ) pm_      ->enable( run_number_ ).enableSequence(); // This waits for the state transition to complete.
     }
@@ -1461,13 +1487,13 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
     submit(calibration_signature_);
   }
   
-  LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
+  LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
 }
 
 void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt) 
   throw (toolbox::fsm::exception::Exception)
 {
-  LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
+  LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
   
   emu::soap::Messenger m( this );
 
@@ -1478,6 +1504,11 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     cout << "Timing in stopAction: " << endl
 	 << "    state table: " << state_table_
 	 << "    state_table_.refresh: " << sw.read() << endl;
+
+    if ( isUsingTCDS_ ){
+      // First of all, pause LPM. This will block triggers and stop non-permanent generators and sequences.
+      if ( pm_ ) pm_->pause().waitForState( "Paused", 30 );
+    }
 
     // Stop TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
@@ -1497,26 +1528,6 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
       }
     }
         
-    if ( isUsingTCDS_ ){
-      // Stop TCDS
-      // LPM
-      if ( pm_       ) pm_      ->stop().stopSequence(); // This waits for the state transition to complete.
-      // CIs
-      if ( ci_plus_  ) ci_plus_ ->stop();
-      if ( ci_minus_ ) ci_minus_->stop();
-      if ( ci_tf_    ) ci_tf_   ->stop();
-      if ( ci_plus_  ) ci_plus_ ->waitForState( "Configured", 30 );
-      if ( ci_minus_ ) ci_minus_->waitForState( "Configured", 30 );
-      if ( ci_tf_    ) ci_tf_   ->waitForState( "Configured", 30 );
-      // PIs
-      if ( pi_plus_  ) pi_plus_ ->stop();
-      if ( pi_minus_ ) pi_minus_->stop();
-      if ( pi_tf_    ) pi_tf_   ->stop();
-      if ( pi_plus_  ) pi_plus_ ->waitForState( "Configured", 30 );
-      if ( pi_minus_ ) pi_minus_->waitForState( "Configured", 30 );
-      if ( pi_tf_    ) pi_tf_   ->waitForState( "Configured", 30 );
-    }
-
     try {
       if ( isDAQManagerControlled("Halt") ) m.sendCommand( "emu::daq::manager::Application", 0, "Halt" );
       if ( isCommandFromWeb_ ) waitForDAQToExecute("Halt", 60, true);
@@ -1538,15 +1549,29 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
       cout << "    Configure LTC: " << sw.read() << endl;
     }
     else{
+      // Stop TCDS
+      // LPM
+      if ( pm_       ) pm_      ->stop().stopSequence(); // PMControl::stopSequence() waits for the state transition to complete.
+      // CIs
+      if ( ci_plus_  ) ci_plus_ ->stop();
+      if ( ci_minus_ ) ci_minus_->stop();
+      if ( ci_tf_    ) ci_tf_   ->stop();
       // The TF FED software will fail on starting if not having just been configured 
       // (i.e., when the previous run was 'stop'-ped) because the TF DDU L1A counter won't be 0. 
       // Let's run the stop sequence now (which will issue a hard reset and a resync) to zero that counter
-      // to be ready to be started again.
+      // to be ready to be started again. (This is done in CIControl::stopSequence()).
       // The CSC FEDs don't seem to fail this way, but let's do them, too, to be absolutely sure.
       // Do this through the CIs as the PM is not under our control in global runs.
       if ( ci_plus_  ) ci_plus_ ->stopSequence();
       if ( ci_minus_ ) ci_minus_->stopSequence();
       if ( ci_tf_    ) ci_tf_   ->stopSequence();
+      // PIs
+      if ( pi_plus_  ) pi_plus_ ->stop();
+      if ( pi_minus_ ) pi_minus_->stop();
+      if ( pi_tf_    ) pi_tf_   ->stop();
+      if ( pi_plus_  ) pi_plus_ ->waitForState( "Configured", 30 );
+      if ( pi_minus_ ) pi_minus_->waitForState( "Configured", 30 );
+      if ( pi_tf_    ) pi_tf_   ->waitForState( "Configured", 30 );
     }
 
     writeRunInfo( isCommandFromWeb_ ); // only write runinfo if Stop was issued from the web interface
@@ -1558,13 +1583,13 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
   } catch( std::exception& e ){
     XCEPT_RAISE( toolbox::fsm::exception::Exception, string( "Stop transition failed: " ) + e.what() );
   }
-  LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
+  LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
 }
 
 void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt) 
   throw (toolbox::fsm::exception::Exception)
 {
-  LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
+  LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
   
   emu::soap::Messenger m( this );
 
@@ -1576,6 +1601,13 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
 	 << "    state table: " << state_table_
 	 << "    state_table_.refresh: " << sw.read() << endl;
     
+    if ( isUsingTCDS_ ){
+      // First of all, pause LPM. This will block triggers and stop non-permanent generators and sequences.
+      if ( pm_ ){
+	if ( pm_->getSteadyState() == "Enabled" ) pm_->pause().waitForState( "Paused", 30 );
+      }
+    }
+
     // Reset TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
       OpResetCell();
@@ -1593,25 +1625,6 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
 	cout << "    Halt (reset) ttc::TTCciControl: " << sw.read() << endl;
       }
     }
-    else{
-      // Halt TCDS
-      // LPM
-      if ( pm_       ) pm_      ->halt().waitForState( "Halted", 30 );
-      // CIs
-      if ( ci_plus_  ) ci_plus_ ->halt();
-      if ( ci_minus_ ) ci_minus_->halt();
-      if ( ci_tf_    ) ci_tf_   ->halt();
-      if ( ci_plus_  ) ci_plus_ ->waitForState( "Halted", 30 );
-      if ( ci_minus_ ) ci_minus_->waitForState( "Halted", 30 );
-      if ( ci_tf_    ) ci_tf_   ->waitForState( "Halted", 30 );
-      if ( pi_plus_  ) pi_plus_ ->halt();
-      if ( pi_minus_ ) pi_minus_->halt();
-      if ( pi_tf_    ) pi_tf_   ->halt();
-      // PIs
-      if ( pi_plus_  ) pi_plus_ ->waitForState( "Halted", 30 );
-      if ( pi_minus_ ) pi_minus_->waitForState( "Halted", 30 );
-      if ( pi_tf_    ) pi_tf_   ->waitForState( "Halted", 30 );
-    }
 
     m.sendCommand( "emu::fed::Manager", "Halt" );
     cout << "    Halt emu::fed::Manager: " << sw.read() << endl;
@@ -1628,12 +1641,38 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     } catch (xcept::Exception ignored) {}
     cout << "    Halt emu::daq::manager::Application: " << sw.read() << endl;
 
-    // Issue a resync now to make sure L1A is reset to zero in the FEDs in case a global run follows.
-    // In a global run, when backpressure is not ignored, this would fail (see http://cmsonline.cern.ch/cms-elog/756961).
-    // By resynching through LTC, we make sure it's only done in local runs. 
-    // The following command will do nothing if no ttc::LTCControl application is found.
-    xdata::String attributeValue( "resync" );
-    m.sendCommand( "ttc::LTCControl", "ExecuteSequence", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
+    if ( ! isUsingTCDS_ ){
+      // Issue a resync now to make sure L1A is reset to zero in the FEDs in case a global run follows.
+      // In a global run, when backpressure is not ignored, this would fail (see http://cmsonline.cern.ch/cms-elog/756961).
+      // By resynching through LTC, we make sure it's only done in local runs. 
+      // The following command will do nothing if no ttc::LTCControl application is found.
+      xdata::String attributeValue( "resync" );
+      m.sendCommand( "ttc::LTCControl", "ExecuteSequence", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
+    }
+    else{
+      // Halt TCDS
+      // LPM
+      // Issue a resync now to make sure L1A is reset to zero in the FEDs in case a global run follows.
+      // In a global run, when backpressure is not ignored, this would fail (see http://cmsonline.cern.ch/cms-elog/756961).
+      // By resynching through LPM, we make sure it's only done in local runs. 
+      // The following command will not be issued if no LPM application is found.
+      xdata::String Resync( "Resync" );
+      if ( pm_       ) pm_      ->sendBgoTrain( Resync ).halt().waitForState( "Halted", 30 );
+      // CIs
+      if ( ci_plus_  ) ci_plus_ ->halt();
+      if ( ci_minus_ ) ci_minus_->halt();
+      if ( ci_tf_    ) ci_tf_   ->halt();
+      if ( ci_plus_  ) ci_plus_ ->waitForState( "Halted", 30 );
+      if ( ci_minus_ ) ci_minus_->waitForState( "Halted", 30 );
+      if ( ci_tf_    ) ci_tf_   ->waitForState( "Halted", 30 );
+      // PIs
+      if ( pi_plus_  ) pi_plus_ ->halt();
+      if ( pi_minus_ ) pi_minus_->halt();
+      if ( pi_tf_    ) pi_tf_   ->halt();
+      if ( pi_plus_  ) pi_plus_ ->waitForState( "Halted", 30 );
+      if ( pi_minus_ ) pi_minus_->waitForState( "Halted", 30 );
+      if ( pi_tf_    ) pi_tf_   ->waitForState( "Halted", 30 );
+    }
 
     writeRunInfo( isCommandFromWeb_ ); // only write runinfo if Halt was issued from the web interface
     if ( isCommandFromWeb_ ) cout << "    Write run info: " << sw.read() << endl;
@@ -1646,23 +1685,23 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     XCEPT_RAISE( toolbox::fsm::exception::Exception, string( "Halt transition failed: " ) + e.what() );
   }
   
-  LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
+  LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
 }
 
 void emu::supervisor::Application::resetAction() throw (toolbox::fsm::exception::Exception)
 {
-  LOG4CPLUS_DEBUG(logger_, "reset(begin)");
+  LOG4CPLUS_DEBUG(getApplicationLogger(), "reset(begin)");
   
   fsm_.reset();
   state_ = fsm_.getStateName(fsm_.getCurrentState());
   
-  LOG4CPLUS_DEBUG(logger_, "reset(end)");
+  LOG4CPLUS_DEBUG(getApplicationLogger(), "reset(end)");
 }
 
 void emu::supervisor::Application::setTTSAction(toolbox::Event::Reference evt) 
   throw (toolbox::fsm::exception::Exception)
 {
-  LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
+  LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
   
   emu::soap::Messenger m( this );
   
@@ -1677,7 +1716,7 @@ void emu::supervisor::Application::setTTSAction(toolbox::Event::Reference evt)
 		  "Failed to send a command", e);
   }
   
-  LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
+  LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
 }
 
 void emu::supervisor::Application::noAction(toolbox::Event::Reference evt) 
@@ -1688,7 +1727,7 @@ void emu::supervisor::Application::noAction(toolbox::Event::Reference evt)
      << " attempted when in " 
      << fsm_.getStateName(fsm_.getCurrentState())
      << " state. Command ignored.";
-  LOG4CPLUS_WARN(logger_, ss.str());
+  LOG4CPLUS_WARN(getApplicationLogger(), ss.str());
   XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss.str() );
   this->notifyQualified( "warning", eObj );
 }
@@ -1703,13 +1742,13 @@ void emu::supervisor::Application::stateChanged(toolbox::fsm::FiniteStateMachine
 {
   keep_refresh_ = false;
   
-  LOG4CPLUS_DEBUG(getApplicationLogger(),"Current state is: [" << fsm.getStateName (fsm.getCurrentState()) << "]");
+  LOG4CPLUS_INFO(getApplicationLogger(),"Current state is: [" << fsm.getStateName (fsm.getCurrentState()) << "]");
   // Send notification to Run Control
   state_=fsm.getStateName (fsm.getCurrentState());
   try
     {
       rcmsStateNotifier_.findRcmsStateListener();      	
-      LOG4CPLUS_DEBUG(getApplicationLogger(),"Sending state changed notification to Run Control.");
+      LOG4CPLUS_INFO(getApplicationLogger(),"Sending state changed notification to Run Control.");
       rcmsStateNotifier_.stateChanged((std::string)state_,"");
     }
   catch(xcept::Exception &e)
@@ -1762,7 +1801,7 @@ void emu::supervisor::Application::transitionFailed(toolbox::Event::Reference ev
   // Send notification to Run Control
   try {
     rcmsStateNotifier_.findRcmsStateListener();      	
-    LOG4CPLUS_DEBUG(getApplicationLogger(),"Sending state changed notification to Run Control.");
+    LOG4CPLUS_INFO(getApplicationLogger(),"Sending state changed notification (Error) to Run Control.");
     rcmsStateNotifier_.stateChanged("Error",xcept::stdformat_exception_history(failed.getException()));
   } catch(xcept::Exception &e) {
     LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to notify state change to Run Control : "
@@ -1878,13 +1917,13 @@ bool emu::supervisor::Application::waitForTFCellOpToReach( const string targetSt
   for ( unsigned int i=0; i<=seconds; ++i ){
     TFCellOpState_ = OpGetStateCell();
     if ( TFCellOpState_.toString() == targetState ){ return true; }
-    LOG4CPLUS_INFO( logger_, "Waited " << i << " sec so far for TF Cell Operation " 
+    LOG4CPLUS_INFO( getApplicationLogger(), "Waited " << i << " sec so far for TF Cell Operation " 
 		    << TFCellOpName_.toString() << " to get " << targetState 
 		    << ". It is still in " << TFCellOpState_.toString() << " state." );
     ::sleep(1);
   }
 
-  LOG4CPLUS_ERROR( logger_, "Timeout after waiting " << seconds << " sec so far for TF Cell Operation " 
+  LOG4CPLUS_ERROR( getApplicationLogger(), "Timeout after waiting " << seconds << " sec so far for TF Cell Operation " 
 		   << TFCellOpName_.toString() << " to get " << targetState 
 		   << ". It is still in " << TFCellOpState_.toString() << " state." );
 
@@ -1982,9 +2021,9 @@ string emu::supervisor::Application::getDAQMode(){
     result = ( bool( daqMode ) ? "supervised" : "unsupervised" );
     REVOKE_ALARM( "noLocalDAQ", NULL );
   } catch (xcept::Exception e) {
-    LOG4CPLUS_INFO(logger_, "Failed to get local DAQ state. "
+    LOG4CPLUS_INFO(getApplicationLogger(), "Failed to get local DAQ state. "
 		   << xcept::stdformat_exception_history(e));
-    RAISE_ALARM( emu::supervisor::alarm::NoLocalDAQ, "noLocalDAQ", "warn", "Local DAQ is in down or inaccessible.", "", &logger_ );
+    RAISE_ALARM( emu::supervisor::alarm::NoLocalDAQ, "noLocalDAQ", "warn", "Local DAQ is in down or inaccessible.", "", &getApplicationLogger() );
     result = "UNKNOWN";
   }
 
@@ -2000,9 +2039,9 @@ string emu::supervisor::Application::getLocalDAQState(){
     m.getParameters( "emu::daq::manager::Application", 0, emu::soap::Parameters().add( "daqState", &daqState ) );
     REVOKE_ALARM( "noLocalDAQ", NULL );
   } catch (xcept::Exception e) {
-    LOG4CPLUS_INFO(logger_, "Failed to get local DAQ state. "
+    LOG4CPLUS_INFO(getApplicationLogger(), "Failed to get local DAQ state. "
 		   << xcept::stdformat_exception_history(e));
-    RAISE_ALARM( emu::supervisor::alarm::NoLocalDAQ, "noLocalDAQ", "warn", "Local DAQ is in down or inaccessible.", "", &logger_ );
+    RAISE_ALARM( emu::supervisor::alarm::NoLocalDAQ, "noLocalDAQ", "warn", "Local DAQ is in down or inaccessible.", "", &getApplicationLogger() );
   }
 
   return daqState.toString();
@@ -2059,7 +2098,7 @@ bool emu::supervisor::Application::waitForDAQToExecute( const string command, co
     m.getParameters( "emu::daq::manager::Application", 0, emu::soap::Parameters().add( "daqState", &daqState ) );
     if ( daqState.toString() != "Halted"  && daqState.toString() != "Ready" && 
 	 daqState.toString() != "Enabled" && daqState.toString() != "INDEFINITE" ){
-      LOG4CPLUS_ERROR( logger_, "Local DAQ is in " << daqState.toString() << " state. Please destroy and recreate local DAQ." );
+      LOG4CPLUS_ERROR( getApplicationLogger(), "Local DAQ is in " << daqState.toString() << " state. Please destroy and recreate local DAQ." );
       stringstream ss9;
       ss9 <<  "Local DAQ is in " << daqState.toString() << " state. Please destroy and recreate local DAQ." ;
       XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss9.str() );
@@ -2067,12 +2106,12 @@ bool emu::supervisor::Application::waitForDAQToExecute( const string command, co
       return false;
     }
     if ( daqState.toString() == expectedState ){ return true; }
-    LOG4CPLUS_INFO( logger_, "Waited " << i << " sec so far for local DAQ to get " 
+    LOG4CPLUS_INFO( getApplicationLogger(), "Waited " << i << " sec so far for local DAQ to get " 
 		    << expectedState << ". It is still in " << daqState.toString() << " state." );
     ::sleep(1);
   }
 
-  LOG4CPLUS_ERROR( logger_, "Timeout after waiting " << seconds << " sec for local DAQ to get " << expectedState 
+  LOG4CPLUS_ERROR( getApplicationLogger(), "Timeout after waiting " << seconds << " sec for local DAQ to get " << expectedState 
 		   << ". It is in " << daqState.toString() << " state." );
   stringstream ss10;
   ss10 <<  "Timeout after waiting " << seconds << " sec for local DAQ to get " << expectedState 
@@ -2102,7 +2141,7 @@ bool emu::supervisor::Application::isDAQManagerControlled(string command)
   // No point in sending any command when DAQ is in an irregular state (failed, indefinite, ...)
   if ( daqState.toString() != "Halted"  && daqState.toString() != "Ready" && 
        daqState.toString() != "Enabled" && daqState.toString() != "INDEFINITE" ){
-    LOG4CPLUS_WARN( logger_, "No command \"" << command << "\" sent to emu::daq::manager::Application because local DAQ is in " 
+    LOG4CPLUS_WARN( getApplicationLogger(), "No command \"" << command << "\" sent to emu::daq::manager::Application because local DAQ is in " 
 		    << daqState.toString() << " state. Please destroy and recreate local DAQ." );
     stringstream ss11;
     ss11 <<  "No command \"" << command << "\" sent to emu::daq::manager::Application because local DAQ is in " 
@@ -2130,12 +2169,12 @@ bool emu::supervisor::Application::waitForAppsToReach( const string targetState,
     if ( state_table_.isValidState( targetState )
 	 &&
 	 ( !includingSupervisor || fsm_.getStateName(fsm_.getCurrentState()) == targetState ) ) return true;
-    LOG4CPLUS_DEBUG( logger_, "Waited " << i << " sec so far for applications to get '" << targetState
+    LOG4CPLUS_INFO( getApplicationLogger(), "Waited " << i << " sec so far for applications to get '" << targetState
 		    << "'. Their current states are:" << state_table_ );
     if ( fsm_.getCurrentState() == 'F' ) return false; // Abort if in Failed state.
     ::sleep(1);
   }
-  LOG4CPLUS_ERROR( logger_, "Timeout after waiting " << seconds << " sec for applications to get " << targetState );
+  LOG4CPLUS_ERROR( getApplicationLogger(), "Timeout after waiting " << seconds << " sec for applications to get " << targetState );
   stringstream ss;
   ss <<  "Timeout after waiting " << seconds << " sec for applications to get " << targetState;
   XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss.str() );
@@ -2144,7 +2183,7 @@ bool emu::supervisor::Application::waitForAppsToReach( const string targetState,
 }
 
 void emu::supervisor::Application::onException( xcept::Exception& e ){ // callback for toolbox::exception::Listener
-  LOG4CPLUS_ERROR( logger_, "Exception caught in TCDS hardware lease renewal thread: " << xcept::stdformat_exception_history(e) );
+  LOG4CPLUS_ERROR( getApplicationLogger(), "Exception caught in TCDS hardware lease renewal thread: " << xcept::stdformat_exception_history(e) );
 }
 
 emu::supervisor::Application::StateTable::StateTable(emu::supervisor::Application *sv) 
@@ -2220,7 +2259,7 @@ void emu::supervisor::Application::StateTable::refresh( bool forceRefresh )
                         bSem_.give();
 		} catch (xcept::Exception &e) {
 			i->second = STATE_UNKNOWN;
-			LOG4CPLUS_ERROR(app_->logger_, "Exception when trying to get state of "
+			LOG4CPLUS_ERROR(app_->getApplicationLogger(), "Exception when trying to get state of "
 					<< klass << ": " << xcept::stdformat_exception_history(e));
 			stringstream ss12;
 			ss12 << "Exception when trying to get state of "
@@ -2229,7 +2268,7 @@ void emu::supervisor::Application::StateTable::refresh( bool forceRefresh )
 			app_->notifyQualified( "error", eObj );
                         bSem_.give();
 		} catch (...) {
-			LOG4CPLUS_ERROR(app_->logger_, "Unknown exception when trying to get state of " << klass);
+			LOG4CPLUS_ERROR(app_->getApplicationLogger(), "Unknown exception when trying to get state of " << klass);
 			stringstream ss13;
 			ss13 << "Unknown exception when trying to get state of " << klass;
 			XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss13.str() );
@@ -2239,7 +2278,7 @@ void emu::supervisor::Application::StateTable::refresh( bool forceRefresh )
 		}
 
 		if (klass == "emu::daq::manager::Application" && i->second == STATE_UNKNOWN) {
-			LOG4CPLUS_WARN(app_->logger_, "State of emu::daq::manager::Application will be unknown.");
+			LOG4CPLUS_WARN(app_->getApplicationLogger(), "State of emu::daq::manager::Application will be unknown.");
 			stringstream ss14;
 			ss14 << "State of emu::daq::manager::Application will be unknown.";
 			XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss14.str() );
@@ -2335,56 +2374,6 @@ ostream& emu::supervisor::operator<<( ostream& os, const emu::supervisor::Applic
   return os;
 }
 
-void emu::supervisor::Application::LastLog::size(unsigned int size)
-{
-	size_ = size;
-}
-
-unsigned int emu::supervisor::Application::LastLog::size() const
-{
-	return size_;
-}
-
-void emu::supervisor::Application::LastLog::add(string message)
-{
-	messages_.push_back(getTime() + " " + message);
-
-	if (messages_.size() > size_) { messages_.pop_front(); }
-}
-
-string emu::supervisor::Application::LastLog::getTime() const
-{
-	timeval tv;
-	gettimeofday(&tv, 0);
-
-	ostringstream line;
-	char s[100];
-
-	strftime(s, 100, "%Y-%m-%dT%H:%M:%S.", localtime(&tv.tv_sec));
-	line << s;
-	line << tv.tv_usec / 1000;
-	strftime(s, 100, "%z", localtime(&tv.tv_sec));
-	line << s;
-
-	return line.str();
-}
-
-void emu::supervisor::Application::LastLog::webOutput(xgi::Output *out)
-		throw (xgi::exception::Exception)
-{
-	*out << "Last " << messages_.size() << " log messages:" << br() << endl;
-	*out << textarea().set("cols", "120").set("rows", "20")
-			.set("readonly").set("class", "log") << endl;
-
-	deque<string>::iterator i = messages_.begin();
-	for (; i != messages_.end(); ++i) {
-		*out << *i << endl;
-	}
-
-	*out << textarea() << endl;
-}
-
-
 void emu::supervisor::Application::bookRunNumber(){
 
   isBookedRunNumber_ = false;
@@ -2407,7 +2396,7 @@ void emu::supervisor::Application::bookRunNumber(){
     }
   catch( string e )
     {
-      LOG4CPLUS_ERROR(logger_, e);
+      LOG4CPLUS_ERROR(getApplicationLogger(), e);
       stringstream ss20;
       ss20 <<  e;
       XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss20.str() );
@@ -2418,7 +2407,7 @@ void emu::supervisor::Application::bookRunNumber(){
 
     const string sequence = "CMS.CSC";
     
-    LOG4CPLUS_INFO(logger_, "Booking run number with " <<
+    LOG4CPLUS_INFO(getApplicationLogger(), "Booking run number with " <<
 		   runDbBookingCommand_.toString() << " at " <<
 		   runDbAddress_.toString()  << " for " << sequence );
     
@@ -2428,11 +2417,11 @@ void emu::supervisor::Application::bookRunNumber(){
       isBookedRunNumber_ = true;
       run_number_        = runInfo_->runNumber();
       runSequenceNumber_ = runInfo_->runSequenceNumber();
-      LOG4CPLUS_INFO(logger_, "Booked run rumber " << run_number_.toString() <<
+      LOG4CPLUS_INFO(getApplicationLogger(), "Booked run rumber " << run_number_.toString() <<
 		     " (" << sequence << " " << runSequenceNumber_.toString() << ")");
     }
     else{
-      LOG4CPLUS_ERROR(logger_,
+      LOG4CPLUS_ERROR(getApplicationLogger(),
 		      "Failed to book run number: " 
 		      <<  runInfo_->errorMessage()
 		      << " ==> Falling back to run number " << run_number_.toString() 
@@ -2463,7 +2452,7 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
 
   // emu::daq::manager::Application's FSM is asynchronous. Wait for it.
   if ( ! waitForDAQToExecute("Halt", 10, true ) ){
-    LOG4CPLUS_WARN(logger_, "Nothing written to run database as local DAQ has not stopped.");
+    LOG4CPLUS_WARN(getApplicationLogger(), "Nothing written to run database as local DAQ has not stopped.");
     stringstream ss22;
     ss22 <<  "Nothing written to run database as local DAQ has not stopped.";
     XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss22.str() );
@@ -2473,7 +2462,7 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
 
   // If it's not a debug run, it should normally have been booked. If not, inform the user that it somehow wasn't.
   if ( toDatabase && !isBookedRunNumber_ ){
-    LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
+    LOG4CPLUS_WARN(getApplicationLogger(), "Nothing written to run database as no run number was booked.");
     stringstream ss23;
     ss23 <<  "Nothing written to run database as no run number was booked.";
     XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss23.str() );
@@ -2509,7 +2498,7 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
 				    .add( "rui_instances", &rui_instances  ) );
     }
     catch( xcept::Exception e ){
-      LOG4CPLUS_WARN( logger_, "Run summary unknown: " << xcept::stdformat_exception_history(e) );
+      LOG4CPLUS_WARN( getApplicationLogger(), "Run summary unknown: " << xcept::stdformat_exception_history(e) );
       stringstream ss25;
       ss25 <<  "Run summary unknown: "  ;
       XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss25.str(), e );
@@ -2524,11 +2513,11 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
-	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+	LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
 		       nameSpace << ":" << name << " = " << value );
       }
       else{
-	LOG4CPLUS_ERROR(logger_,
+	LOG4CPLUS_ERROR(getApplicationLogger(),
 			"Failed to write " << nameSpace << ":" << name << 
 			" to run database " << runDbAddress_.toString() <<
 			" : " << runInfo_->errorMessage() );
@@ -2550,11 +2539,11 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
-	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+	LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value );
       }
       else{
-	LOG4CPLUS_ERROR(logger_,
+	LOG4CPLUS_ERROR(getApplicationLogger(),
 			"Failed to write " << nameSpace << ":" << name << 
 			" to run database " << runDbAddress_.toString()  <<
 			" : " << runInfo_->errorMessage() );
@@ -2572,11 +2561,11 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
-	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+	LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
 		       nameSpace << ":" << name << " = " << value );
       }
       else{
-	LOG4CPLUS_ERROR(logger_,
+	LOG4CPLUS_ERROR(getApplicationLogger(),
 			"Failed to write " << nameSpace << ":" << name << 
 			" to run database " << runDbAddress_.toString()  <<
 			" : " << runInfo_->errorMessage() );
@@ -2606,7 +2595,7 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
 		       .add( "BGOSource"    , &BGOSource     ) );
     }
     catch(xcept::Exception e){
-      LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from ttc::TTCciControl: " << 
+      LOG4CPLUS_ERROR(getApplicationLogger(),"Failed to get trigger sources from ttc::TTCciControl: " << 
 		      xcept::stdformat_exception_history(e) );
       stringstream ss30;
       ss30 << "Failed to get trigger sources from ttc::TTCciControl: ";
@@ -2618,11 +2607,11 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
-	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+	LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value );
       }
       else{
-	LOG4CPLUS_ERROR(logger_,
+	LOG4CPLUS_ERROR(getApplicationLogger(),
 			"Failed to write " << nameSpace << ":" << name << 
 			" to run database " << runDbAddress_.toString() <<
 			" : " << runInfo_->errorMessage() );
@@ -2640,11 +2629,11 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
-	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+	LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value );
       }
       else{
-	LOG4CPLUS_ERROR(logger_,
+	LOG4CPLUS_ERROR(getApplicationLogger(),
 			"Failed to write " << nameSpace << ":" << name << 
 			" to run database " << runDbAddress_.toString() <<
 			" : " << runInfo_->errorMessage() );
@@ -2662,11 +2651,11 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
-	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+	LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
 		       nameSpace << ":" << name << " = " << value );
       }
       else{
-	LOG4CPLUS_ERROR(logger_,
+	LOG4CPLUS_ERROR(getApplicationLogger(),
 			"Failed to write " << nameSpace << ":" << name << 
 			" to run database " << runDbAddress_.toString() );
 	stringstream ss33;
@@ -2682,11 +2671,11 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
-	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+	LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
 		       nameSpace << ":" << name << " = " << value );
       }
       else{
-	LOG4CPLUS_ERROR(logger_,
+	LOG4CPLUS_ERROR(getApplicationLogger(),
 			"Failed to write " << nameSpace << ":" << name << 
 			" to run database " << runDbAddress_.toString() <<
 			" : " << runInfo_->errorMessage() );
@@ -2708,11 +2697,11 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
       if ( toDatabase && isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
 	if ( success ){
-	  LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+	  LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
 			 nameSpace << ":" << name << " = " << value );
 	}
 	else{
-	  LOG4CPLUS_ERROR(logger_,
+	  LOG4CPLUS_ERROR(getApplicationLogger(),
 			  "Failed to write " << nameSpace << ":" << name << 
 			  " to run database " << runDbAddress_.toString() <<
 			  " : " << runInfo_->errorMessage() );
@@ -2735,11 +2724,11 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase ){
       if ( toDatabase && isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
 	if ( success ){
-	  LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+	  LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
 				       nameSpace << ":" << name << " = " << value );
 	}
 	else{
-	  LOG4CPLUS_ERROR(logger_,
+	  LOG4CPLUS_ERROR(getApplicationLogger(),
 			  "Failed to write " << nameSpace << ":" << name << 
 			  " to run database " << runDbAddress_.toString() <<
 			  " : " << runInfo_->errorMessage() );

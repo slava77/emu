@@ -197,17 +197,14 @@ private: // XDAQ parameters
         void getAppDescriptors();
         void getTCDSAppDescriptors();
 
+  void setUpLogger();
+
   //////////////////////////////////////////////////////////////
 
-  void sendCommandCellOpInit();
- 
+  // TF SOAP
   void sendCommandCell(string command);
-
   std::string OpGetStateCell();
-
   void OpResetCell();
-
-  void sendCommandCellOpkill();
 
   //////////////////////////////////////////////////////////////
 
@@ -286,21 +283,6 @@ private: // XDAQ parameters
 		vector<pair<xdaq::ApplicationDescriptor *, string> > table_;
 	} state_table_;
 
-
-	class LastLog
-	{
-	public:
-		void size(unsigned int size);
-		unsigned int size() const;
-		void add(string message);
-		void webOutput(xgi::Output *out) throw (xgi::exception::Exception);
-
-	private:
-		string getTime(void) const;
-
-		unsigned int size_;
-		deque<string> messages_;
-	} last_log_;
 };
 
     ostream& operator<<( ostream& os, const emu::supervisor::Application::StateTable& st );

@@ -62,18 +62,19 @@ emu::supervisor::CIControl& emu::supervisor::CIControl::configureSequence(){
     // ENDSEQUENCE
     sendBCommand( data, type, addressOfTTCrx, subaddress, bcommandAddressType );		  
     mSleep( 100 );
-    // Hard reset is needed in order to clear the FIFO of the DDUs 
-    // (in case some events have been left there) so that the resync can zero its
-    // L1A counter. Otherwise, with nonzero L1A counter, the DDU would fail to be
-    // enabled.
-    // Do this from the CIs so that it can be sent in both local and global.
+    // A hard reset is needed to make sure the DDU FIFO is cleared
+    // (in case some events have been left there) so that the subsequent resync 
+    // can zero its L1A register. Otherwise, with nonzero L1A register, 
+    // the DDU would fail to be enabled.
+    // Do this from the CIs so that they can be sent in both local and global.
+    // Not being simultaneous, this resync here could not possibly result
+    // in properly aligned SP fibers. They should be aligned properly by the
+    // simultaneous resync issued by the {C,L}PM on starting/enabling as part of 
+    // the standard TCDS 'Start' Bgo train.
     sendBgo( HardReset );
     mSleep( 500 );
-    // Send resync from PM instead so that it comes in sync across all our partitions 
-    // in order for the TF SP links to be synched. Note that a resync will be issued
-    // by the PM as part of the standard TCDS 'Start' Bgo train.
-    // sendBgo( Resync );
-    // mSleep( 100 );
+    sendBgo( Resync );
+    mSleep( 100 );
     break;
   case AFEBcalibration: // fall through
   case CFEBcalibration:
