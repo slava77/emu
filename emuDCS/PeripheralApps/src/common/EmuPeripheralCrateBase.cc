@@ -261,7 +261,7 @@ std::string EmuPeripheralCrateBase::getLocalDateTime(bool AsFileName){
 bool EmuPeripheralCrateBase::CommonParser(std::string XML_or_DB, std::string configKey)
 {
   std::string Valid_key, InFlash_key;
-  xdata::UnsignedInteger64 Valid_key_64, InFlash_key_64;
+  xdata::UnsignedInteger64 Valid_key_64(0), InFlash_key_64(0);
 //  EmuEndcap* myEndcap_=NULL;
   int use_flash=0;
     //
