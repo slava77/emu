@@ -366,9 +366,17 @@ void emu::step::Test::setUpODMBPulsing( emu::pc::DAQMB *dmb, ODMBMode_t mode, OD
   cout<<"Pulsing: addr ="<<addr<<"  data = "<<data<<endl;
   dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
 
-  // Kill ODMB inputs
-  irdwr = 3; addr = (0x00401c) | slot_number<<19; data = killInput;
-  dmb->getCrate()->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+  // Kill ALCT/TMB inputs to ODMB if requested, unkill them otherwise.
+  // Keep alive all DCFEBs inputs to ODMB unless they're explicitly requested to be killed.
+  int oldKillMask( dmb->odmb_read_kill_mask() );
+  int ALCT_TMB_mask =   killInput & ( kill_ALCT | kill_TMB )                ; // kill if requested, unkill otherwise
+  int DCFEB_mask    = ( killInput &   kill_DCFEBs            ) | oldKillMask; // kill if requested now or already killed
+  dmb->odmb_set_kill_mask( ALCT_TMB_mask | DCFEB_mask );
+  int newKillMask( dmb->odmb_read_kill_mask() );
+  if ( pLogger_ ){
+    LOG4CPLUS_INFO( *pLogger_, "ODMB kill mask changed from 0x" << hex << oldKillMask << " to 0x" << newKillMask << dec );
+  }
+
 }
 
 // One pipeline fuction to rule them all.
@@ -485,9 +493,15 @@ void emu::step::Test::configureODMB( emu::pc::Crate* crate ) {
       crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
       usleep(300000);
 
-      // Kill No Boards
-      irdwr = 3; addr = (0x00401c) | slot_number<<19; data = kill_None;
-      crate->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+      // Unkill ALCT and TMB inputs to ODMB.
+      // Keep alive all DCFEBs that are alive at this moment (and only those).
+      int oldKillMask( (*dmb)->odmb_read_kill_mask() );
+      (*dmb)->odmb_set_kill_mask( oldKillMask & ~kill_ALCT & ~kill_TMB );
+      int newKillMask( (*dmb)->odmb_read_kill_mask() );
+      if ( pLogger_ ){ 
+	LOG4CPLUS_INFO( *pLogger_, "ODMB kill mask changed from 0x" << hex << oldKillMask << " to 0x" << newKillMask << dec );
+      }
+
 
       // ODMB configured to accept real triggers
       // irdwr = 3; addr = emu::pc::DAQMB::ODMB_MODE | slot_number<<19; data = 0x0000;
@@ -1046,25 +1060,7 @@ void emu::step::Test::configure_15(){ // OK
       for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
 
 	if( (*dmb)->GetHardwareVersion() == 2 ){
-	  int slot_number  = (*dmb)->slot();
-          // the arguments for vme_controller //
-	  char rcv[2];
-	  unsigned int addr;
-	  unsigned short int data;
-	  int irdwr;
-	  // kill alct/tmb
-	  // all cfebs active	 
-	  irdwr = 3;
-	  addr = (0x00401c)| slot_number<<19;	
-	  data = kill_ALCT | kill_TMB;			
-	  (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-	  // set ODMB to PEDESTAL mode
-	  irdwr = 3;
-          int odmb_fw_vers = ((*dmb)->odmb_firmware_version() / 0x100 );
-          addr = (odmb_fw_vers >= 3) ? 0x003400 : 0x003000;
-          addr = addr | slot_number<<19;
-          data = (odmb_fw_vers >= 3) ? 0x01 : 0x2000;
-          (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+	  setUpODMBPulsing( *dmb, ODMBPedestalMode, ODMBInputKill_t( kill_ALCT | kill_TMB ) );
 	} // if( (*dmb)->GetHardwareVersion() == 2 )
 	sleep(1);
 
@@ -1185,25 +1181,7 @@ void emu::step::Test::configure_16(){
     for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
       
       if( (*dmb)->GetHardwareVersion() == 2 ){
-	int slot_number  = (*dmb)->slot();
-	// the arguments for vme_controller //
-	char rcv[2];
-	unsigned int addr;
-	unsigned short int data;
-	int irdwr;
-	// kill alct/tmb
-	// all cfebs active	 
-	irdwr = 3;
-	addr = (0x00401c)| slot_number<<19;	
-	data = kill_ALCT | kill_TMB;			
-	(*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
-	// set ODMB to PEDESTAL mode
-	irdwr = 3;
-        int odmb_fw_vers = ((*dmb)->odmb_firmware_version() / 0x100);
-        addr = (odmb_fw_vers >= 3) ? 0x003400 : 0x003000;
-        addr = addr | slot_number<<19;
-        data = (odmb_fw_vers >= 3) ? 0x01 : 0x2000;
-        (*crate)->vmeController()->vme_controller(irdwr,addr,&data,rcv);
+	setUpODMBPulsing( *dmb, ODMBPedestalMode, ODMBInputKill_t( kill_ALCT | kill_TMB ) );
       } // if( (*dmb)->GetHardwareVersion() == 2 )
       sleep(1);
       
