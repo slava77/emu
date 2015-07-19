@@ -988,7 +988,7 @@ throw (toolbox::fsm::exception::Exception)
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "Checking status of DDU in crate " << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot());
 
 			uint16_t fmmReg = (*iDDU)->readFMM();
-			if ((!(*iCrate)->isTrackFinder() && fmmReg != (0xFED0)) || fmmReg & 0xF != 0) {
+			if (!(*iCrate)->isTrackFinder() && ((fmmReg >> 4) != 0xFED)) {  // requre that fmmReg be 0xFED* (least-significant hex digit can be anything)  
 				std::ostringstream error;
 				error << "FMM register is wrong.  Got " << std::hex << fmmReg << " for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot();
 				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
