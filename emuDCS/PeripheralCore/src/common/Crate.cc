@@ -620,6 +620,11 @@ int Crate::configure(int c, int ID) {
       myDmbs[i]->configure();
     }
   }
+
+  // Liu July-20,2015: add one Hard-Reset at the end, make sure all FPGAs are configured from flash memory
+  ccb->hardReset();
+  ::sleep(1);
+
   return 0;
   //  
 }
