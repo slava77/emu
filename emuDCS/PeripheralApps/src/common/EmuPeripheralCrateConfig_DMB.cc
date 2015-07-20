@@ -2399,7 +2399,7 @@ void EmuPeripheralCrateConfig::DMBLoadFirmware(xgi::Input * in, xgi::Output * ou
     int hversion=thisDMB->GetHardwareVersion();
     if(hversion<=1)
     {
-    thisCCB->hardReset();
+//    thisCCB->hardReset();
     //
     std::cout << "DMBLoadFirmware in slot " << thisDMB->slot() << std::endl;
     if (thisDMB->slot()==25) std::cout <<" Broadcast Loading the control FPGA insode one crate"<<std::endl;
@@ -2412,8 +2412,8 @@ void EmuPeripheralCrateConfig::DMBLoadFirmware(xgi::Input * in, xgi::Output * ou
     //char *name = DMBFirmware_.toString().c_str() ;
     thisDMB->epromload(MPROM,DMBFirmware_.toString().c_str(),1,outp);  // load mprom
     //
-    ::sleep(5);
-    thisCCB->hardReset();
+    ::sleep(1);
+//    thisCCB->hardReset();
     }
     else if(hversion==2)
     {
@@ -2582,7 +2582,7 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmware(xgi::Input * in, xgi::Output *
     maxdmb = dmbVector.size()-1;
   }
   //
-  thisCCB->hardReset();
+//  thisCCB->hardReset();
   //
   for (dmb=mindmb; dmb<maxdmb; dmb++) {
     //
@@ -2592,7 +2592,7 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmware(xgi::Input * in, xgi::Output *
       //
       std::cout << "DMBVmeLoadFirmware in slot " << thisDMB->slot() << std::endl;
       //
-      ::sleep(1);
+//      ::sleep(1);
       //
       unsigned short int dword[2];
       dword[0]=thisDMB->mbpromuser(0);
@@ -2609,7 +2609,7 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmware(xgi::Input * in, xgi::Output *
     //
   }
   ::sleep(1);
-  thisCCB->hardReset(); //disable this when testing the random_trigger
+//  thisCCB->hardReset(); //disable this when testing the random_trigger
   //
   this->DMBUtils(in,out);
   //
@@ -2647,7 +2647,7 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency(xgi::Input * in, xgi:
     return;
   }
   //
-  thisCCB->hardReset();
+//  thisCCB->hardReset();
   if (thisDMB) {
     //
     std::cout << "DMB Vme Load Firmware Emergency in slot " << thisDMB->slot() << std::endl;
@@ -2669,7 +2669,7 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency(xgi::Input * in, xgi:
     thisDMB->epromload(RESET,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
   }
   ::sleep(1);
-  thisCCB->hardReset();
+//  thisCCB->hardReset();
   //
   this->DMBUtils(in,out);
   //
