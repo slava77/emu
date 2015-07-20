@@ -38,7 +38,7 @@ void DDU::Fill(char *buffer, int source)
 //       ==1  from file
 //
    int idx=0, i;
-   char *start = buffer, *item, *sep = " ";
+   char *start = buffer, *item; const char *sep = " ";
    char *last=NULL;
    float y;
 

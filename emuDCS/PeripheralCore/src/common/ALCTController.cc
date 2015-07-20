@@ -1108,7 +1108,7 @@ int ALCTController::GetSlowControlVersionId() {
 }
 //
 int ALCTController::GetSlowControlYear() { 
-  return ((read_slowcontrol_id_[2]<<8) | read_slowcontrol_id_[1]&0xff); 
+  return ((read_slowcontrol_id_[2]<<8) | (read_slowcontrol_id_[1]&0xff)); 
 }
 //
 int ALCTController::GetSlowControlDay() { 
@@ -1474,7 +1474,7 @@ void ALCTController::WriteAfebThresholds() {
     // ..... and the DAC channel through TDI, again using the correct AFEB indexing 
     // (N.B. the Get..DAC() method already will access the correct threshold)
     int data_to_send = 
-      ( (afeb_dac_channel[UserIndexToHardwareIndex_(afebChannel)]<<8) & 0xf00 ) | GetAfebThresholdDAC(afebChannel) & 0xff;
+      ( (afeb_dac_channel[UserIndexToHardwareIndex_(afebChannel)]<<8) & 0xf00 ) | (GetAfebThresholdDAC(afebChannel) & 0xff);
     if (debug_)
       (*MyOutput_) << "User AFEB" << std::dec << afebChannel 
 		   << " writes to hardware AFEB " << UserIndexToHardwareIndex_(afebChannel)
@@ -1834,7 +1834,7 @@ void ALCTController::ReadStandbyRegister_() {
 void ALCTController::PrintStandbyRegister_() {
   //
   const int buffersize = RegSizeAlctSlowFpga_RD_STANDBY_REG/8;
-  char tempBuffer[buffersize] = {};
+  char tempBuffer[buffersize+1] = {}; //SK: minimize line changes; code below already assumes it's 42-bit input
   tmb_->packCharBuffer(read_standby_register_,
 		       RegSizeAlctSlowFpga_RD_STANDBY_REG,
 		       tempBuffer);

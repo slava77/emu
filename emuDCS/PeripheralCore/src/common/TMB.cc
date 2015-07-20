@@ -1238,14 +1238,14 @@ void TMB::ReadBackMpcRAM(int nEvents){
     ramAdd = (evtId<<8);
     //
     sndbuf[0] = ((ramAdd)>>8)&0xff ;
-    sndbuf[1] = (ramAdd)&0xff | (0x1<<4) ;
+    sndbuf[1] = ((ramAdd)&0xff) | (0x1<<4) ;
     tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
     //
     tmb_vme(VME_READ,mpc_ram_rdata_adr,sndbuf,rcvbuf,NOW);
     unsigned long int rlct01 = ((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff) ;
     //
     sndbuf[0] = ((ramAdd)>>8)&0xff ;
-    sndbuf[1] = (ramAdd)&0xff | (0x1<<5) ;
+    sndbuf[1] = ((ramAdd)&0xff) | (0x1<<5) ;
     tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
     //
     tmb_vme(VME_READ,mpc_ram_rdata_adr,sndbuf,rcvbuf,NOW);
@@ -1256,14 +1256,14 @@ void TMB::ReadBackMpcRAM(int nEvents){
     //
     //
     sndbuf[0] = ((ramAdd)>>8)&0xff ;
-    sndbuf[1] = (ramAdd)&0xff | (0x1<<6) ;
+    sndbuf[1] = ((ramAdd)&0xff) | (0x1<<6) ;
     tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
     //
     tmb_vme(VME_READ,mpc_ram_rdata_adr,sndbuf,rcvbuf,NOW);
     unsigned long int rlct11 = ((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff) ;
     //
     sndbuf[0] = ((ramAdd)>>8)&0xff ;
-    sndbuf[1] = (ramAdd)&0xff | (0x1<<7) ;
+    sndbuf[1] = ((ramAdd)&0xff) | (0x1<<7) ;
     tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
     //
     tmb_vme(VME_READ,mpc_ram_rdata_adr,sndbuf,rcvbuf,NOW);
@@ -1286,7 +1286,7 @@ void TMB::FireMPCInjector(int nEvents){
   sndbuf[1] = nEvents & 0xff;
   tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
   //
-  sndbuf[0] = rcvbuf[0] & 0xfe | 0x1 ; // Fire injector
+  sndbuf[0] = (rcvbuf[0] & 0xfe) | 0x1 ; // Fire injector
   sndbuf[1] = nEvents & 0xff;
   tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
   //
@@ -1739,7 +1739,7 @@ void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
 
   unsigned long int scope_ram[256][nrams];
   int scp_raw_data[nbits];
-  char *scope_ch[256];
+  const char *scope_ch[256];
   int scope_raw_decode = 1;
 
   unsigned long int runstop;
@@ -3423,8 +3423,8 @@ void TMB::mpc_delay(unsigned short int time)
    printf("*** Inside.MPC delay %d \n", time);
    //
    printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-   sndbuf[0] = (rcvbuf[0] & 0xfe | (time & 0x8)>>3) & 0xff;
-   sndbuf[1] = (rcvbuf[1] & 0x1f | (time & 0x7)<<5) & 0xff;
+   sndbuf[0] = ( (rcvbuf[0] & 0xfe) | ((time & 0x8)>>3) ) & 0xff;
+   sndbuf[1] = ( (rcvbuf[1] & 0x1f) | ((time & 0x7)<<5) ) & 0xff;
    printf("Setting address 0x86 to %x %x\n",sndbuf[0]&0xff,sndbuf[1]&0xff);
    tmb_vme(VME_WRITE,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Write Trigger conf
    //
@@ -3434,7 +3434,7 @@ int TMB::GetWordCount(){
   //
   tmb_vme(VME_READ,dmb_wdcnt_adr,sndbuf,rcvbuf,NOW);
   //
-  return ( rcvbuf[1]&0xff | (rcvbuf[0]&0xf)>>8);
+  return ( (rcvbuf[1]&0xff) | ((rcvbuf[0]&0xf)>>8) );
   //
 }
 //
@@ -3854,9 +3854,9 @@ void TMB::UnjamFPGAMini() {
   //
   // Pick the chain according to bits [6:3].  Use the bootstrap register (bit[7]=1)
   const int tmb_mezz_chain  = 0x00a0;
-  const int alct_jtag_chain = 0x0080;
-  const int tmb_user_chain  = 0x00c0;
-  const int tmb_fpga_chain  = 0x00e0;
+  //SK: unused:  const int alct_jtag_chain = 0x0080;
+  //SK: unused:  const int tmb_user_chain  = 0x00c0;
+  //SK: unused:  const int tmb_fpga_chain  = 0x00e0;
   // read TMB boot register
   unsigned short int bootRegValue = 0;
   tmb_get_boot_reg(&bootRegValue);
@@ -9651,7 +9651,7 @@ int TMB::GetHotChannelDistripFromMap_(unsigned long int vme_address, int bit_in_
 int TMB::DCSreadAll(char *data) 
 {
   char out[2];
-  unsigned short tt, tr, sysm[6];
+  unsigned short tt, tr; //SK: unused: , sysm[6];
 
   if(checkvme_fail()) return 0;
   start(6,1);
@@ -9762,7 +9762,7 @@ int TMB::DCSvoltages(char *databuf)
      for(int i=6; i>=0; i--)
      {
          bits <<= 1;
-         bits |= (1-(adc_out[i]>>gtx_rx_link_good_bitlo)&1);  /* inverse bit: 0-good, 1-bad */
+         bits |= (1 - ((adc_out[i]>>gtx_rx_link_good_bitlo)&1) );  /* inverse bit: 0-good, 1-bad */
      }
      memcpy(databuf+total_chips*2, &bits, 2);
      extrabytes=2;

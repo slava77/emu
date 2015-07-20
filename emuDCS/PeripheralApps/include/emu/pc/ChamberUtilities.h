@@ -142,9 +142,10 @@ public:
     int cfeb_rx_posneg;
     int cfeb_rx_clock_delay;
     
+    int cfeb_clock_phase;
+
     int cfeb_mask;
     
-    int cfeb_clock_phase;
     inline CFEBTiming_Configuration():
       cfeb_pipeline_depth(0),
       dac(0),
@@ -173,7 +174,6 @@ public:
       cfeb_pipeline_depth(o.cfeb_pipeline_depth),
       dac(o.dac),
       comp_thresh(o.comp_thresh),
-      tmb_internal_l1a(o.tmb_internal_l1a),
       clct_pattern_trig_en(o.clct_pattern_trig_en),
       clct_ext_trig_en(o.clct_ext_trig_en),
       tmb_allow_clct(o.tmb_allow_clct),
@@ -185,6 +185,7 @@ public:
       fifo_tbins(o.fifo_tbins),
       fifo_pretrig(o.fifo_pretrig),
       fifo_no_hits_raw(o.fifo_no_hits_raw),
+      tmb_internal_l1a(o.tmb_internal_l1a),
       ccb_ext_trig_delay(o.ccb_ext_trig_delay),
       tmb_l1a_delay(o.tmb_l1a_delay),
       cfeb_rx_posneg(o.cfeb_rx_posneg),
@@ -202,12 +203,12 @@ public:
 
   inline bool CFEBTiming_CheckConfiguration(const CFEBTiming_Configuration & orig); 
 
-  inline void ConfigureTMB(const CFEBTiming_Configuration & config, int * cfeb_tof_delay);
+  void ConfigureTMB(const CFEBTiming_Configuration & config, int * cfeb_tof_delay);
   inline void ConfigureTMB(const CFEBTiming_Configuration & config) {	  
     return ConfigureTMB(config, NULL);
   }
 
-  inline void CFEBTiming_ConfigureLevel(CFEBTiming_Configuration & config, int level, int after);
+  void CFEBTiming_ConfigureLevel(CFEBTiming_Configuration & config, int level, int after);
   inline void CFEBTiming_ConfigureLevel(CFEBTiming_Configuration & config, int level) {
     return CFEBTiming_ConfigureLevel(config, level, false);
   }

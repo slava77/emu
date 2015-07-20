@@ -5169,7 +5169,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td().set("ALIGN", "left") << std::endl;
   *out << cgicc::select().set("name", "cfeb_num") << std::endl;
   *out << cgicc::option().set("value", toolbox::toString("%d", -1)) << "Scan" << cgicc::option() << std::endl;
-  for(int i=0; i<thisDMB->cfebs_.size(); ++i) *out << cgicc::option().set("value", toolbox::toString("%d", i)) << i << cgicc::option() << std::endl;
+  for(int i=0, ncfebs=thisDMB->cfebs_.size(); i<ncfebs; ++i) *out << cgicc::option().set("value", toolbox::toString("%d", i)) << i << cgicc::option() << std::endl;
   *out << cgicc::select() << std::endl;
   *out << cgicc::td();
   *out << cgicc::td().set("ALIGN", "left") << std::endl;
@@ -6813,7 +6813,7 @@ void EmuPeripheralCrateConfig::PipelineDepthScan( xgi::Input * in, xgi::Output *
 		      words[iWord%loneWordLength] = (*dmb)->odmb_read_tx_word();
 		      if ( (iWord%loneWordLength) + 1 == loneWordLength ){
 			bool isLoneWord = true;
-			for ( int i=0; i<loneWordLength; ++i ) isLoneWord &= ( words[i] & 0xf000 == 0x8000 );
+			for ( int i=0; i<loneWordLength; ++i ) isLoneWord &= ( (words[i] & 0xf000) == 0x8000 );
 			if ( !isLoneWord ){
 			  for ( int i=0; i<loneWordLength; ++i ) file.write( (char*)( words+i ), sizeof( unsigned short int ) );
 			}
@@ -7752,7 +7752,7 @@ void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out)
   }
   //
   bool is_all = false;
-  int fiber_num;
+  int fiber_num = 0;
   if (fiber == "all") {
     is_all = true;
   } else {
@@ -7797,7 +7797,7 @@ void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out)
   }
 
   thisTMB->ReadRegister(v6_gtx_rx_all_adr);
-  for (int i = 0; i < TMB_N_FIBERS; ++i) {
+  for (unsigned int i = 0; i < TMB_N_FIBERS; ++i) {
     unsigned long int adr = v6_gtx_rx0_adr + (unsigned long int) (2 * i);
     thisTMB->ReadRegister(adr);
   }

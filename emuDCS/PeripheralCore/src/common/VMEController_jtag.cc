@@ -56,7 +56,7 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
   idev=geo[dev].jchan;
   }else{
     idev=idevo;
-    if(idev>4&idev!=11)return;
+    if(idev>4 && idev!=11)return;
   }
   // printf(" enter devdo %d %d \n",dev,idev);
   if (DEBUG) {
@@ -347,7 +347,7 @@ if(idev<=4||idev==11){
  case 3: /* jtag motherboard prom */
    if(ncmd==-99){sleep_vme(cmd);break;}   
    if(ncmd<0){RestoreIdle();break;}
-   if(ncmd>0&nbuf>0){
+   if(ncmd>0 && nbuf>0){
      scan(INSTR_REG,cmd2,ncmd2,outbuf,0);
    }else{
      scan(INSTR_REG,cmd2,ncmd2,outbuf,irdsnd);
@@ -1146,7 +1146,7 @@ unsigned int ptr;
    for(j=0;j<16;j++){
       ival=*data>>j;
       ival2=ival&0x01;
-      if(i!=byte-1|bit!=0|j!=15){
+      if(i!=byte-1 || bit!=0 || j!=15){
         if(ival2==0){vme_controller(1,ptr,x00,rcv);sdly();}
         if(ival2==1){vme_controller(1,ptr,x02,rcv);sdly();}
       }else{
@@ -1221,7 +1221,7 @@ unsigned int ptr;
    for(j=0;j<16;j++){
       ival=*data>>j;
       ival2=ival&0x01;
-      if(i!=byte-1|bit!=0|j!=15){
+      if(i!=byte-1 || bit!=0 || j!=15){
         if(ival2==0){vme_controller(1,ptr,x00,rcv);sdly();}
         if(ival2==1){vme_controller(1,ptr,x02,rcv);sdly();}
       }else{
@@ -1548,7 +1548,7 @@ void VMEController::new_devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,cons
   idev=geo[dev].jchan;
   }else{
     idev=idevo;
-    if(idev>4&idev!=11)return;
+    if(idev>4 && idev!=11)return;
   }
   // printf(" enter devdo %d %d \n",dev,idev);
 

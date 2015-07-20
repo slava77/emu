@@ -15,7 +15,7 @@ const std::multimap<std::string, std::string> emu::fed::DCCDebugger::FMMStatus(c
 {
 	// Only read the low 5 bits
 	std::multimap<std::string, std::string> returnMe;
-	if (0xf & stat == 0xc) returnMe.insert(std::make_pair("error", "Error")); // used to be 3
+	if ( (0xf & stat) == 0xc) returnMe.insert(std::make_pair("error", "Error")); // used to be 3
 	else if (0x4 & stat) returnMe.insert(std::make_pair("caution", "Busy")); // used to be 1
 	else if (0x8 & stat) returnMe.insert(std::make_pair("ok", "Ready")); // used to be 2
 	else if (0x1 & stat) returnMe.insert(std::make_pair("warning", "Warning")); // used to be 4
@@ -37,7 +37,7 @@ const std::multimap<std::string, std::string> emu::fed::DCCDebugger::FMM(const u
 	for (unsigned int i = 0; i < 3; ++i) {
 		const uint16_t myStat = (stat >> (i * 5));
 		const std::string name = names[i];
-		if (0xf & myStat == 0xc) returnMe.insert(std::make_pair("error", name + " Error")); // used to be 3
+		if ( (0xf & myStat) == 0xc) returnMe.insert(std::make_pair("error", name + " Error")); // used to be 3
 		else if (0x4 & myStat) returnMe.insert(std::make_pair("caution", name + " Busy")); // used to be 1
 		else if (0x8 & myStat) returnMe.insert(std::make_pair("ok", name + " Ready")); // used to be 2
 		else if (0x1 & myStat) returnMe.insert(std::make_pair("warning", name + " Warning")); // used to be 4

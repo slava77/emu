@@ -1451,7 +1451,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   xdata::Vector<xdata::Float> *dcsdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
   if(dcsdata==NULL || dcsdata->size()==0) return;
   bool dcfebok=true;
-  xdata::Vector<xdata::Float> *dcfebdata;
+  xdata::Vector<xdata::Float> *dcfebdata(0);
   if(DHversion>=2)
   {
      dcfebdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCFEBmons"));

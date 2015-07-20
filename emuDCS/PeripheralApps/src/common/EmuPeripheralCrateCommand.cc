@@ -1048,7 +1048,7 @@ xoap::MessageReference EmuPeripheralCrateCommand::onEnableCalALCTDelays (xoap::M
 // macro to fill the parameter map
 #define map_add(tnum, parname) map##tnum[#parname] = &(tcs->t##tnum.parname)
 
-int EmuPeripheralCrateCommand::read_test_config(char* xmlFile, test_config_struct * tcs) 
+int EmuPeripheralCrateCommand::read_test_config(const char* xmlFile, test_config_struct * tcs) 
 {
 	char* step_path_ch = getenv("HOME");
 	if (step_path_ch == NULL) return -1;

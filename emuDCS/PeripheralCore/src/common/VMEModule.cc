@@ -1424,7 +1424,7 @@ int VMEModule::read_mcs(char *binbuf, FILE *finp)
 {
    unsigned ext_add, loc_add, dsize, current_ext=0, current_add, index, i;
    char buf[1024], addbuf[5]={0,0,0,0,0}, lenbuf[3]={0,0,0};
-   int finish=0, segmented=0, lines=0, chksum, crc, n, c;
+   int finish=0, segmented=0, lines=0, chksum, crc, c; //SK: unused:, n;
    int total_read=0;
 
    rewind(finp);
