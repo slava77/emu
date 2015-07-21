@@ -11199,7 +11199,8 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
   able_to_load_alct[tmb] = -1;
   //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
-  thisCCB->setCCBMode(CCB::VMEFPGA);
+  // Liu July-20,2015: commented out the following line to allow ALCT firmware loading during data taking
+  //  thisCCB->setCCBMode(CCB::VMEFPGA);
   //
   LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware");
   //
@@ -11238,7 +11239,8 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
   }
   //
   // Put CCB back into DLOG mode to listen to TTC commands...
-  thisCCB->setCCBMode(CCB::DLOG);
+  // Liu July-20,2015: commented out the following line to allow ALCT firmware loading during data taking
+  // thisCCB->setCCBMode(CCB::DLOG);
   //
   this->TMBUtils(in,out);
   //
