@@ -398,10 +398,11 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
               //  {
                    now_crate->vmeController()->reset();
                    vcc_reset[i] = vcc_reset[i] + 1;
-                   ::sleep(1);
+                   ::usleep(300000);
                    // cr = (now_crate->vmeController()->SelfTest()) && (now_crate->vmeController()->exist(13));
                    // now_crate->SetLife( cr );
                    now_crate->SetLife( true );
+                   now_crate->vmeController()->SetLife(true);
                    // continue;  // skip this round of reading if the VCC has been reloaded
               //  }
           }
@@ -3382,9 +3383,15 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
      if(problem_readings>5)
      {   // too many reading errors, probably VCC problem
          std::cout << " Reading Errors: " << problem_readings << " in Crate: " << crateVector[i]->GetLabel() << std::endl;
-         crateVector[i]->vmeController()->reset();
-         vcc_reset[i] = vcc_reset[i] + 1;
-         std::cout << crateVector[i]->GetLabel() << " controller FPGA reloaded." << std::endl;
+         if(reload_vcc)
+         {
+            crateVector[i]->vmeController()->reset();
+            ::usleep(300000);
+            crateVector[i]->SetLife( true );
+            crateVector[i]->vmeController()->SetLife(true);
+            vcc_reset[i] = vcc_reset[i] + 1;
+            std::cout << crateVector[i]->GetLabel() << " controller FPGA reloaded." << std::endl;
+         }
      }
   }  // end of crate loop
 
