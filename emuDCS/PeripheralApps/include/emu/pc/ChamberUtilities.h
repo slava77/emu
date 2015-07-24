@@ -274,6 +274,9 @@ public:
   /// number of seconds to wait (sec) at each delay value setting
   inline void setPauseAtEachSetting(int pause) { pause_at_each_setting_ = pause; }
   inline int getPauseAtEachSetting() { return pause_at_each_setting_; }
+
+  inline void setL1aDelayIncrement(int increment) { l1a_delay_increment_ = increment; }
+  inline int  getL1aDelayIncrement() { return l1a_delay_increment_; }
   //
   /// Winner bits from MPC -> TMB
   int FindWinner();                          /// Use cosmic rays/pulsing from TTC
@@ -492,7 +495,8 @@ private:
   int min_alct_l1a_delay_value_;
   int max_alct_l1a_delay_value_;
   int min_tmb_l1a_delay_value_; 
-  int max_tmb_l1a_delay_value_; 
+  int max_tmb_l1a_delay_value_;
+  int l1a_delay_increment_;
   int pause_at_each_setting_;
   int pause_between_data_reads_;
   int number_of_data_reads_;

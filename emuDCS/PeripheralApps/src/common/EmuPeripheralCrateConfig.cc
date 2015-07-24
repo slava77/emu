@@ -5411,6 +5411,9 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << "Pause at each setting (sec)" << std::endl;
   sprintf(buf,"%d",MyTest[tmb][current_crate_].getPauseAtEachSetting());
   *out << cgicc::input().set("type","text").set("value",buf).set("name","time_to_pause") << std::endl ;
+  *out << "Increment L1A delay by" << std::endl;
+  sprintf(buf,"%d",MyTest[tmb][current_crate_].getL1aDelayIncrement());
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","l1a_delay_increment") << std::endl ;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   sprintf(buf,"%d",dmb);
@@ -6880,12 +6883,14 @@ void EmuPeripheralCrateConfig::setTMBCounterReadValues(xgi::Input * in, xgi::Out
   cgicc::form_iterator name4 = cgi.getElement("alct_l1a_delay_min");
   cgicc::form_iterator name5 = cgi.getElement("alct_l1a_delay_max");
   cgicc::form_iterator name6 = cgi.getElement("time_to_pause");
+  cgicc::form_iterator name7 = cgi.getElement("l1a_delay_increment");
   //
   int tmb_l1a_delay_min  = 100;
   int tmb_l1a_delay_max  = 101;
   int alct_l1a_delay_min = 102;
   int alct_l1a_delay_max = 103;
   int time_to_pause      = 11;
+  int l1a_delay_increment = 1;
   //
   if(name2 != cgi.getElements().end()) 
     tmb_l1a_delay_min = strtol(cgi["tmb_l1a_delay_min"]->getValue().c_str(),NULL,10);
@@ -6897,6 +6902,8 @@ void EmuPeripheralCrateConfig::setTMBCounterReadValues(xgi::Input * in, xgi::Out
     alct_l1a_delay_max = strtol(cgi["alct_l1a_delay_max"]->getValue().c_str(),NULL,10);
   if(name6 != cgi.getElements().end()) 
     time_to_pause = strtol(cgi["time_to_pause"]->getValue().c_str(),NULL,10);
+  if(name7 != cgi.getElements().end()) 
+    l1a_delay_increment = strtol(cgi["l1a_delay_increment"]->getValue().c_str(),NULL,10);
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
@@ -6924,6 +6931,7 @@ void EmuPeripheralCrateConfig::setTMBCounterReadValues(xgi::Input * in, xgi::Out
   MyTest[tmb][current_crate_].setMinTmbL1aDelayValue(tmb_l1a_delay_min);
   MyTest[tmb][current_crate_].setMaxTmbL1aDelayValue(tmb_l1a_delay_max);
   MyTest[tmb][current_crate_].setPauseAtEachSetting(time_to_pause);
+  MyTest[tmb][current_crate_].setL1aDelayIncrement(l1a_delay_increment);
   //
   this->ChamberTests(in,out);
   //

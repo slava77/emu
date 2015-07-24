@@ -412,6 +412,7 @@ ChamberUtilities::ChamberUtilities(){
   pause_between_data_reads_ = 10000; // default number of microseconds to wait between data reads
   number_of_data_reads_     = 100;    // default number of data reads
   //
+  l1a_delay_increment_      = 1;
   pause_at_each_setting_    = 1;     // default number of seconds to wait at each delay value
   min_alct_l1a_delay_value_ = 134;
   max_alct_l1a_delay_value_ = 175;
@@ -6678,7 +6679,7 @@ int ChamberUtilities::FindTmbAndAlctL1aDelay(){
   //
   int range = ((alct_delay_max-alct_delay_min) > (tmb_delay_max-tmb_delay_min)) ? (alct_delay_max-alct_delay_min) : (tmb_delay_max-tmb_delay_min);
   //
-  for (int delay=0; delay<=range; delay++){
+  for (int delay=0; delay<=range; delay+=l1a_delay_increment_){
     //
     tmb_delay_value  = tmb_delay_min  + delay;
     alct_delay_value = alct_delay_min + delay;
@@ -6814,7 +6815,7 @@ int ChamberUtilities::FindTMB_L1A_delay(int delay_min, int delay_max){
   //
   int tmb_in_l1a_window[255] = {}; memset(tmb_in_l1a_window, 0, sizeof(tmb_in_l1a_window));
   //
-  for (int delay=delay_min; delay<=delay_max; delay++){
+  for (int delay=delay_min; delay<=delay_max; delay+=l1a_delay_increment_){
     //
     if (debug_) std::cout << "Set tmb_l1a_delay = " << std::dec << delay;
     thisTMB->SetL1aDelay(delay);
@@ -6904,7 +6905,7 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
   //
   int ALCT_l1a_accepted[256] = {}; memset(ALCT_l1a_accepted, 0, sizeof(ALCT_l1a_accepted));
   //
-  for (int delay=minlimit; delay<=maxlimit; delay++) {
+  for (int delay=minlimit; delay<=maxlimit; delay+=l1a_delay_increment_) {
     //
     if (debug_) std::cout << "Set alct_l1a_delay = " << std::dec << delay;
     alct->SetL1aDelay(delay);
