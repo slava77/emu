@@ -3305,7 +3305,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         if (chamber_off) ch_state |= 2;
         else if (!gooddata) ch_state |= 4;
         else if (crateok==0) ch_state |= 8;
-        else if ((good_chamber & (1<<j))==0) ch_state |= 16;
+//        else if ((good_chamber & (1<<j))==0) ch_state |= 16;
 
         // the module which probably caused reading trouble
         if(gooddata && ch_state>0 && bad_module==j+1) ch_state |= 64;
@@ -3640,7 +3640,8 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         *out << " -50" << std::endl;  // as end-of-line marker
         upgraded++;
      }  // end of chamber loop
-     if(problem_readings>2)  crateVector[i]->SetLife(false);  // too many reading errors, probably VCC problem
+//     if(problem_readings>2)  crateVector[i]->SetLife(false);
+// too many reading errors, probably VCC problem
   }  // end of crate loop
 
 }
