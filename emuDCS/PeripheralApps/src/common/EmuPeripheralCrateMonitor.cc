@@ -390,7 +390,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
           }
                                                                                    
           // begin: reload VCC's FPGA (F9)
-          if(cycle>1 && reload_vcc && !(now_crate->IsAlive()))
+          if(cycle==2 && reload_vcc && !(now_crate->IsAlive()))
           {
               // reload FPGA without first check controller
               //  int cr = now_crate->CheckController();
@@ -398,7 +398,8 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
               //  {
                    now_crate->vmeController()->reset();
                    vcc_reset[i] = vcc_reset[i] + 1;
-                   ::usleep(300000);
+                   std::cout << now_crate->GetLabel() << " controller FPGA reloaded at " << getLocalDateTime() << std::endl;
+                   ::usleep(1000000);
                    // cr = (now_crate->vmeController()->SelfTest()) && (now_crate->vmeController()->exist(13));
                    // now_crate->SetLife( cr );
                    now_crate->SetLife( true );
@@ -2329,7 +2330,7 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
 	*out <<cgicc::td();
 	*out <<cgicc::td();
 
-        if(crateVector[idx]->IsAlive()) 
+        if((!crate_off[idx]) && crateVector[idx]->IsAlive()) 
            *out << cgicc::span().set("style","color:green") << "On " << cgicc::span();
         else 
            *out << cgicc::span().set("style","color:red") << "Off" << cgicc::span();
@@ -3181,7 +3182,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
            //      10 (val  1024):  chamber lost Digital power 
 
   unsigned int readtime;
-  unsigned short crateok, good_chamber=0, ccbtag, csra2, csra3;
+  unsigned short crateok, good_chamber=0, good_tmbchamber=0, ccbtag, csra2, csra3;
   unsigned short mpcreg0, mpcreg1=0, mpcreg2=0, mpcreg3=0;
   float val, V7;
   std::vector<DAQMB*> myVector;
@@ -3260,6 +3261,9 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
      }
      else
      {  goodtmb=true;
+        xdata::UnsignedShort *counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("TMBchamber"));
+        if (counter16==NULL) good_tmbchamber= 0;
+           else good_tmbchamber = (*counter16);
      }
 
      xdata::Vector<xdata::UnsignedShort> *ccbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("CCBcounter"));
@@ -3305,10 +3309,13 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         if (chamber_off) ch_state |= 2;
         else if (!gooddata) ch_state |= 4;
         else if (crateok==0) ch_state |= 8;
-//        else if ((good_chamber & (1<<j))==0) ch_state |= 16;
+        else if ((good_chamber & (1<<j))==0) ch_state |= 16;
 
         // the module which probably caused reading trouble
         if(gooddata && ch_state>0 && bad_module==j+1) ch_state |= 64;
+
+        // if crate bit is already set, then don't set TMB bit
+        if( ((ch_state&8)==0) && ((good_tmbchamber & (1<<j))==0)) ch_state |= 128;  
 
         if((ch_state & 0x7F)==0) 
         {
@@ -3319,7 +3326,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
             V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+39];
             if(V7<3.0) ch_state |= 1024;
         }
-        if(ch_state&0xFDD) problem_readings++;   // possible reading error (exclude bits 3,8)
+        if(ch_state&0xFD8) problem_readings++;   // possible reading error (exclude bits 0-2,5)
         *out << " " << ch_state; 
         *out << " " << readtime << " " << ip;
 
@@ -3355,8 +3362,8 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         *out << std::setprecision(4) << std::fixed;
         for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
         {  
-           /* for error conditions on bits 0,2-8, don't send data */
-           if((ch_state & 0x1FD)==0)
+           /* for error conditions on bits 0-6,9-10, don't send data */
+           if((ch_state & 0x67F)==0)
            { 
               val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
               *out << " " << val;
@@ -3367,8 +3374,8 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
            }             
         }
         for(int k=0; k<TOTAL_TMB_VOLTAGES; k++) 
-        {  
-           if(goodtmb)
+        {  /* for error conditions on bits 3,5,7,8, don't TMB send data */
+           if(goodtmb && ((ch_state & 0x1A8)==0))
            { 
               val= (*tmbdata)[j*TOTAL_TMB_VOLTAGES+k];
               *out << " " << val;
@@ -3414,7 +3421,7 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
            //      10 (val  1024):  chamber lost Digital power 
 
   unsigned int readtime;
-  unsigned short crateok, good_chamber=0, ccbtag, csra2, csra3;
+  unsigned short crateok, good_chamber=0, good_tmbchamber=0, ccbtag, csra2, csra3;
   unsigned short mpcreg0, mpcreg1=0, mpcreg2=0, mpcreg3=0;
   float val, V7;
   std::vector<DAQMB*> myVector;
@@ -3497,10 +3504,13 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
      }
      else
      {  goodtmb=true;
+        xdata::UnsignedShort *counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("TMBchamber"));
+        if (counter16==NULL) good_tmbchamber= 0;
+           else good_tmbchamber = (*counter16);
      }
 
      xdata::Vector<xdata::Float> *febdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCFEBmons"));
-     if(tmbdata==NULL)
+     if(febdata==NULL)
      {  goodfeb=false;
      }
      else
@@ -3556,6 +3566,9 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         // the module which probably caused reading trouble
         if(gooddata && ch_state>0 && bad_module==j+1) ch_state |= 64;
 
+        // if crate bit is already set, then don't set TMB bit
+        if( ((ch_state&8)==0) && ((good_tmbchamber & (1<<j))==0)) ch_state |= 128;  
+
         if((ch_state & 0x7F)==0) 
         {
             /* Analog power */
@@ -3565,7 +3578,7 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
             V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+51];
             if(V7<3.0) ch_state |= 1024;
         }
-        if(ch_state&0xFDD) problem_readings++;   // possible reading error (exclude bits 3,8)
+        if(ch_state&0xFD8) problem_readings++;   // possible reading error (exclude bits 0-2,5)
         *out << " " << ch_state; 
 
         *out << " " << readtime << " " << ip;
@@ -3602,8 +3615,8 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         *out << std::setprecision(4) << std::fixed;
         for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
         {  
-           /* for error conditions on bits 0,2-8, don't send data */
-           if((ch_state & 0x1FD)==0)
+           /* for error conditions on bits 0-6,9-10, don't send data */
+           if((ch_state & 0x67F)==0)
            { 
               val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
               *out << " " << val;
@@ -3614,8 +3627,8 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
            }             
         }
         for(int k=0; k<TOTAL_TMB_VOLTAGES; k++) 
-        {  
-           if(goodtmb)
+        {  /* for error conditions on bits 3,5,7,8, don't send TMB data */
+           if(goodtmb && ((ch_state & 0x1A8)==0))
            { 
               val= (*tmbdata)[j*TOTAL_TMB_VOLTAGES+k];
               *out << " " << val;
@@ -3627,7 +3640,7 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         }
         for(int k=0; k<TOTAL_DCFEB_MONS; k++) 
         {  
-           if(goodfeb)
+           if(goodfeb && read_dcfeb && ((ch_state & 0x67F)==0))
            { 
               val= (*febdata)[upgraded*TOTAL_DCFEB_MONS+k];
               *out << " " << val;
