@@ -1745,7 +1745,6 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
   //SK: unused:  int CLCT1_bad_valid=0;
   
   int last_halfstrip[MaxCFEB]; for(int i=0; i<MaxCFEB; ++i) last_halfstrip[i] = -1;
-  int resyncCounter=0;
  
   for(int cfeb_phase = (is_cfeb_clock_phase_scan)?(0):(cfeb_clock_phase); 
       (is_cfeb_clock_phase_scan)?(cfeb_phase<MaxCFEBClockPhase):(cfeb_phase==cfeb_clock_phase) && (!done); 
@@ -1791,6 +1790,10 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
 	      std::ostream * temp_os = MyOutput_;
 	      //MyOutput_ = &out_file;
 	      
+	      thisCCB_->setCCBMode(CCB::VMEFPGA);
+	      thisCCB_->syncReset();
+	      thisCCB_->setCCBMode(CCB::DLOG);
+
 	      thisCCB_->bc0(); // Start triggering
 	      
 	      if(is_random_halfstrip)
@@ -1831,7 +1834,6 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
 	      bool good_hs = thisTMB->GetCLCT0keyHalfStrip() == (expected_key_hs);
 	      bool good_clct = good_hits && good_pattern && good_valid && good_hs;
 	     
-	      resyncCounter++; 
 	      if (!good_clct && thisTMB->GetCLCT1Valid()==1) {
 		
 		good_hits = (thisTMB->GetCLCT1Nhit() == expected_hit);
@@ -1890,12 +1892,6 @@ void ChamberUtilities::CFEBTiming_with_Posnegs_simple_routine(int time_delay, in
 	      last_halfstrip = thisTMB->GetCLCT0keyHalfStrip();
 	      
 	      ++uid;
-              if(resyncCounter%10==0){//resync every 10 pulses so OTMB doesn't block events
-                 thisCCB_->setCCBMode(CCB::VMEFPGA);
-                 thisCCB_->syncReset();
-                 thisCCB_->setCCBMode(CCB::DLOG);
-              }
-
 	    }//pulses
 	    usleep(10);
 	  }//hs			
