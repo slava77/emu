@@ -2009,21 +2009,24 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                                 }
                                             }
 
-                                          bool isDeadCompsChan = false;
-                                          for (int ch=1; ch <=32; ch++)
+                                          if (fCheckDeadComparatorsChannels)
                                             {
-                                              double ch_val = h->GetBinContent(ch+icfeb*32);
-                                              if (( ch<=3 && icfeb==0 ) || ( ch>=31  && (icfeb==(nCFEBs-1)) )
-                                                  || ( ME11 && ch<=3 && icfeb==4 ) || ( ME11 && ch>=31 && icfeb==3 )
-                                                  || ( ch<=3 && icfeb>0 && (badCFEBs[icfeb-1]==1))
-                                                  || ( ch>=31 && icfeb<(nCFEBs-1) && (badCFEBs[icfeb+1]==1)) ) continue;
-                                              if ( (nentries >= (40*32*nActiveCFEBs)) && (ch_val <= 0.05*avg_comp_ch_occupancy)
-                                                   && !isDeadLowComps && !isNoisyComps && !isNoisyCompsChan )
+                                              bool isDeadCompsChan = false;
+                                              for (int ch=1; ch <=32; ch++)
                                                 {
-                                                  std::string diag = Form("CFEB Dead Comparator channel: CFEB%d Layer%d Ch#%d HStrip%d",
-                                                                          icfeb+1, ilayer, ch, ch+icfeb*32);
-                                                  dqm_report.addEntry(cscName, entry.fillEntry(diag,MINOR, "CSC_CFEB_COMPARATORS_DEAD_CHANNEL"));
-                                                  isDeadCompsChan = true;
+                                                  double ch_val = h->GetBinContent(ch+icfeb*32);
+                                                  if (( ch<=3 && icfeb==0 ) || ( ch>=30  && (icfeb==(nCFEBs-1)) )
+                                                      || ( ME11 && ch<=3 && icfeb==4 ) || ( ME11 && ch>=30 && icfeb==3 )
+                                                      || ( ch<=3 && icfeb>0 && (badCFEBs[icfeb-1]==1))
+                                                      || ( ch>=30 && icfeb<(nCFEBs-1) && (badCFEBs[icfeb+1]==1)) ) continue;
+                                                  if ( (nentries >= (40*32*nActiveCFEBs)) && (ch_val <= 0.05*avg_comp_ch_occupancy)
+                                                       && !isDeadLowComps && !isNoisyComps && !isNoisyCompsChan )
+                                                    {
+                                                      std::string diag = Form("CFEB Dead Comparator channel: CFEB%d Layer%d Ch#%d HStrip%d",
+                                                                              icfeb+1, ilayer, ch, ch+icfeb*32);
+                                                      dqm_report.addEntry(cscName, entry.fillEntry(diag,MINOR, "CSC_CFEB_COMPARATORS_DEAD_CHANNEL"));
+                                                      isDeadCompsChan = true;
+                                                    }
                                                 }
                                             }
 
@@ -2092,21 +2095,24 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                                               }
                                           }
 
-                                        bool isDeadCompsChan = false;
-                                        for (int ch=1; ch <=32; ch++)
+                                        if (fCheckDeadComparatorsChannels)
                                           {
-                                            double ch_val = h->GetBinContent(ch+icfeb*32);
-                                            if ( ( ch<=3 && icfeb==0 ) || ( ch>=31  && icfeb==(nCFEBs-1) )
-                                                 || ( ME11 && ch<=3 && icfeb==4 ) || ( ME11 && ch>=31 && icfeb==3 )
-                                                 || ( ch<=3 && icfeb>0 && (badCFEBs[icfeb-1]==1) )
-                                                 || ( ch>=31 && icfeb<(nCFEBs-1) && (badCFEBs[icfeb+1]==1)) ) continue;
-                                            if ( (nentries >= (40*32*nActiveCFEBs)) && (ch_val <= 0.05*avg_comp_ch_occupancy)
-                                                 && !isDeadLowComps && !isNoisyComps && !isNoisyCompsChan)
+                                            bool isDeadCompsChan = false;
+                                            for (int ch=1; ch <=32; ch++)
                                               {
-                                                std::string diag = Form("CFEB Dead Comparator channel: CFEB%d Layer%d Ch#%d HStrip%d",
-                                                                        icfeb+1, ilayer, ch, ch+icfeb*32);
-                                                dqm_report.addEntry(cscName, entry.fillEntry(diag,MINOR, "CSC_CFEB_COMPARATORS_DEAD_CHANNEL"));
-                                                isDeadCompsChan = true;
+                                                double ch_val = h->GetBinContent(ch+icfeb*32);
+                                                if ( ( ch<=3 && icfeb==0 ) || ( ch>=30  && icfeb==(nCFEBs-1) )
+                                                     || ( ME11 && ch<=3 && icfeb==4 ) || ( ME11 && ch>=30 && icfeb==3 )
+                                                     || ( ch<=3 && icfeb>0 && (badCFEBs[icfeb-1]==1) )
+                                                     || ( ch>=30 && icfeb<(nCFEBs-1) && (badCFEBs[icfeb+1]==1)) ) continue;
+                                                if ( (nentries >= (40*32*nActiveCFEBs)) && (ch_val <= 0.05*avg_comp_ch_occupancy)
+                                                     && !isDeadLowComps && !isNoisyComps && !isNoisyCompsChan)
+                                                  {
+                                                    std::string diag = Form("CFEB Dead Comparator channel: CFEB%d Layer%d Ch#%d HStrip%d",
+                                                                            icfeb+1, ilayer, ch, ch+icfeb*32);
+                                                    dqm_report.addEntry(cscName, entry.fillEntry(diag,MINOR, "CSC_CFEB_COMPARATORS_DEAD_CHANNEL"));
+                                                    isDeadCompsChan = true;
+                                                  }
                                               }
                                           }
                                       }

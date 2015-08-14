@@ -24,6 +24,7 @@ void EmuPlotter::init()
   binCheckMask      = 0xFFFFFFFF;
   dduBinCheckMask     = 0x02080016;
   fCheckMapping = false;
+  fCheckDeadComparatorsChannels = false;
   reset();
 }
 
