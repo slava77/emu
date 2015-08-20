@@ -580,7 +580,6 @@ public:
   void EnableCLCTInputs(int CLCTInputs = 0x7f );
   void DisableCLCTInputs();
   void DisableALCTInputs();
-  void EnableCLCTsToTrigger(bool debug = false);
   //
   void DisableALCTCLCTSync();
   //
