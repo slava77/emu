@@ -731,6 +731,7 @@ private:
   bool print_config_check_output;
   char date_and_time_[13];
   //
+  bool showBPITools_;
 };
 
   } // namespace emu::pc
