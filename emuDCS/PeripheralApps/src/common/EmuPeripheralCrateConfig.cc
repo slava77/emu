@@ -450,7 +450,24 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBResetSyncError, "TMBResetSyncError");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBRawHits, "TMBRawHits");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTRawHits, "ALCTRawHits");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBLoadFirmware, "TMBLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBReadFirmware, "TMBReadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIReset, "TMBBPIReset");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIDisable, "TMBBPIDisable");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIEnable, "TMBBPIEnable");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIWrite, "TMBBPIWrite");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIRead, "TMBBPIRead");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIReadN, "TMBBPIReadN");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIStatus, "TMBBPIStatus");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPITimerRead, "TMBBPITimerRead");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromTimerReset, "TMBBPIPromTimerReset");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromTimerStop, "TMBBPIPromTimerStop");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromTimerStart, "TMBBPIPromTimerStart");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromClearStatus, "TMBBPIPromClearStatus");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromLoadAddress, "TMBBPIPromLoadAddress");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromBlockUnlock, "TMBBPIPromBlockUnlock");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromBlockErase, "TMBBPIPromBlockErase");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIPromBlockLock, "TMBBPIPromBlockLock");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTReadFirmware, "ALCTReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTSlowFirmware, "LoadALCTSlowFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadSpartan6ALCTFirmware, "LoadSpartan6ALCTFirmware");
@@ -619,6 +636,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   current_run_state_=0;
   total_crates_=0;
   this_crate_no_=0;
+
+  showBPITools_=false;
 
   prbs_test_ = false;
   brddb= new emu::db::BoardsDB();
@@ -9460,6 +9479,10 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::pre();
   *out << cgicc::fieldset();
   //
+  if (alct){
+    *out << cgicc::table().set("border", "0");
+    *out << cgicc::td().set("valign", "top");
+  }
   *out << cgicc::fieldset();
   *out << cgicc::legend("CLCT Info").set("style","color:blue") << std::endl ;
   *out << cgicc::pre();
@@ -9469,14 +9492,55 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   thisTMB->RedirectOutput(&std::cout);
   *out << cgicc::pre();
   *out << cgicc::fieldset();
+  if (alct) { 
+    *out << cgicc::td(); 
+  }
   //
   if (alct) {
+    *out << cgicc::td().set("valign", "top");
     *out << cgicc::fieldset();
     *out << cgicc::legend("ALCT Info").set("style","color:blue") << std::endl ;
     *out << cgicc::pre();
     thisTMB->RedirectOutput(out);
     thisTMB->DecodeALCT();
     thisTMB->PrintALCT();
+    thisTMB->RedirectOutput(&std::cout);
+    *out << cgicc::pre();
+    *out << cgicc::fieldset();
+    *out << cgicc::td(); 
+    *out << cgicc::table();
+  }
+  //
+  if(thisTMB->GetHardwareVersion() >= 2) {
+    *out << cgicc::fieldset();
+    *out
+      << cgicc::legend("LCT Info: Frames Sent to MPC").set("style", "color:blue")
+      << std::endl;
+    bool boxChecked = cgi.queryCheckbox("ShowMPCFIFOs");
+    *out << cgicc::form().set("method", "GET").set("action", "");
+    if (boxChecked ){
+      *out << cgicc::input().set("type", "checkbox").set("name", "ShowMPCFIFOs");
+    }
+    else {
+      *out << cgicc::input().set("type", "checkbox").set("checked","").set("name", "ShowMPCFIFOs");
+    }
+    *out << "Show MPC FIFOs";
+    *out << cgicc::input().set("type", "submit").set("value", "Select");
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl;
+    *out << cgicc::pre();
+    thisTMB->RedirectOutput(out);
+    // thisTMB->DecodeMPCFrames(); // Decode MPC frames for LAST trigger. VME registers: 0x88, 0x8a, 0x8c, 0x8e
+    // thisTMB->PrintMPCFrames();  // Print  MPC frames for LAST trigger. VME registers: 0x88, 0x8a, 0x8c, 0x8e
+    //
+    // thisTMB->DecodeMPCFramesFromFIFO(); // Decode MPC frames for ONE trigger from FIFO. VME registers: 0x17C, 0x17E, 0x180, 0x182
+    // thisTMB->PrintMPCFramesFromFIFO();  // Print  MPC frames for ONE trigger from FIFO. VME registers: 0x17C, 0x17E, 0x180, 0x182
+    //
+    int nEvt = cgi.queryCheckbox("ShowMPCFIFOs") ? 10 : 0;
+    thisTMB->DecodeAndPrintMPCFrames(nEvt); // Decode and print MPC frames for both cases:
+                      //   1. LAST trigger. VME registers: 0x88, 0x8a, 0x8c, 0x8e
+                      //   2. ONE trigger from FIFO. VME registers: 0x17C, 0x17E, 0x180, 0x182
     thisTMB->RedirectOutput(&std::cout);
     *out << cgicc::pre();
     *out << cgicc::fieldset();
@@ -10330,6 +10394,18 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() ;
   *out << cgicc::td();
   //
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  std::string TMBLoadFirmware = toolbox::toString("/%s/TMBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBLoadFirmware) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Load TMB firmware to PROM") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::br();
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << FirmwareDir_+"otmb/me11_otmb.mcs";
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
   //////////////////////////////////////////////
   *out << cgicc::tr();
   //
@@ -10346,6 +10422,239 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() ;
   *out << cgicc::td();
+  //
+  //////////////////////////////////////////////
+  //
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << cgicc::br();
+  *out << cgicc::td();
+  //
+  //////////////////////////////////////////////
+  //
+  *out << cgicc::tr();
+  *out << cgicc::td().set("ALIGN","left");
+  if (showBPITools_ &&  cgi.queryCheckbox("HideBPITools")) showBPITools_ = false;
+  if (!cgi.queryCheckbox("HideBPITools") && cgi.queryCheckbox("ShowBPITools")) showBPITools_ = true;
+  *out << cgicc::form().set("method", "GET").set("action", "");
+  if (showBPITools_ ){
+    *out << cgicc::input().set("type", "checkbox").set("checked","").set("name", "HideBPITools");
+    *out << "Hide BPI Tools";
+  }
+  else {
+    *out << cgicc::input().set("type", "checkbox").set("checked","").set("name", "ShowBPITools");
+    *out << "Show BPI Tools";
+  }
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::input().set("type", "submit").set("value", "Select");
+  *out << cgicc::form() << std::endl;
+  *out << cgicc::td();
+  *out << cgicc::tr();
+
+  if (showBPITools_){
+    //
+    *out << cgicc::td().set("ALIGN","left");
+    *out << "TMB BPI:";
+    *out << cgicc::td();
+    //
+    *out << cgicc::td().set("ALIGN","left");
+    *out << "Functions to access VME registers";
+    *out << cgicc::br();
+    *out << "defined for BPI:";
+    *out << cgicc::td();
+    //
+    *out << cgicc::td().set("ALIGN","left");
+    *out << "Sequence of commands to erase";
+    *out << cgicc::br();
+    *out << "first block in PROM:";
+    *out << cgicc::td();
+    //
+    *out << cgicc::tr();
+    //
+    *out << cgicc::td().set("ALIGN","left");
+    *out << cgicc::td();
+    //
+    *out << cgicc::td().set("ALIGN","left").set("VALIGN","top");
+    //
+    std::string TMBBPIReset = toolbox::toString("/%s/TMBBPIReset",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIReset) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI Reset") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() ;
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPIDisable = toolbox::toString("/%s/TMBBPIDisable",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIDisable) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI Disable Comand FIFO") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() ;
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPIEnable = toolbox::toString("/%s/TMBBPIEnable",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIEnable) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI Enable Command FIFO") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() ;
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPIWrite = toolbox::toString("/%s/TMBBPIWrite",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIWrite) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI Write to Command FIFO");
+    *out << cgicc::br();
+    *out << "Word 16 bits:" << std::endl;
+    *out << cgicc::input().set("type","text").set("value","0x0000").set("name","bpi_word_to_write") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() ;
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPIRead = toolbox::toString("/%s/TMBBPIRead",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIRead) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI Read (16 bits)") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() ;
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPIReadN = toolbox::toString("/%s/TMBBPIReadN",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIReadN) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI Read Number of Remaining Words") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() ;
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPIStatus = toolbox::toString("/%s/TMBBPIStatus",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIStatus) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI Status Read (16 bits)").set("style","color:red");
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form();
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPITimerRead = toolbox::toString("/%s/TMBBPITimerRead",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPITimerRead) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI Timer Read (32 bits)");
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form();
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td().set("ALIGN","left").set("VALIGN","top");
+    //
+    //
+    // std::string TMBBPIReset = toolbox::toString("/%s/TMBBPIReset",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIReset) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI Reset") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() ;
+    //
+    *out << cgicc::br();
+    //
+    // std::string TMBBPIEnable = toolbox::toString("/%s/TMBBPIEnable",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIEnable) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI Enable Command FIFO") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() ;
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPIPromTimerStop = toolbox::toString("/%s/TMBBPIPromTimerStop",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIPromTimerStop) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI PROM Timer Stop");
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form();
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPIPromTimerReset = toolbox::toString("/%s/TMBBPIPromTimerReset",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIPromTimerReset) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI PROM Timer Reset");
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form();
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPIPromTimerStart = toolbox::toString("/%s/TMBBPIPromTimerStart",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIPromTimerStart) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI PROM Timer Start");
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form();
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPIPromClearStatus = toolbox::toString("/%s/TMBBPIPromClearStatus",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIPromClearStatus) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI PROM Clear Status");
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form();
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPIPromLoadAddress = toolbox::toString("/%s/TMBBPIPromLoadAddress",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIPromLoadAddress) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI PROM Load Address");
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form();
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPIPromBlockUnlock = toolbox::toString("/%s/TMBBPIPromBlockUnlock",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIPromBlockUnlock) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI PROM Block Unlock");
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form();
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPIPromBlockErase = toolbox::toString("/%s/TMBBPIPromBlockErase",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIPromBlockErase) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI PROM Block Erase");
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form();
+    //
+    *out << cgicc::br();
+    //
+    std::string TMBBPIPromBlockLock = toolbox::toString("/%s/TMBBPIPromBlockLock",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIPromBlockLock) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI PROM Block Lock");
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form();
+    //
+    *out << cgicc::br();
+    //
+    // std::string TMBBPIDisable = toolbox::toString("/%s/TMBBPIDisable",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBBPIDisable) ;
+    *out << cgicc::input().set("type","submit").set("value","BPI Disable Comand FIFO") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() ;
+    //
+    *out << cgicc::td();
+  }//showBPITools
   //
   //--------------------------------------------------------
   *out << cgicc::table();
@@ -10419,6 +10728,36 @@ void EmuPeripheralCrateConfig::TMBReadFirmware(xgi::Input * in, xgi::Output * ou
   }
   //
   this->TMBUtils(in,out);
+}
+//
+void EmuPeripheralCrateConfig::TMBLoadFirmware(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::string mcsfile = FirmwareDir_ + "otmb/me11_otmb.mcs";
+    std::cout << getLocalDateTime() << " OTMB program EPROM in slot " << thisTMB->slot() << " using MCS file" << mcsfile << std::endl;
+    thisTMB->otmb_program_eprom_poll(mcsfile.c_str());
+    std::cout << getLocalDateTime() << " OTMB program EPROM finished." << std::endl;
+  }
+  //
+  this->TMBUtils(in, out);
+  //
 }
 //
 void EmuPeripheralCrateConfig::ALCTReadFirmware(xgi::Input * in, xgi::Output * out )
@@ -12147,6 +12486,463 @@ void EmuPeripheralCrateConfig::ReadOTMBVirtex6Reg(xgi::Input * in, xgi::Output *
      this->TMBUtils(in,out);                                    
 }
 
+void EmuPeripheralCrateConfig::TMBBPIReset(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Reset" << std::endl;
+    thisTMB->otmb_bpi_reset(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIDisable(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Disable" << std::endl;
+    thisTMB->otmb_bpi_disable(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIEnable(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Enable" << std::endl;
+    thisTMB->otmb_bpi_enable(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIWrite(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  unsigned short bpi_word_to_write = 0;
+  if (name2 != cgi.getElements().end()) {
+    std::string str_bpi_word_to_write = cgi["bpi_word_to_write"]->getValue();
+    // convert to HEX
+    if (str_bpi_word_to_write.substr(0, 2) == "0x") {
+      std::istringstream inStream(str_bpi_word_to_write.substr(2));
+      inStream >> std::hex >> bpi_word_to_write;
+    }
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Write to Command FIFO (16 bits)" << std::endl;
+    thisTMB->otmb_bpi_write_to_command_fifo(bpi_word_to_write, true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIRead(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Read (16 bits)" << std::endl;
+    thisTMB->otmb_bpi_read(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIReadN(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Read Number of Remaining Words (11 bits)" << std::endl;
+    thisTMB->otmb_bpi_read_n_words(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIStatus(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Status" << std::endl;
+    thisTMB->otmb_bpi_status(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPITimerRead(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Timer Read" << std::endl;
+    thisTMB->otmb_bpi_timer_read(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromBlockErase(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Block Erase" << std::endl;
+    thisTMB->otmb_bpi_prom_block_erase(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromBlockLock(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Block Lock" << std::endl;
+    thisTMB->otmb_bpi_prom_block_lock(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromBlockUnlock(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Block Unlock" << std::endl;
+    thisTMB->otmb_bpi_prom_block_unlock(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromTimerStart(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Timer Start" << std::endl;
+    thisTMB->otmb_bpi_prom_timerstart(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromTimerStop(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Timer Stop" << std::endl;
+    thisTMB->otmb_bpi_prom_timerstop(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromTimerReset(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Timer Reset" << std::endl;
+    thisTMB->otmb_bpi_prom_timerreset(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromClearStatus(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Clear Status" << std::endl;
+    thisTMB->otmb_bpi_prom_clearstatus(true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
+
+void EmuPeripheralCrateConfig::TMBBPIPromLoadAddress(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name2 = cgi.getElement("tmb");
+  //
+  int tmb;
+  if (name2 != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Select TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl;
+    tmb = -1;
+  }
+  //
+  TMB * thisTMB = NULL;
+  if (tmb >= 0 && (unsigned) tmb < tmbVector.size())
+    thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB) {
+    std::cout << getLocalDateTime() << " OTMB in slot " << thisTMB->slot() << " BPI Load Address" << std::endl;
+    thisTMB->otmb_bpi_prom_loadaddress(0, 0, true);
+  }
+  //
+  this->TMBUtils(in, out);
+  //
+}
 
  }  // namespace emu::pc
 }  // namespace emu

@@ -480,8 +480,28 @@ private:
   void armScope(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void forceScope(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void readoutScope(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void TriggerTestInjectCLCT(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void TriggerTestInjectCLCT(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void TMBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  
+  void TMBBPIReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBBPIDisable(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBBPIEnable(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBBPIWrite(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBBPIRead(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBBPIReadN(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBBPIStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBBPITimerRead(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  
+  void TMBBPIPromTimerReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBBPIPromTimerStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBBPIPromTimerStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBBPIPromClearStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBBPIPromLoadAddress(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBBPIPromBlockUnlock(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBBPIPromBlockErase(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void TMBBPIPromBlockLock(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  
   void ALCTReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void LoadALCTSlowFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void LoadVirtex6TMBFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
@@ -711,6 +731,7 @@ private:
   bool print_config_check_output;
   char date_and_time_[13];
   //
+  bool showBPITools_;
 };
 
   } // namespace emu::pc
