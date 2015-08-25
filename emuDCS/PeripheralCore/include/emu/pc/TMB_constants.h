@@ -3713,7 +3713,8 @@ struct tmb_id_regs
 
 };
 
-const unsigned int TMB_N_FIBERS = 7;
+ const unsigned int TMB_MAX_DCFEB_FIBERS = 7;
+ const unsigned int TMB_MAX_GEM_FIBERS_ME11 = 4;
 
   } // namespace emu::pc
   } // namespace emu

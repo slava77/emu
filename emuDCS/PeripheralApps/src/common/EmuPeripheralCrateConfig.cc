@@ -7795,7 +7795,7 @@ void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out)
     is_all = true;
   } else {
     fiber_num = atoi(fiber.c_str());
-    gem_num = fiber_num - (int)TMB_N_FIBERS;
+    gem_num = fiber_num - (int)TMB_MAX_DCFEB_FIBERS;
   }
   if (mode == "toggle") {
     if (tmb_fiber_status_read_) {
@@ -7805,7 +7805,7 @@ void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out)
       if (is_all) {
         adr = dcfeb_gtx_rx_all_adr;
         to_write = thisTMB->GetReadGtxRxAllEnable();
-      } else if(fiber_num < (int)TMB_N_FIBERS){
+      } else if(fiber_num < (int)TMB_MAX_DCFEB_FIBERS){
         adr = dcfeb_gtx_rx0_adr + (unsigned long int) (2 * fiber_num);
         to_write = thisTMB->GetReadGtxRxEnable(fiber_num);
       } else {
@@ -7818,7 +7818,7 @@ void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out)
 
       if (is_all)
         thisTMB->SetGtxRxAllEnable(to_write);
-      else if(fiber_num < (int)TMB_N_FIBERS)
+      else if(fiber_num < (int)TMB_MAX_DCFEB_FIBERS)
         thisTMB->SetGtxRxEnable(fiber_num, to_write);
       else
         thisTMB->SetGtxGemRxEnable(gem_num, to_write);
@@ -7832,7 +7832,7 @@ void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out)
       thisTMB->WriteRegister(dcfeb_gtx_rx_all_adr);
       thisTMB->SetGtxRxAllReset(0);
       thisTMB->WriteRegister(dcfeb_gtx_rx_all_adr);
-    } else if(fiber_num < (int)TMB_N_FIBERS){
+    } else if(fiber_num < (int)TMB_MAX_DCFEB_FIBERS){
       thisTMB->SetGtxRxReset(fiber_num, 1);
       thisTMB->WriteRegister(dcfeb_gtx_rx0_adr + (unsigned long int) (2 * fiber_num));
       thisTMB->SetGtxRxReset(fiber_num, 0);
@@ -7846,11 +7846,11 @@ void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out)
   }
 
   thisTMB->ReadRegister(dcfeb_gtx_rx_all_adr);
-  for (unsigned int i = 0; i < TMB_N_FIBERS; ++i) {
+  for (unsigned int i = 0; i < TMB_MAX_DCFEB_FIBERS; ++i) {
     unsigned long int adr = dcfeb_gtx_rx0_adr + (unsigned long int) (2 * i);
     thisTMB->ReadRegister(adr);
   }
-  for (int i = 0; i < (int)TMB_N_FIBERS; ++i) {
+  for (int i = 0; i < (int)TMB_MAX_DCFEB_FIBERS; ++i) {
       unsigned long int adr = dcfeb_gtx_rx0_adr + (unsigned long int) (2 * i);
       thisTMB->ReadRegister(adr);
   }
@@ -10050,11 +10050,11 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     std::string status = "N/A";
     std::string reset_button = "Reset All";
     std::string gem_button_name = "GEM ";
-    for (int i = -1; i < ((int) TMB_N_FIBERS + number_of_gems); ++i) {
-      int gem_num = i - (int)TMB_N_FIBERS;
+    for (int i = -1; i < ((int) TMB_MAX_DCFEB_FIBERS + number_of_gems); ++i) {
+      int gem_num = i - (int)TMB_MAX_DCFEB_FIBERS;
       *out << cgicc::tr();
       *out << cgicc::td();
-      if (i < (int)TMB_N_FIBERS) {
+      if (i < (int)TMB_MAX_DCFEB_FIBERS) {
 	*out << button_name;
       }
       else {
@@ -10067,7 +10067,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
         bool read_status = false;
         if (i < 0) {
           read_status = thisTMB->GetReadGtxRxAllEnable();
-        } else if (i < (int)TMB_N_FIBERS) {
+        } else if (i < (int)TMB_MAX_DCFEB_FIBERS) {
           read_status = thisTMB->GetReadGtxRxEnable(i);
         } else read_status = thisTMB->GetReadGtxGemRxEnable(gem_num);
         std::string color;
