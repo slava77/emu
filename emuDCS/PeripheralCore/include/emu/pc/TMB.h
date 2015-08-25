@@ -512,8 +512,10 @@ public:
   //  inline void SetHardwareVersion(int version) {hardware_version_ = version;} //in TMB constructor now
   inline int GetHardwareVersion() {return hardware_version_;}
   inline int GetGemEnabled() {return gem_enabled_;}
+
+  static const int MAX_GEM_FIBERS_ME11 = 4;
   inline int GetNGemEnabledLinks() {
-    if (GetGemEnabled()) return 1; //change this to TMB_MAX_GEM_FIBERS_ME11 when we get there
+    if (GetGemEnabled()) return 1; //change this to MAX_GEM_FIBERS_ME11 when we get there
     else return 0;} 
   //
   //!read the Firmware date from the TMB
@@ -2354,7 +2356,7 @@ public:
   inline int  GetReadGtxRxPrbsTestEnable(int cfebNum) { return read_gtx_rx_prbs_test_enable_[cfebNum]; }
 
   //Writes all GTX control registers to FPGA
-  void ReadDcfebGtxRxRegisters(int iGTX = -1);
+  void ReadDcfebGtxRxRegisters();
   void WriteGtxControlRegisters();
   
   //GTX ready
@@ -2468,41 +2470,41 @@ public:
   // 0X300 - 0X306 = ADR_GEM_GTX_RX[0-3]: GTX link control and monitoring for GEM
   //-----------------------------------------------------------------------------
   //Enable this GTX optical input,  disables copper input
-  inline void SetGtxGemRxEnable(int gemNum, int gtx_gem_rx_enable) { gtx_gem_rx_enable_[gemNum] = gtx_gem_rx_enable; }
-  inline int  GetGtxGemRxEnable(int gemNum) { return gtx_gem_rx_enable_[gemNum]; }
-  inline int  GetReadGtxGemRxEnable(int gemNum) { return read_gtx_gem_rx_enable_[gemNum]; }
+  inline void SetGemGtxRxEnable(int gemNum, int gem_gtx_rx_enable) { gem_gtx_rx_enable_[gemNum] = gem_gtx_rx_enable; }
+  inline int  GetGemGtxRxEnable(int gemNum) { return gem_gtx_rx_enable_[gemNum]; }
+  inline int  GetReadGemGtxRxEnable(int gemNum) { return read_gem_gtx_rx_enable_[gemNum]; }
 
   //Reset this GTX
-  inline void SetGtxGemRxReset(int gemNum, int gtx_gem_rx_reset) { gtx_gem_rx_reset_[gemNum] = gtx_gem_rx_reset; }
-  inline int  GetGtxGemRxReset(int gemNum) { return gtx_gem_rx_reset_[gemNum]; }
-  inline int  GetReadGtxGemRxReset(int gemNum) { return read_gtx_gem_rx_reset_[gemNum]; }
+  inline void SetGemGtxRxReset(int gemNum, int gem_gtx_rx_reset) { gem_gtx_rx_reset_[gemNum] = gem_gtx_rx_reset; }
+  inline int  GetGemGtxRxReset(int gemNum) { return gem_gtx_rx_reset_[gemNum]; }
+  inline int  GetReadGemGtxRxReset(int gemNum) { return read_gem_gtx_rx_reset_[gemNum]; }
 
   //Select this GTX for PRBS test input mode
-  inline void SetGtxGemRxPrbsTestEnable(int gemNum, int gtx_gem_rx_prbs_test_enable) { gtx_gem_rx_prbs_test_enable_[gemNum] = gtx_gem_rx_prbs_test_enable; }
-  inline int  GetGtxGemRxPrbsTestEnable(int gemNum) { return gtx_gem_rx_prbs_test_enable_[gemNum]; }
-  inline int  GetReadGtxGemRxPrbsTestEnable(int gemNum) { return read_gtx_gem_rx_prbs_test_enable_[gemNum]; }
+  inline void SetGemGtxRxPrbsTestEnable(int gemNum, int gem_gtx_rx_prbs_test_enable) { gem_gtx_rx_prbs_test_enable_[gemNum] = gem_gtx_rx_prbs_test_enable; }
+  inline int  GetGemGtxRxPrbsTestEnable(int gemNum) { return gem_gtx_rx_prbs_test_enable_[gemNum]; }
+  inline int  GetReadGemGtxRxPrbsTestEnable(int gemNum) { return read_gem_gtx_rx_prbs_test_enable_[gemNum]; }
 
   //Writes all GTX control registers to FPGA
-  voit ReadGemGtxRxRegisters();
-  void WriteGtxGemControlRegisters();
+  void ReadGemGtxRxRegisters();
+  void WriteGemGtxControlRegisters();
 
   //GTX ready
-  inline int  GetReadGtxGemRxReady(int gemNum) { return read_gtx_gem_rx_ready_[gemNum]; }
+  inline int  GetReadGemGtxRxReady(int gemNum) { return read_gem_gtx_rx_ready_[gemNum]; }
 
   //GTX link is locked (over 15 BX with clean data frames)
-  inline int  GetReadGtxGemRxLinkGood(int gemNum) { return read_gtx_gem_rx_link_good_[gemNum]; }
+  inline int  GetReadGemGtxRxLinkGood(int gemNum) { return read_gem_gtx_rx_link_good_[gemNum]; }
 
   //GTX link had an error (bad data frame) since last reset
-  inline int  GetReadGtxGemRxLinkHadError(int gemNum) { return read_gtx_gem_rx_link_had_error_[gemNum]; }
+  inline int  GetReadGemGtxRxLinkHadError(int gemNum) { return read_gem_gtx_rx_link_had_error_[gemNum]; }
 
   //GTX link had over 100 errors since last reset
-  inline int  GetReadGtxGemRxLinkBad(int gemNum) { return read_gtx_gem_rx_link_bad_[gemNum]; }
+  inline int  GetReadGemGtxRxLinkBad(int gemNum) { return read_gem_gtx_rx_link_bad_[gemNum]; }
 
   //GTX 5,6 [ie dcfeb 4,5] have swapped rx board routes
-  inline int  GetReadGtxGemRxPolSwap(int gemNum) { return read_gtx_gem_rx_pol_swap_[gemNum]; }
+  inline int  GetReadGemGtxRxPolSwap(int gemNum) { return read_gem_gtx_rx_pol_swap_[gemNum]; }
 
   //GTX link error count (full scale count is hex E0)
-  inline int  GetReadGtxGemRxErrorCount(int gemNum) { return read_gtx_gem_rx_error_count_[gemNum]; }
+  inline int  GetReadGemGtxRxErrorCount(int gemNum) { return read_gem_gtx_rx_error_count_[gemNum]; }
 
   //
   //
@@ -4033,19 +4035,19 @@ private:
   //-----------------------------------------------------------------------------
   // 0X300 - 0X306 = ADR_GEM_GTX_RX[0-3]: GTX link control and monitoring for GEM
   //-----------------------------------------------------------------------------
-  int gtx_gem_rx_enable_[TMB_MAX_GEM_FIBERS_ME11];
-  int gtx_gem_rx_reset_[TMB_MAX_GEM_FIBERS_ME11];
-  int gtx_gem_rx_prbs_test_enable_[TMB_MAX_GEM_FIBERS_ME11];
+  int gem_gtx_rx_enable_[MAX_GEM_FIBERS_ME11];
+  int gem_gtx_rx_reset_[MAX_GEM_FIBERS_ME11];
+  int gem_gtx_rx_prbs_test_enable_[MAX_GEM_FIBERS_ME11];
   //
-  int read_gtx_gem_rx_enable_[TMB_MAX_GEM_FIBERS_ME11];
-  int read_gtx_gem_rx_reset_[TMB_MAX_GEM_FIBERS_ME11];
-  int read_gtx_gem_rx_prbs_test_enable_[TMB_MAX_GEM_FIBERS_ME11];
-  int read_gtx_gem_rx_ready_[TMB_MAX_GEM_FIBERS_ME11];
-  int read_gtx_gem_rx_link_good_[TMB_MAX_GEM_FIBERS_ME11];
-  int read_gtx_gem_rx_link_had_error_[TMB_MAX_GEM_FIBERS_ME11];
-  int read_gtx_gem_rx_link_bad_[TMB_MAX_GEM_FIBERS_ME11];
-  int read_gtx_gem_rx_pol_swap_[TMB_MAX_GEM_FIBERS_ME11];
-  int read_gtx_gem_rx_error_count_[TMB_MAX_GEM_FIBERS_ME11];
+  int read_gem_gtx_rx_enable_[MAX_GEM_FIBERS_ME11];
+  int read_gem_gtx_rx_reset_[MAX_GEM_FIBERS_ME11];
+  int read_gem_gtx_rx_prbs_test_enable_[MAX_GEM_FIBERS_ME11];
+  int read_gem_gtx_rx_ready_[MAX_GEM_FIBERS_ME11];
+  int read_gem_gtx_rx_link_good_[MAX_GEM_FIBERS_ME11];
+  int read_gem_gtx_rx_link_had_error_[MAX_GEM_FIBERS_ME11];
+  int read_gem_gtx_rx_link_bad_[MAX_GEM_FIBERS_ME11];
+  int read_gem_gtx_rx_pol_swap_[MAX_GEM_FIBERS_ME11];
+  int read_gem_gtx_rx_error_count_[MAX_GEM_FIBERS_ME11];
   //
   //
   //*******************************************************************
