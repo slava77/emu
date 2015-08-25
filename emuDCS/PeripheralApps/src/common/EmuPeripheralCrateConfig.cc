@@ -4947,22 +4947,12 @@ throw (xgi::exception::Exception) {
               crateHasOtmbs = true;
               std::string label = thisChamber->GetLabel();
               
-              thisTMB->ReadRegister(dcfeb_gtx_rx0_adr);
-              thisTMB->ReadRegister(dcfeb_gtx_rx1_adr);
-              thisTMB->ReadRegister(dcfeb_gtx_rx2_adr);
-              thisTMB->ReadRegister(dcfeb_gtx_rx3_adr);
-              thisTMB->ReadRegister(dcfeb_gtx_rx4_adr);
-              thisTMB->ReadRegister(dcfeb_gtx_rx5_adr);
-              thisTMB->ReadRegister(dcfeb_gtx_rx6_adr);
-              /*
-	      SK: FIXME: can we comment it out?
+	      thisTMB->ReadDcfebGtxRxRegisters();
+	      
               if (thisTMB->GetGemEnabled()) {
-                thisTMB->ReadRegister(gem_gtx_rx0_adr);
-                //thisTMB->ReadRegister(gem_gtx_rx1_adr);
-                //thisTMB->ReadRegister(gem_gtx_rx2_adr);
-                //thisTMB->ReadRegister(gem_gtx_rx3_adr);
-              }
-              */
+		thisTMB->ReadGemGtxRxRegisters();
+	      }
+	      
               //initialize the map
               if (result.find(label) == result.end()) {
                 std::vector< std::vector<int> > dcfebs;
@@ -7759,8 +7749,6 @@ void EmuPeripheralCrateConfig::TMBDumpAllRegisters(xgi::Input * in, xgi::Output 
 //
 void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
   //
-  //the follow line of code can be uncommented once the gem update is complete jmn
-  int number_of_gems = 1; //4;
   cgicc::Cgicc cgi(in);
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
@@ -7846,18 +7834,9 @@ void EmuPeripheralCrateConfig::TMBFiberReset(xgi::Input * in, xgi::Output * out)
   }
 
   thisTMB->ReadRegister(dcfeb_gtx_rx_all_adr);
-  for (unsigned int i = 0; i < TMB_MAX_DCFEB_FIBERS; ++i) {
-    unsigned long int adr = dcfeb_gtx_rx0_adr + (unsigned long int) (2 * i);
-    thisTMB->ReadRegister(adr);
-  }
-  for (int i = 0; i < (int)TMB_MAX_DCFEB_FIBERS; ++i) {
-      unsigned long int adr = dcfeb_gtx_rx0_adr + (unsigned long int) (2 * i);
-      thisTMB->ReadRegister(adr);
-  }
-  for (int i = 0; i < number_of_gems; ++i) {
-      unsigned long int adr = gem_gtx_rx0_adr + (unsigned long int) (2 * i);
-      thisTMB->ReadRegister(adr);
-  }
+  thisTMB->ReadDcfebGtxRxRegisters();
+  thisTMB->ReadGemGtxRxRegisters();
+
   tmb_fiber_status_read_ = true;
   //
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
@@ -9497,11 +9476,9 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     //
 
     if (thisTMB->GetGemEnabled()) {
-      unsigned long int gem_gtx_rx_addrs[4] = {gem_gtx_rx0_adr, gem_gtx_rx1_adr, gem_gtx_rx2_adr, gem_gtx_rx3_adr};
+      thisTMB->ReadGemGtxRxRegisters();
+
       int number_of_gems = thisTMB->GetNGemEnabledLinks();
-      for (int ig = 0; ig < number_of_gems; ++ng ){
-	thisTMB->ReadRegister(gem_gtx_rx_addrs[ig]);
-      }
       *out << std::endl;
       *out << std::endl;
       *out << " ->GEM GTX optical input control and monitoring: " << std::endl;

@@ -703,7 +703,7 @@ void TMB::ReadTmbIdCodes() {
     tmb_idcode_[device++] = bits_to_int(GetDRtdo(),GetRegLength(),0);
   }
  }
- else if(hardware_version_>=2)
+ else if(hardware_version_==2)
  {
   unsigned short comd=VTX6_IDCODE;
   unsigned temp=0, data=0;
@@ -1940,7 +1940,7 @@ std::string TMB::CounterName(int counter){
   if( counter == 17) name = "CLCT: Pretrigger on CFEB3                               ";
   if( counter == 18) name = "CLCT: Pretrigger on CFEB4                               ";
   //firmware check for new oTMB to determine the next counters
-  if( GetHardwareVersion() >= 2){
+  if( GetHardwareVersion() == 2){
     adjustcounter  = 2;
     if( counter == 19) name = "CLCT: Pretrigger on CFEB5                               ";
     if( counter == 20) name = "CLCT: Pretrigger on CFEB6                               ";
@@ -2075,14 +2075,14 @@ int * TMB::NewCounters(){
   for(unsigned short add=0x122; add<=0x142; add+=2) read_later(add);
   read_later(vme_dsn_adr); // adding one extra word to align the data at 32-bit
   //for 7DCFEB firmware
-  if( GetHardwareVersion() >= 2){
+  if( GetHardwareVersion() == 2){
     read_later(vme_dsn_adr); // adding one extra word to align the data at 32-bit
     for(unsigned short add=0x15c; add<=0x168; add+=2) read_later(add);
   }
   // time since last hard_reset (in seconds)
   read_now(0xE8, (char *)FinalCounter);
   buf2[2*GetMaxCounter()+17]=0;
-  if( GetHardwareVersion() >= 2)  buf2[2*GetMaxCounter()+18]=0;
+  if( GetHardwareVersion() == 2)  buf2[2*GetMaxCounter()+18]=0;
   //
   return (int *)FinalCounter;
 }
@@ -5231,6 +5231,23 @@ void TMB::ReadComparatorBadBits(){
   return;
 }
 //
+void TMB::ReadDcfebGtxRxRegisters(){
+  static const unsigned long int raddrs[TMB_MAX_DCFEB_FIBERS] = {
+    dcfeb_gtx_rx0_adr, dcfeb_gtx_rx1_adr, dcfeb_gtx_rx2_adr, dcfeb_gtx_rx3_adr,
+    dcfeb_gtx_rx4_adr, dcfeb_gtx_rx5_adr, dcfeb_gtx_rx6_adr
+  };
+  for (int ia = 0; ia < TMB_MAX_DCFEB_FIBERS; ++ia) {
+    ReadRegister(raddrs[ia]);
+  }
+}
+//
+void TMB::ReadGemGtxRxRegisters(){
+  static const unsigned long int raddrs[TMB_MAX_GEM_FIBERS_ME11] 
+    = {gem_gtx_rx0_adr, gem_gtx_rx1_adr, gem_gtx_rx2_adr, gem_gtx_rx3_adr};
+  for (int ia = 0; ia < thisTMB->GetNGemEnabledLinks(); ++ig){
+    ReadRegister(raddrs[ig]);
+  }
+}
 ////////////////////////////////////////////////////////
 // Digital Serial Numbers
 ////////////////////////////////////////////////////////
@@ -6561,7 +6578,7 @@ void TMB::SetTMBRegisterDefaults() {
   //-----------------------------------------------------------------------------
   // 0X300 - 0X306 = ADR_GEM_GTX_RX[0-3]: GTX link control and monitoring for GEM
   //-----------------------------------------------------------------------------
-  for (int i=0; i < 4; ++i) {
+  for (int i=0; i < TMB_MAX_GEM_FIBERS_ME11; ++i) {
       gtx_gem_rx_enable_[i] = gtx_rx_enable_default;
       gtx_gem_rx_reset_[i] = gtx_rx_reset_default;
       gtx_gem_rx_prbs_test_enable_[i] = gtx_rx_prbs_test_enable_default;
@@ -7516,13 +7533,13 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_dcfeb_badbits_block_   = ExtractValueFromData(data,dcfeb_badbits_block_bitlo  ,dcfeb_badbits_block_bithi  );
     read_dcfeb_badbits_found_   = ExtractValueFromData(data,dcfeb_badbits_found_bitlo  ,dcfeb_badbits_found_bithi  );
   } else if ( address == badbits001_adr || address == badbits023_adr || address == badbits045_adr ||
-              address == badbits101_adr || address == badbits123_adr || address == badbits145_adr ||
-              address == badbits201_adr || address == badbits223_adr || address == badbits245_adr ||
-              address == badbits301_adr || address == badbits323_adr || address == badbits345_adr ||
-              address == badbits401_adr || address == badbits423_adr || address == badbits445_adr ||
-              (hardware_version_ >= 2 && (
-              address == badbits501_adr || address == badbits523_adr || address == badbits545_adr ||
-              address == badbits601_adr || address == badbits623_adr || address == badbits645_adr)) ) {
+      address == badbits101_adr || address == badbits123_adr || address == badbits145_adr ||
+      address == badbits201_adr || address == badbits223_adr || address == badbits245_adr ||
+      address == badbits301_adr || address == badbits323_adr || address == badbits345_adr ||
+      address == badbits401_adr || address == badbits423_adr || address == badbits445_adr ||
+      (hardware_version_ >= 2 && (
+	address == badbits501_adr || address == badbits523_adr || address == badbits545_adr ||
+	address == badbits601_adr || address == badbits623_adr || address == badbits645_adr)) ) {
     //------------------------------------------------------------------
     //0X126,128,12A = ADR_BADBITS001,BADBITS023,BADBITS045 = CFEB0 Hot Channel Masks
     //0X12C,12E,130 = ADR_BADBITS101,BADBITS123,BADBITS145 = CFEB1 Hot Channel Masks
@@ -7564,7 +7581,7 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
   } else if ( address == gtx_sync_done_time_adr) {
     read_gtx_sync_done_time_ = ExtractValueFromData(data,0,15);
   } else if (address == gem_gtx_rx0_adr || address == gem_gtx_rx1_adr ||
-          address == gem_gtx_rx2_adr || address == gem_gtx_rx3_adr) {
+      address == gem_gtx_rx2_adr || address == gem_gtx_rx3_adr) {
     //---------------------------------------------------------------------
     // 0X300 - 0X306 = ADR_GEM_GTX_RX[0-3]_GEM: GTX link control and monitoring for GEM
     //---------------------------------------------------------------------
@@ -8779,7 +8796,7 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //------------------------------------------------------------------
     //0X1C = ADR_DDDOE:  3D3444 Delay Chip Output Enables 
     //------------------------------------------------------------------
-      if (GetHardwareVersion() >= 2) {
+      if (GetHardwareVersion() == 2) {
           data_word = 0xff7; // enable all clocks except the RPC clock (which otherwise causes problems in OTMB->ALCT communication for certain ALCT TOF delay settings)
           //data_word = 0x005; // disable all unused clocks in OTMB (according to Jason)
       } else {
@@ -9281,7 +9298,7 @@ int TMB::FillTMBRegister(unsigned long int address) {
               address == dcfeb_gtx_rx6_adr ) {
     //---------------------------------------------------------------------
     // 0X14C - 0X158 = ADR_V6_GTX_RX: GTX link control and monitoring
-	//---------------------------------------------------------------------
+    //---------------------------------------------------------------------
     int inputNum = (address - dcfeb_gtx_rx0_adr) / 2;
     InsertValueIntoDataWord(gtx_rx_enable_[inputNum],gtx_rx_enable_bithi,gtx_rx_enable_bitlo,&data_word);
     InsertValueIntoDataWord(gtx_rx_reset_[inputNum],gtx_rx_reset_bithi,gtx_rx_reset_bitlo,&data_word);
@@ -10431,7 +10448,7 @@ int TMB::DCSvoltages(char *databuf)
 
   int extrabytes=0;
   /* OTMB: read GTX RX status, stored at the end of TMB voltages, at position 14 */
-  if(hardware_version_>=2)
+  if(hardware_version_==2)
   {
      for(int i=0; i<6; i++)
      {
@@ -10597,7 +10614,7 @@ void TMB::program_virtex6(const char *mcsfile)
 
 unsigned TMB::virtex6_readreg(int reg)
 {
-  if(hardware_version_>=2)
+  if(hardware_version_==2)
   {
      setup_jtag(ChainTmbMezz);
      //restore idle;
@@ -10629,7 +10646,7 @@ unsigned TMB::virtex6_readreg(int reg)
 
 void TMB::virtex6_writereg(int reg, unsigned value)
 {
-  if(hardware_version_>=2)
+  if(hardware_version_==2)
   {
      setup_jtag(ChainTmbMezz);
      //restore idle;
@@ -10658,7 +10675,7 @@ std::vector<float> TMB::virtex6_monitor()
 
   readout.clear();
   int hversion=GetHardwareVersion();
-  if(hversion>=2)
+  if(hversion==2)
   {
      setup_jtag(ChainTmbMezz);
      comd=VTX6_SYSMON;
@@ -10766,12 +10783,6 @@ void TMB::WriteGtxControlRegisters() {
     WriteRegister(dcfeb_gtx_rx4_adr);
     WriteRegister(dcfeb_gtx_rx5_adr);
     WriteRegister(dcfeb_gtx_rx6_adr);
-    /*
-    WriteRegister(gem_gtx_rx0_adr);
-	WriteRegister(gem_gtx_rx1_adr);
-	WriteRegister(gem_gtx_rx2_adr);
-	WriteRegister(gem_gtx_rx3_adr);
-     */
 }
 
 // *****************************************************************************

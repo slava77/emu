@@ -512,7 +512,9 @@ public:
   //  inline void SetHardwareVersion(int version) {hardware_version_ = version;} //in TMB constructor now
   inline int GetHardwareVersion() {return hardware_version_;}
   inline int GetGemEnabled() {return gem_enabled_;}
-  inline int GetNGemEnabledLinks() {if (GetGemEnabled()) return 1; else return 0;} //change this to 4 when we get there
+  inline int GetNGemEnabledLinks() {
+    if (GetGemEnabled()) return 1; //change this to TMB_MAX_GEM_FIBERS_ME11 when we get there
+    else return 0;} 
   //
   //!read the Firmware date from the TMB
   int  FirmwareDate();
@@ -2352,6 +2354,7 @@ public:
   inline int  GetReadGtxRxPrbsTestEnable(int cfebNum) { return read_gtx_rx_prbs_test_enable_[cfebNum]; }
 
   //Writes all GTX control registers to FPGA
+  void ReadDcfebGtxRxRegisters(int iGTX = -1);
   void WriteGtxControlRegisters();
   
   //GTX ready
@@ -2480,6 +2483,7 @@ public:
   inline int  GetReadGtxGemRxPrbsTestEnable(int gemNum) { return read_gtx_gem_rx_prbs_test_enable_[gemNum]; }
 
   //Writes all GTX control registers to FPGA
+  voit ReadGemGtxRxRegisters();
   void WriteGtxGemControlRegisters();
 
   //GTX ready
@@ -4029,19 +4033,19 @@ private:
   //-----------------------------------------------------------------------------
   // 0X300 - 0X306 = ADR_GEM_GTX_RX[0-3]: GTX link control and monitoring for GEM
   //-----------------------------------------------------------------------------
-  int gtx_gem_rx_enable_[4];
-  int gtx_gem_rx_reset_[4];
-  int gtx_gem_rx_prbs_test_enable_[4];
+  int gtx_gem_rx_enable_[TMB_MAX_GEM_FIBERS_ME11];
+  int gtx_gem_rx_reset_[TMB_MAX_GEM_FIBERS_ME11];
+  int gtx_gem_rx_prbs_test_enable_[TMB_MAX_GEM_FIBERS_ME11];
   //
-  int read_gtx_gem_rx_enable_[4];
-  int read_gtx_gem_rx_reset_[4];
-  int read_gtx_gem_rx_prbs_test_enable_[4];
-  int read_gtx_gem_rx_ready_[4];
-  int read_gtx_gem_rx_link_good_[4];
-  int read_gtx_gem_rx_link_had_error_[4];
-  int read_gtx_gem_rx_link_bad_[4];
-  int read_gtx_gem_rx_pol_swap_[4];
-  int read_gtx_gem_rx_error_count_[4];
+  int read_gtx_gem_rx_enable_[TMB_MAX_GEM_FIBERS_ME11];
+  int read_gtx_gem_rx_reset_[TMB_MAX_GEM_FIBERS_ME11];
+  int read_gtx_gem_rx_prbs_test_enable_[TMB_MAX_GEM_FIBERS_ME11];
+  int read_gtx_gem_rx_ready_[TMB_MAX_GEM_FIBERS_ME11];
+  int read_gtx_gem_rx_link_good_[TMB_MAX_GEM_FIBERS_ME11];
+  int read_gtx_gem_rx_link_had_error_[TMB_MAX_GEM_FIBERS_ME11];
+  int read_gtx_gem_rx_link_bad_[TMB_MAX_GEM_FIBERS_ME11];
+  int read_gtx_gem_rx_pol_swap_[TMB_MAX_GEM_FIBERS_ME11];
+  int read_gtx_gem_rx_error_count_[TMB_MAX_GEM_FIBERS_ME11];
   //
   //
   //*******************************************************************
