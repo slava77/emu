@@ -239,6 +239,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::ExpertToolsPage,"ExpertToolsPage");
   xgi::bind(this,&EmuPeripheralCrateConfig::StartPRBS, "StartPRBS");
   xgi::bind(this,&EmuPeripheralCrateConfig::StopPRBS, "StopPRBS");
+  xgi::bind(this,&EmuPeripheralCrateConfig::StartNewPRBS, "StartNewPRBS");
+  xgi::bind(this,&EmuPeripheralCrateConfig::StopNewPRBS, "StopNewPRBS");
   xgi::bind(this,&EmuPeripheralCrateConfig::SetRadioactivityTrigger, "SetRadioactivityTrigger");
   xgi::bind(this,&EmuPeripheralCrateConfig::SetRadioactivityTriggerALCTOnly, "SetRadioactivityTriggerALCTOnly");
   xgi::bind(this,&EmuPeripheralCrateConfig::SetTTCDelays, "SetTTCDelays");
@@ -4190,17 +4192,38 @@ void EmuPeripheralCrateConfig::ExpertToolsPage(xgi::Input * in, xgi::Output * ou
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   *out << cgicc::legend("Test MPC to SP links").set("style","color:blue") << std::endl ;
   //
-  if(prbs_test_) {
-    std::string StopPRBS = toolbox::toString("/%s/StopPRBS",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",StopPRBS) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Stop PRBS test").set("style","color:red") << std::endl ;
-    *out << cgicc::form() << std::endl ;;
-  } else {
+    *out << cgicc::table().set("border","0");
+  //
+    *out << cgicc::td();
     std::string StartPRBS = toolbox::toString("/%s/StartPRBS",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",StartPRBS) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Start PRBS test").set("style","color:blue") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Start PRBS test (old links)").set("style","color:blue") << std::endl ;
     *out << cgicc::form()<< std::endl ;;
-  }
+    *out << cgicc::td();
+
+    *out << cgicc::td();
+    std::string StopPRBS = toolbox::toString("/%s/StopPRBS",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",StopPRBS) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Stop PRBS test (old links)").set("style","color:blue") << std::endl ;
+    *out << cgicc::form() << std::endl ;;
+    *out << cgicc::td();
+
+    *out << cgicc::td();
+    std::string StartNewPRBS = toolbox::toString("/%s/StartNewPRBS",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",StartNewPRBS) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Start PRBS test (new links)").set("style","color:blue") << std::endl ;
+    *out << cgicc::form()<< std::endl ;;
+    *out << cgicc::td();
+
+    *out << cgicc::td();
+    std::string StopNewPRBS = toolbox::toString("/%s/StopNewPRBS",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",StopNewPRBS) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Stop PRBS test (new links)").set("style","color:blue") << std::endl ;
+    *out << cgicc::form() << std::endl ;;
+  //
+    *out << cgicc::td();
+  //
+    *out << cgicc::table() << std::endl ;
   //
   *out << cgicc::fieldset();
   //
@@ -4344,7 +4367,7 @@ void EmuPeripheralCrateConfig::UpdateInFlashKey(xgi::Input * in, xgi::Output * o
 void EmuPeripheralCrateConfig::StartPRBS(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //  
-  std::cout << "Button: Start PRBS Test" << std::endl;
+  std::cout << getLocalDateTime() << " Button: Start PRBS Test" << std::endl;
   //
   if(total_crates_>0)
   {
@@ -4359,12 +4382,42 @@ void EmuPeripheralCrateConfig::StartPRBS(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::StopPRBS(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //  
-  std::cout << "Button: Start PRBS Test" << std::endl;
+  std::cout << getLocalDateTime() << " Button: Stop PRBS Test" << std::endl;
   //
   if(total_crates_>0)
   {
      for(unsigned i=0; i< crateVector.size(); i++) {
         if ( crateVector[i]->IsAlive() ) crateVector[i]->mpc()->disablePRBS();
+     }
+     prbs_test_=false;
+  }
+  this->ExpertToolsPage(in, out);
+}
+//
+void EmuPeripheralCrateConfig::StartNewPRBS(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << getLocalDateTime() << " Button: Start New PRBS Test" << std::endl;
+  //
+  if(total_crates_>0)
+  {
+     for(unsigned i=0; i< crateVector.size(); i++) {
+        if ( crateVector[i]->IsAlive() ) crateVector[i]->mpc()->newPRBS(1);
+     }
+     prbs_test_=true;
+  }
+  this->ExpertToolsPage(in, out);
+}
+
+void EmuPeripheralCrateConfig::StopNewPRBS(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << getLocalDateTime() << " Button: Stop New PRBS Test" << std::endl;
+  //
+  if(total_crates_>0)
+  {
+     for(unsigned i=0; i< crateVector.size(); i++) {
+        if ( crateVector[i]->IsAlive() ) crateVector[i]->mpc()->newPRBS(0);
      }
      prbs_test_=false;
   }

@@ -649,6 +649,8 @@ private:
   void ExpertToolsPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void StartPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void StopPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void StartNewPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void StopNewPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void SetRadioactivityTrigger(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void SetTwoLayerTriggerForSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void SetTwoLayerTriggerForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
