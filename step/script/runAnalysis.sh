@@ -48,6 +48,11 @@ if [[ $2 == *STEP_27* ]]; then
     DQMANALYZER=${1:h}/runEmuCSCAnalyzer.exe
     print "Looks like test 27 (high-statistics cosmics and gas gain). Will try to analyze it with $ANALYZER and $DQMANALYZER"
     [[ -x $DQMANALYZER ]] || { print "*** Error: DQM analyzer \"$DQMANALYZER\" not found or not executable. Exiting."; exit 1 }
+elif [[ $2 == *STEP_40* ]]; then
+    DQMANALYZER=${1:h}/runEmuCSCAnalyzer.exe
+    print "Looks like test 40 (beam trigger). Will try to analyze it with $ANALYZER and $DQMANALYZER"
+    [[ -x $DQMANALYZER ]] || { print "*** Error: DQM analyzer \"$DQMANALYZER\" not found or not executable. Exiting."; exit 1 }
+
 fi
 
 [[ -x $ANALYZER ]] || { print "*** Error: Analyzer \"$ANALYZER\" not found or not executable. Exiting."; exit 1 }
@@ -173,17 +178,26 @@ for DATAFILE in $DATAFILES; do
 	# For test 27, the high-stat cosmics, first produce the .root file, then the plots. Finally, list the chambers in chambers.txt for linkToChambers.sh to know which chambers' data these results contain.
 	print "cd $RESULTSTOPDIR && mkdir -p Test_27_Cosmics && cd Test_27_Cosmics && $DQMANALYZER $DATAPATHNAME && $DQMANALYZER ${DATAPATHNAME:t:r}.root && cd ${DATAPATHNAME:t:r}.plots && { print $CHAMBERARRAY > chambers.txt }"
 	cd $RESULTSTOPDIR && mkdir -p Test_27_Cosmics && cd Test_27_Cosmics && $DQMANALYZER $DATAPATHNAME && $DQMANALYZER ${DATAPATHNAME:t:r}.root && cd ${DATAPATHNAME:t:r}.plots && { print $CHAMBERARRAY > chambers.txt }
+    elif [[ $DATAPATHNAME == *STEP_40* ]]; then
+	# For test 40, the beam trigger, first produce the .root file, then the plots. Finally, list the chambers in chambers.txt for linkToChambers.sh to know which chambers' data these results contain.
+	print "cd $RESULTSTOPDIR && mkdir -p Test_40_Beam && cd Test_40_Beam && $DQMANALYZER $DATAPATHNAME && $DQMANALYZER ${DATAPATHNAME:t:r}.root && cd ${DATAPATHNAME:t:r}.plots && { print $CHAMBERARRAY > chambers.txt }"
+	cd $RESULTSTOPDIR && mkdir -p Test_40_Beam && cd Test_40_Beam && $DQMANALYZER $DATAPATHNAME && $DQMANALYZER ${DATAPATHNAME:t:r}.root && cd ${DATAPATHNAME:t:r}.plots && { print $CHAMBERARRAY > chambers.txt }
     fi
 
     print "cd $RESULTSTOPDIR && $ANALYZER $DATAPATHNAME"
     cd $RESULTSTOPDIR && $ANALYZER $DATAPATHNAME
 
-    RESULTSDIR=$( print $RESULTSTOPDIR/Test_*/${DATAPATHNAME:t:r}.plots(/om[1]) )
-    if [[ -x ${0:h}/generateIndexHTML.sh ]]; then
-	print "Generating web page with ${0:h}/generateIndexHTML.sh $RESULTSDIR"
-	${0:h}/generateIndexHTML.sh $RESULTSDIR
-    else
-	print "** Warning: Web page generator script ${0:h}/generateIndexHTML.sh not found."
+    # Generate web page for easier browsing. Not for tests 27 and 40, though, for those the DQM analyzer does it already:
+    print "Results' dir:"
+    print $RESULTSTOPDIR/Test_*/${DATAPATHNAME:t:r}.plots(/Nom[1])
+    RESULTSDIR=$( print $RESULTSTOPDIR/Test_*/${DATAPATHNAME:t:r}.plots(/Nom[1]) )
+    if [[ ${#RESULTSDIR} -gt 0 && $RESULTSDIR != *Test_27_* && $RESULTSDIR != *Test_40_* ]]; then
+	if [[ -x ${0:h}/generateIndexHTML.sh ]]; then
+	    print "Generating web page with ${0:h}/generateIndexHTML.sh $RESULTSDIR"
+	    ${0:h}/generateIndexHTML.sh $RESULTSDIR
+	else
+	    print "** Warning: Web page generator script ${0:h}/generateIndexHTML.sh not found."
+	fi
     fi
 
     if [[ -x ${0:h}/linkToChambers.sh ]]; then

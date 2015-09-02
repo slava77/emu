@@ -78,6 +78,7 @@ double emu::step::Test::getProgress(){
 void ( emu::step::Test::* emu::step::Test::getProcedure( const string& testId, State_t state ) )(){
   if ( isFake_         ) return ( state == forConfigure_ ? &emu::step::Test::configure_fake : &emu::step::Test::enable_fake );
   if ( testId == "11"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_11   : &emu::step::Test::enable_11   );
+  if ( testId == "11c" ) return ( state == forConfigure_ ? &emu::step::Test::configure_11c  : &emu::step::Test::enable_11c  );
   if ( testId == "12"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_12   : &emu::step::Test::enable_12   );
   if ( testId == "13"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_13   : &emu::step::Test::enable_13   );
   if ( testId == "14"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_14   : &emu::step::Test::enable_14   );
@@ -91,6 +92,7 @@ void ( emu::step::Test::* emu::step::Test::getProcedure( const string& testId, S
   if ( testId == "25"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_25   : &emu::step::Test::enable_25   );
   if ( testId == "27"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_27   : &emu::step::Test::enable_27   );
   if ( testId == "30"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_30   : &emu::step::Test::enable_30   );
+  if ( testId == "40"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_40   : &emu::step::Test::enable_40   );
   return NULL;
 }
 
@@ -661,6 +663,59 @@ void emu::step::Test::configure_11(){
 
 void emu::step::Test::enable_11(){
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_11 starting" ); }
+  progress_.setTotal( (int)parameters_["durationInSec"] );
+
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+    (*crate)->ccb()->EnableL1aFromTmbL1aReq();
+
+    (*crate)->ccb()->l1aReset();
+    usleep(1000);
+    resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
+    (*crate)->ccb()->startTrigger(); // necessary for tmb to start triggering (alct should work with just L1A reset and bc0)
+    (*crate)->ccb()->l1aReset();
+    (*crate)->ccb()->bc0(); 
+
+    if ( isToStop_ ) return;
+  }
+
+  // Wait for durationInSec
+  while ( progress_.getPercent() < 100 ){
+    progress_.increment();
+    if ( isToStop_ ) return;
+    sleep( 1 );
+  }
+}
+void emu::step::Test::configure_11c(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_11c starting" ); }
+  
+  progress_.setTotal( (int)parameters_["durationInSec"] );
+
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+
+    // Configure DCFEB.
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();    
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+      (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+      usleep( 10000 );
+      setAllDCFEBsPipelineDepth( *dmb );      
+    } 
+
+    hardResetOTMBs( *crate );
+
+    configureODMB( *crate ); 
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
+    usleep(1000);
+    resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
+
+    if ( isToStop_ ) return;
+  }
+}
+
+void emu::step::Test::enable_11c(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_11c starting" ); }
   progress_.setTotal( (int)parameters_["durationInSec"] );
 
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
@@ -2353,6 +2408,86 @@ void emu::step::Test::enable_30(){
   }
 
   if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_30 (multichamber) ending" ); }
+}
+
+void emu::step::Test::configure_40(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::configure_40 starting" ); }
+  
+  // Test of undefined duration, progress should be monitored in local DAQ.
+  
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+    
+    // Configure DCFEB.
+    vector<emu::pc::DAQMB *> dmbs = (*crate)->daqmbs();  
+    for ( vector<emu::pc::DAQMB*>::iterator dmb = dmbs.begin(); dmb != dmbs.end(); ++dmb ){
+      (*dmb)->set_comp_thresh( (*dmb)->GetCompThresh() ); // set cfeb thresholds (for the entire test)      
+      usleep(10000);
+      setAllDCFEBsPipelineDepth( *dmb );      
+      if ( isToStop_ ) return;
+    } 
+
+    hardResetOTMBs( *crate );
+
+    configureODMB( *crate );
+    usleep(1000);
+    (*crate)->ccb()->l1aReset();
+    usleep(1000);
+    resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
+
+    // CSRB1 register bits
+    // | bit | value | meaning                                                                               |
+    // |-----+-------+---------------------------------------------------------------------------------------|
+    // |   0 |     1 | If 1, CCB command and data source is CSRB2 and CSRB3; otherwise TTCrx.                |
+    // |   1 |     0 | -                                                                                     |
+    // |   2 |     1 | If 1, disable logical OR of three DMB_cfeb_calibrate[2..0] sources                    |
+    // |   3 |     1 | If 1, disable L1A from TTCrx.                                                         |
+    // |     |       |                                                                                       |
+    // |   4 |     1 | If 1, disable L1A from VME command.                                                   |
+    // |   5 |     1 | If 1, disable L1A from TMB_L1A_REQ backplane line.                                    |
+    // |   6 |     1 | If 1, disable L1A from TMB_L1A_REL backplane line.                                    |
+    // |   7 |     0 | If 1, disable L1A from the front panel.                                               |
+    // |     |       |                                                                                       |
+    // |   8 |     1 | If 1, enable all inputs from the front panel.                                         |
+    // |   9 |     1 | If 1, disable ALCT_external_trigger signal generation on L1A.                         |
+    // |  10 |     1 | If 1, disable CLCT_external_trigger signal generation on L1A.                         |
+    // |  11 |     1 | If 1, disable pretrigger and L1A generation from ALCT_adb_sync_pulse sources.         |
+    // |     |       |                                                                                       |
+    // |  12 |     1 | If 1, disable pretrigger and L1A generation from ALCT_adb_async_pulse sources.        |
+    // |  13 |     0 | If 1, disable sending L1A and both pretriggers to backplane after first L1A sent.     |
+    // |  14 |     1 | If 0, enable sending L1A and both pretriggers to backplane on Tmb_l1A_Release signal. |
+    // |  15 |     1 | If 0, enable sending L1A and both pretriggers to backplane on Dmb_l1A_Release signal. |
+
+    // Enable L1A from front panel LVDS connector P7, pins 1&2:
+    // unsigned int value = 0x1f5d; // = 0001 1110 0101 1101; worked for ME1/1, but not all other sources are disabled
+    unsigned int value = 0xdf7d; // = 1101 1111 0111 1101; this should definitely disable all other trigger sources
+    (*crate)->ccb()->WriteRegister( emu::pc::CCB::CSRB1, value );
+
+    if ( isToStop_ ) return;
+
+  }
+}
+
+void emu::step::Test::enable_40(){
+  if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "emu::step::Test::enable_40 starting" ); }
+  
+  // Test of undefined duration, progress should be monitored in local DAQ.
+  
+  vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
+  for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
+
+    (*crate)->ccb()->startTrigger(); // necessary for tmb to start triggering (alct should work with just L1A reset and bc0)
+    (*crate)->ccb()->l1aReset();
+    (*crate)->ccb()->bc0(); 
+
+    if ( isToStop_ ) return;
+  }
+      
+  // Let's stay here until we're told to stop. Only then should we go on to disable trigger.
+  while( true ){
+    if ( isToStop_ ) return;
+    sleep( 1 );
+  }
 }
 
 void emu::step::Test::configure_fake(){

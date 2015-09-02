@@ -147,6 +147,7 @@ namespace emu{
       void printDCFEBUserCodes( emu::pc::DAQMB* dmb );
       string getDataDirName() const;
       void configure_11();
+      void configure_11c();
       void configure_12();
       void configure_13();
       void configure_14();
@@ -160,8 +161,10 @@ namespace emu{
       void configure_25();
       void configure_27();
       void configure_30();
+      void configure_40();
       void configure_fake();
       void enable_11();
+      void enable_11c();
       void enable_12();
       void enable_13();
       void enable_14();
@@ -175,6 +178,7 @@ namespace emu{
       void enable_25();
       void enable_27();
       void enable_30();
+      void enable_40();
       void enable_fake();
 
     };

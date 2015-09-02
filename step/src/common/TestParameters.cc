@@ -94,6 +94,9 @@ void emu::step::TestParameters::calculateNEvents(){
   else if ( id_ == "27" ){
     nEvents_ = parameters_["events_total"];
   }
+  else if ( id_ == "40" ){
+    nEvents_ = parameters_["events_total"];
+  }
   // For active (i.e., pulsed) tests, the number of events to be collected will be calculated at the beginning of the test
   // as it depends on the number of chambers to be tested. For the time being, keep nEvents_ = 0 for active (pulsed or timed) tests.
 }

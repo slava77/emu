@@ -53,14 +53,14 @@ if [[ $# -ne 2 || ${1[1]} != "/" || ${2[1]} != "/" ]]; then
 fi
 
 # Remove old chamber-oriented directory structure...
-OLDDIRS=( $2/(EMU|ME(+|-)(1|2|3|4)\.(1|2|3)\.)*(/N) )
+OLDDIRS=( $2/(crate|DDU_|EMU|ME(+|-)(1|2|3|4)\.(1|2|3)\.)*(/N) )
 [[ ${#OLDDIRS} -gt 0 ]] && rm -rf $OLDDIRS
 
-# ...and recreate it for all tests but test 27 (Cosmics)
+# ...and recreate it for all but tests 27 (Cosmics) and 40 (Beam)
 setopt extendedglob # needed for the ~ glob operator to work (to exclude pattern)
 OLDIFS=$IFS
 IFS='/'
-for DIR in $1/Test_*/csc_*.plots/*~*Test_27*(/); do
+for DIR in $1/Test_*/csc_*.plots/*~*Test_(27|40)*(/); do
     DIRARRAY=( ${=DIR} )
     mkdir -p $2/${DIRARRAY[-1]}/${DIRARRAY[-3]}/${DIRARRAY[-2]%.plots}
     [[ -L $2/${DIRARRAY[-1]}/${DIRARRAY[-3]}/${DIRARRAY[-2]%.plots}/plots ]] || ln -s $DIR $2/${DIRARRAY[-1]}/${DIRARRAY[-3]}/${DIRARRAY[-2]%.plots}/plots
@@ -68,11 +68,13 @@ for DIR in $1/Test_*/csc_*.plots/*~*Test_27*(/); do
 done
 IFS=$OLDIFS
 
-# Test 27 (Cosmics) is special in that runEmuCSCAnalyzer.exe creates a web page for the results. We just need to link to it.
-for CHAMBERLISTFILE in $1/Test_27_Cosmics/csc_*.plots/chambers.txt; do
-    for CHAMBERNAME in $( cat $CHAMBERLISTFILE ); do
-	CHAMBER=${CHAMBERNAME//\//.} # replace slashes with dots
-	mkdir -p $2/$CHAMBER/Test_27_Cosmics
-	[[ -L $2/$CHAMBER/Test_27_Cosmics/${CHAMBERLISTFILE:h:t} ]] || ln -s ${CHAMBERLISTFILE:h} $2/$CHAMBER/Test_27_Cosmics/${CHAMBERLISTFILE:h:t}
+# Tests 27 (Cosmics) and 40 (Beam) are special in that runEmuCSCAnalyzer.exe creates a web page for their results. We just need to link to it.
+for TESTNAME in Test_27_Cosmics Test_40_Beam; do
+    for CHAMBERLISTFILE in $1/$TESTNAME/csc_*.plots/chambers.txt; do
+	for CHAMBERNAME in $( cat $CHAMBERLISTFILE ); do
+	    CHAMBER=${CHAMBERNAME//\//.} # replace slashes with dots
+	    mkdir -p $2/$CHAMBER/$TESTNAME
+	    [[ -L $2/$CHAMBER/$TESTNAME/${CHAMBERLISTFILE:h:t} ]] || ln -s ${CHAMBERLISTFILE:h} $2/$CHAMBER/$TESTNAME/${CHAMBERLISTFILE:h:t}
+	done
     done
 done
