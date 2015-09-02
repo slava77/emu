@@ -749,7 +749,15 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
 	//	  alct_->SetHotChannelFile(file);
 	//	}
 	
-	int number, delay, threshold;
+        std::string hot_ch_mask;     
+        if (fillString("alct_layer0_hot_chann_mask",hot_ch_mask)) { alct_->SetALCTHotChanMaskString(0, hot_ch_mask); }
+        if (fillString("alct_layer1_hot_chann_mask",hot_ch_mask)) { alct_->SetALCTHotChanMaskString(1, hot_ch_mask); }
+        if (fillString("alct_layer2_hot_chann_mask",hot_ch_mask)) { alct_->SetALCTHotChanMaskString(2, hot_ch_mask); }
+        if (fillString("alct_layer3_hot_chann_mask",hot_ch_mask)) { alct_->SetALCTHotChanMaskString(3, hot_ch_mask); }
+        if (fillString("alct_layer4_hot_chann_mask",hot_ch_mask)) { alct_->SetALCTHotChanMaskString(4, hot_ch_mask); }
+        if (fillString("alct_layer5_hot_chann_mask",hot_ch_mask)) { alct_->SetALCTHotChanMaskString(5, hot_ch_mask); }
+
+        int number, delay, threshold;
 	
 	xercesc::DOMNode * grandDaughterNode = daughterNode->getFirstChild();
 

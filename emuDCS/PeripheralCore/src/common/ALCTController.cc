@@ -361,6 +361,7 @@
 // XML <ALCT alct_pattern_file="">. (FG)
 //
 //-----------------------------------------------------------------------
+#include <string.h>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -669,6 +670,7 @@ void ALCTController::configure(int c) {
   //  ReadConfigurationReg();
   //  PrintConfigurationReg();
   //
+  ConvertHotChannelMask();
   WriteHotChannelMask();
   //  ReadHotChannelMask();
   //  PrintHotChannelMask();
@@ -3695,6 +3697,37 @@ int ALCTController::GetHotChannelMask(int layer,
   int index = layer * GetNumberOfChannelsPerLayer() + channel;
   //
   return read_hot_channel_mask_[index];
+}
+//
+// convert ALCT Hot Channel Mask
+//   input:   std::string ALCTHotChannelMaskArray_[] ( coming from configuration source )
+//   output:  int write_hot_channel_mask_[];  ( to be used by WriteHotChannelMask() )
+void ALCTController::ConvertHotChannelMask()
+{
+   int m=0, alen=0;
+   for(int layer=0; layer <6; layer++)
+   {
+       if(ALCTHotChannelMaskArray_[layer].size())
+       {
+           const char *ahcmask=ALCTHotChannelMaskArray_[layer].c_str();
+           alen=strlen(ahcmask);
+           for(int z=0; z<alen; z++)
+           {
+               int r=sscanf(ahcmask+alen-z-1, "%1X", &m);
+               if(r<=0) 
+               {  // bad character in input string
+                  std::cout << "ERROR: ALCT Hot Channel Mask bad input in layer " << layer << " at position: " << z << std::endl; 
+                  break;
+               }
+               for(int i=0; i<4; i++)
+               {
+                  SetHotChannelMask(layer, z*4+i, 1-(m&1));
+                  // std::cout << "ALCT Hot Channel Mask: layer " << layer << ", chan " << z*4+i << ", mask= " << (m&1) << std::endl; 
+                  m >>= 1;
+               }
+           }
+       }
+   }   
 }
 //
 void ALCTController::SetPowerUpHotChannelMask() {

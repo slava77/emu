@@ -634,6 +634,12 @@ throw (emu::exception::ConfigurationException)
   if (conf->has("ALCT_TESTPULSE_AMPLITUDE"))       alct_->SetTestpulseAmplitude( getInt(conf, "ALCT_TESTPULSE_AMPLITUDE"));
   if (conf->has("ALCT_TESTPULSE_INVERT"))          alct_->Set_InvertPulse( getString(conf, "ALCT_TESTPULSE_INVERT"));
   if (conf->has("ALCT_TESTPULSE_DIRECTION"))       alct_->Set_PulseDirection( getString(conf, "ALCT_TESTPULSE_DIRECTION"));
+  if (conf->has("ALCT_LAYER0_HOT_CHANN_MASK"))     alct_->SetALCTHotChanMaskString(0, getString(conf, "ALCT_LAYER0_HOT_CHANN_MASK"));
+  if (conf->has("ALCT_LAYER1_HOT_CHANN_MASK"))     alct_->SetALCTHotChanMaskString(1, getString(conf, "ALCT_LAYER1_HOT_CHANN_MASK"));
+  if (conf->has("ALCT_LAYER2_HOT_CHANN_MASK"))     alct_->SetALCTHotChanMaskString(2, getString(conf, "ALCT_LAYER2_HOT_CHANN_MASK"));
+  if (conf->has("ALCT_LAYER3_HOT_CHANN_MASK"))     alct_->SetALCTHotChanMaskString(3, getString(conf, "ALCT_LAYER3_HOT_CHANN_MASK"));
+  if (conf->has("ALCT_LAYER4_HOT_CHANN_MASK"))     alct_->SetALCTHotChanMaskString(4, getString(conf, "ALCT_LAYER4_HOT_CHANN_MASK"));
+  if (conf->has("ALCT_LAYER5_HOT_CHANN_MASK"))     alct_->SetALCTHotChanMaskString(5, getString(conf, "ALCT_LAYER5_HOT_CHANN_MASK"));
   if (conf->has("ALCT_ZERO_SUPPRESS"))             alct_->SetAlctZeroSuppress( getInt(conf, "ALCT_ZERO_SUPPRESS"));
   if (conf->has("HARDWARE_VERSION"))               alct_->SetHardwareVersion( getInt(conf, "HARDWARE_VERSION"));
 

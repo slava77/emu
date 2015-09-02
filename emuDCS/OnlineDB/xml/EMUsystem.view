@@ -912,6 +912,12 @@ oldconfig.WRITE_BUFFER_REQUIRED!=newconfig.WRITE_BUFFER_REQUIRED
   oldalct.ALCT_TESTPULSE_AMPLITUDE!=newalct.ALCT_TESTPULSE_AMPLITUDE or
   oldalct.ALCT_TESTPULSE_DIRECTION!=newalct.ALCT_TESTPULSE_DIRECTION or
   oldalct.ALCT_TESTPULSE_INVERT!=newalct.ALCT_TESTPULSE_INVERT or
+  oldalct.ALCT_LAYER0_HOT_CHANN_MASK!=newalct.ALCT_LAYER0_HOT_CHANN_MASK or
+  oldalct.ALCT_LAYER1_HOT_CHANN_MASK!=newalct.ALCT_LAYER1_HOT_CHANN_MASK or
+  oldalct.ALCT_LAYER2_HOT_CHANN_MASK!=newalct.ALCT_LAYER2_HOT_CHANN_MASK or
+  oldalct.ALCT_LAYER3_HOT_CHANN_MASK!=newalct.ALCT_LAYER3_HOT_CHANN_MASK or
+  oldalct.ALCT_LAYER4_HOT_CHANN_MASK!=newalct.ALCT_LAYER4_HOT_CHANN_MASK or
+  oldalct.ALCT_LAYER5_HOT_CHANN_MASK!=newalct.ALCT_LAYER5_HOT_CHANN_MASK or
   oldalct.ALCT_TRIG_INFO_EN!=newalct.ALCT_TRIG_INFO_EN or
   oldalct.ALCT_TRIG_MODE!=newalct.ALCT_TRIG_MODE or
   oldalct.ALCT_ZERO_SUPPRESS!=newalct.ALCT_ZERO_SUPPRESS or
@@ -998,6 +1004,12 @@ oldconfig.ALCT_SN_SELECT "ALCT_SN_SELECT $OLD_EMU_CONFIG_ID",newconfig.ALCT_SN_S
 oldconfig.ALCT_TESTPULSE_AMPLITUDE "ALCT_TESTPULSE_AMPLITU $OLD_EMU_CONFIG_ID",newconfig.ALCT_TESTPULSE_AMPLITUDE "ALCT_TESTPULSE_AMPLITU $NEW_EMU_CONFIG_ID",
 oldconfig.ALCT_TESTPULSE_DIRECTION "ALCT_TESTPULSE_DIRECTI $OLD_EMU_CONFIG_ID",newconfig.ALCT_TESTPULSE_DIRECTION "ALCT_TESTPULSE_DIRECTI $NEW_EMU_CONFIG_ID",
 oldconfig.ALCT_TESTPULSE_INVERT "ALCT_TESTPULSE_INVERT $OLD_EMU_CONFIG_ID",newconfig.ALCT_TESTPULSE_INVERT "ALCT_TESTPULSE_INVERT $NEW_EMU_CONFIG_ID",
+oldconfig.ALCT_LAYER0_HOT_CHANN_MASK "ALCT_LAYER0_HOT_CHANN_MASK $OLD_EMU_CONFIG_ID",newconfig.ALCT_LAYER0_HOT_CHANN_MASK "ALCT_LAYER0_HOT_CHANN_MASK $NEW_EMU_CONFIG_ID",
+oldconfig.ALCT_LAYER1_HOT_CHANN_MASK "ALCT_LAYER1_HOT_CHANN_MASK $OLD_EMU_CONFIG_ID",newconfig.ALCT_LAYER1_HOT_CHANN_MASK "ALCT_LAYER1_HOT_CHANN_MASK $NEW_EMU_CONFIG_ID",
+oldconfig.ALCT_LAYER2_HOT_CHANN_MASK "ALCT_LAYER2_HOT_CHANN_MASK $OLD_EMU_CONFIG_ID",newconfig.ALCT_LAYER2_HOT_CHANN_MASK "ALCT_LAYER2_HOT_CHANN_MASK $NEW_EMU_CONFIG_ID",
+oldconfig.ALCT_LAYER3_HOT_CHANN_MASK "ALCT_LAYER3_HOT_CHANN_MASK $OLD_EMU_CONFIG_ID",newconfig.ALCT_LAYER3_HOT_CHANN_MASK "ALCT_LAYER3_HOT_CHANN_MASK $NEW_EMU_CONFIG_ID",
+oldconfig.ALCT_LAYER4_HOT_CHANN_MASK "ALCT_LAYER4_HOT_CHANN_MASK $OLD_EMU_CONFIG_ID",newconfig.ALCT_LAYER4_HOT_CHANN_MASK "ALCT_LAYER4_HOT_CHANN_MASK $NEW_EMU_CONFIG_ID",
+oldconfig.ALCT_LAYER5_HOT_CHANN_MASK "ALCT_LAYER5_HOT_CHANN_MASK $OLD_EMU_CONFIG_ID",newconfig.ALCT_LAYER5_HOT_CHANN_MASK "ALCT_LAYER5_HOT_CHANN_MASK $NEW_EMU_CONFIG_ID",
 oldconfig.ALCT_TRIG_INFO_EN "ALCT_TRIG_INFO_EN $OLD_EMU_CONFIG_ID",newconfig.ALCT_TRIG_INFO_EN "ALCT_TRIG_INFO_EN $NEW_EMU_CONFIG_ID",
 oldconfig.ALCT_TRIG_MODE "ALCT_TRIG_MODE $OLD_EMU_CONFIG_ID",newconfig.ALCT_TRIG_MODE "ALCT_TRIG_MODE $NEW_EMU_CONFIG_ID",
 oldconfig.ALCT_ZERO_SUPPRESS "ALCT_ZERO_SUPPRESS $OLD_EMU_CONFIG_ID",newconfig.ALCT_ZERO_SUPPRESS "ALCT_ZERO_SUPPRESS $NEW_EMU_CONFIG_ID",
@@ -1038,6 +1050,12 @@ oldconfig.ALCT_SN_SELECT!=newconfig.ALCT_SN_SELECT or
 oldconfig.ALCT_TESTPULSE_AMPLITUDE!=newconfig.ALCT_TESTPULSE_AMPLITUDE or 
 oldconfig.ALCT_TESTPULSE_DIRECTION!=newconfig.ALCT_TESTPULSE_DIRECTION or 
 oldconfig.ALCT_TESTPULSE_INVERT!=newconfig.ALCT_TESTPULSE_INVERT or 
+oldconfig.ALCT_LAYER0_HOT_CHANN_MASK!=newconfig.ALCT_LAYER0_HOT_CHANN_MASK or
+oldconfig.ALCT_LAYER1_HOT_CHANN_MASK!=newconfig.ALCT_LAYER1_HOT_CHANN_MASK or
+oldconfig.ALCT_LAYER2_HOT_CHANN_MASK!=newconfig.ALCT_LAYER2_HOT_CHANN_MASK or
+oldconfig.ALCT_LAYER3_HOT_CHANN_MASK!=newconfig.ALCT_LAYER3_HOT_CHANN_MASK or
+oldconfig.ALCT_LAYER4_HOT_CHANN_MASK!=newconfig.ALCT_LAYER4_HOT_CHANN_MASK or
+oldconfig.ALCT_LAYER5_HOT_CHANN_MASK!=newconfig.ALCT_LAYER5_HOT_CHANN_MASK or
 oldconfig.ALCT_TRIG_INFO_EN!=newconfig.ALCT_TRIG_INFO_EN or 
 oldconfig.ALCT_TRIG_MODE!=newconfig.ALCT_TRIG_MODE or 
 oldconfig.ALCT_ZERO_SUPPRESS!=newconfig.ALCT_ZERO_SUPPRESS or 
@@ -1478,6 +1496,12 @@ where rownum=1]]>
       <tstore:column name="alct_testpulse_amplitude" type="unsigned short"/>
       <tstore:column name="alct_testpulse_direction" type="string"/>
       <tstore:column name="alct_testpulse_invert" type="string"/>
+      <tstore:column name="alct_layer0_hot_chann_mask" type="string"/>
+      <tstore:column name="alct_layer1_hot_chann_mask" type="string"/>
+      <tstore:column name="alct_layer2_hot_chann_mask" type="string"/>
+      <tstore:column name="alct_layer3_hot_chann_mask" type="string"/>
+      <tstore:column name="alct_layer4_hot_chann_mask" type="string"/>
+      <tstore:column name="alct_layer5_hot_chann_mask" type="string"/>
       <tstore:column name="alct_trig_info_en" type="unsigned short"/>
       <tstore:column name="alct_trig_mode" type="unsigned short"/>
       <tstore:column name="alct_zero_suppress" type="unsigned short"/>

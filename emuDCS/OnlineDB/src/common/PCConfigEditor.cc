@@ -2627,6 +2627,12 @@ void PCConfigEditor::copyALCTToTable(xdata::Table &newRows, ALCTController * &TS
   std::string ALCT_TESTPULSE_AMPLITUDE("ALCT_TESTPULSE_AMPLITUDE");
   std::string ALCT_TESTPULSE_DIRECTION("ALCT_TESTPULSE_DIRECTION");
   std::string ALCT_TESTPULSE_INVERT("ALCT_TESTPULSE_INVERT");
+  std::string ALCT_LAYER0_HOT_CHANN_MASK("ALCT_LAYER0_HOT_CHANN_MASK");
+  std::string ALCT_LAYER1_HOT_CHANN_MASK("ALCT_LAYER1_HOT_CHANN_MASK");
+  std::string ALCT_LAYER2_HOT_CHANN_MASK("ALCT_LAYER2_HOT_CHANN_MASK");
+  std::string ALCT_LAYER3_HOT_CHANN_MASK("ALCT_LAYER3_HOT_CHANN_MASK");
+  std::string ALCT_LAYER4_HOT_CHANN_MASK("ALCT_LAYER4_HOT_CHANN_MASK");
+  std::string ALCT_LAYER5_HOT_CHANN_MASK("ALCT_LAYER5_HOT_CHANN_MASK");
   std::string ALCT_TRIG_INFO_EN("ALCT_TRIG_INFO_EN");
   std::string ALCT_TRIG_MODE("ALCT_TRIG_MODE");
   std::string ALCT_ZERO_SUPPRESS("ALCT_ZERO_SUPPRESS");
@@ -2659,6 +2665,12 @@ void PCConfigEditor::copyALCTToTable(xdata::Table &newRows, ALCTController * &TS
   xdata::UnsignedShort _alct_sn_select                 = TStore_thisALCT->GetWriteSnSelect();
   xdata::UnsignedShort _alct_testpulse_amplitude       = TStore_thisALCT->GetTestpulseAmplitude();
   xdata::String        _alct_testpulse_direction       = TStore_thisALCT->Get_PulseDirection();
+  xdata::String        _alct_layer0_hot_chann_mask     = TStore_thisALCT->GetALCTHotChanMaskString(0);
+  xdata::String        _alct_layer1_hot_chann_mask     = TStore_thisALCT->GetALCTHotChanMaskString(1);
+  xdata::String        _alct_layer2_hot_chann_mask     = TStore_thisALCT->GetALCTHotChanMaskString(2);
+  xdata::String        _alct_layer3_hot_chann_mask     = TStore_thisALCT->GetALCTHotChanMaskString(3);
+  xdata::String        _alct_layer4_hot_chann_mask     = TStore_thisALCT->GetALCTHotChanMaskString(4);
+  xdata::String        _alct_layer5_hot_chann_mask     = TStore_thisALCT->GetALCTHotChanMaskString(5);
   xdata::String        _alct_testpulse_invert          = TStore_thisALCT->Get_InvertPulse();
   //std::cout << "ALCT_TESTPULSE_INVERT read: " << _alct_testpulse_invert << std::endl;
   xdata::UnsignedShort _alct_trig_info_en              = TStore_thisALCT->GetWriteTriggerInfoEnable();
@@ -2694,6 +2706,12 @@ void PCConfigEditor::copyALCTToTable(xdata::Table &newRows, ALCTController * &TS
   std::cout << "-- ALCT alct_sn_select -------------------- " << _alct_sn_select.toString()                 << std::endl;
   std::cout << "-- ALCT alct_testpulse_amplitude ---------- " << _alct_testpulse_amplitude.toString()       << std::endl;
   std::cout << "-- ALCT alct_testpulse_direction ---------- " << _alct_testpulse_direction.toString()       << std::endl;
+  std::cout << "-- ALCT alct_layer0_hot_chann_mask -------- " << _alct_layer0_hot_chann_mask.toString()     << std::endl;
+  std::cout << "-- ALCT alct_layer1_hot_chann_mask -------- " << _alct_layer1_hot_chann_mask.toString()     << std::endl;
+  std::cout << "-- ALCT alct_layer2_hot_chann_mask -------- " << _alct_layer2_hot_chann_mask.toString()     << std::endl;
+  std::cout << "-- ALCT alct_layer3_hot_chann_mask -------- " << _alct_layer3_hot_chann_mask.toString()     << std::endl;
+  std::cout << "-- ALCT alct_layer4_hot_chann_mask -------- " << _alct_layer4_hot_chann_mask.toString()     << std::endl;
+  std::cout << "-- ALCT alct_layer5_hot_chann_mask -------- " << _alct_layer5_hot_chann_mask.toString()     << std::endl;
   std::cout << "-- ALCT alct_testpulse_invert ------------- " << _alct_testpulse_invert.toString()          << std::endl;
   std::cout << "-- ALCT alct_trig_info_en ----------------- " << _alct_trig_info_en.toString()              << std::endl;
   std::cout << "-- ALCT alct_trig_mode -------------------- " << _alct_trig_mode.toString()                 << std::endl;
@@ -2729,6 +2747,12 @@ void PCConfigEditor::copyALCTToTable(xdata::Table &newRows, ALCTController * &TS
   newRows.setValueAt(rowId, ALCT_SN_SELECT,                 _alct_sn_select);
   newRows.setValueAt(rowId, ALCT_TESTPULSE_AMPLITUDE,       _alct_testpulse_amplitude);
   newRows.setValueAt(rowId, ALCT_TESTPULSE_DIRECTION,       _alct_testpulse_direction);
+  newRows.setValueAt(rowId, ALCT_LAYER0_HOT_CHANN_MASK,     _alct_layer0_hot_chann_mask);
+  newRows.setValueAt(rowId, ALCT_LAYER1_HOT_CHANN_MASK,     _alct_layer1_hot_chann_mask);
+  newRows.setValueAt(rowId, ALCT_LAYER2_HOT_CHANN_MASK,     _alct_layer2_hot_chann_mask);
+  newRows.setValueAt(rowId, ALCT_LAYER3_HOT_CHANN_MASK,     _alct_layer3_hot_chann_mask);
+  newRows.setValueAt(rowId, ALCT_LAYER4_HOT_CHANN_MASK,     _alct_layer4_hot_chann_mask);
+  newRows.setValueAt(rowId, ALCT_LAYER5_HOT_CHANN_MASK,     _alct_layer5_hot_chann_mask);
   newRows.setValueAt(rowId, ALCT_TESTPULSE_INVERT,          _alct_testpulse_invert);
   newRows.setValueAt(rowId, ALCT_TRIG_INFO_EN,              _alct_trig_info_en);
   newRows.setValueAt(rowId, ALCT_TRIG_MODE,                 _alct_trig_mode);
@@ -3917,6 +3941,12 @@ void PCConfigEditor::readALCT(
         //std::cout << "ALCT_TESTPULSE_INVERT read as: " << alct_->Get_InvertPulse() << std::endl;
       }
       if (*column == "ALCT_TESTPULSE_DIRECTION"      ) alct_->Set_PulseDirection(StrgValue);
+      if (*column == "ALCT_LAYER0_HOT_CHANN_MASK"    ) alct_->SetALCTHotChanMaskString(0,StrgValue);
+      if (*column == "ALCT_LAYER1_HOT_CHANN_MASK"    ) alct_->SetALCTHotChanMaskString(1,StrgValue);
+      if (*column == "ALCT_LAYER2_HOT_CHANN_MASK"    ) alct_->SetALCTHotChanMaskString(2,StrgValue);
+      if (*column == "ALCT_LAYER3_HOT_CHANN_MASK"    ) alct_->SetALCTHotChanMaskString(3,StrgValue);
+      if (*column == "ALCT_LAYER4_HOT_CHANN_MASK"    ) alct_->SetALCTHotChanMaskString(4,StrgValue);
+      if (*column == "ALCT_LAYER5_HOT_CHANN_MASK"    ) alct_->SetALCTHotChanMaskString(5,StrgValue);
       if (*column == "ALCT_ZERO_SUPPRESS"            ) alct_->SetAlctZeroSuppress(IntValue);
       if (*column == "ALCT_CONFIG_ID"                ) alct_config_id_ = StrgValue;
       

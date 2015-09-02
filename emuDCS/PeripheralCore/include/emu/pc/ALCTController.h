@@ -588,7 +588,7 @@ class ALCTController : public EmuLogger
   //////////////////////////////
   void  SetHotChannelMask(int layer,                 // set Write values -> layer = [0-5]
   	 		  int channel,               //                   channel = [0 - (GetNumberOfChannelsPerLayer()-1)]
-  			  int mask);                 //                      mask = [OFF, ON]
+  			  int mask);                 //                      mask = [OFF, ON] !!Note: this is more like status flag with OFF=0 ON=1
   int  GetHotChannelMask(int layer,                  // get Read values -> layer = [0-5]
   			 int channel);               //                  channel = [0- (GetNumberOfChannelsPerLayer()-1)]
   //
@@ -598,6 +598,12 @@ class ALCTController : public EmuLogger
   //
   void WriteHotChannelMask();                   //writes Write values to ALCT
   void ReadHotChannelMask();                    //fills Read values with values read from ALCT
+  //
+  void ConvertHotChannelMask();                 // convert mask strings into bit pattern
+  //
+  // the following two methods for XML/DB parser
+  inline void SetALCTHotChanMaskString(int layer, std::string mask_string) { if(layer>=0 && layer<6) ALCTHotChannelMaskArray_[layer]=mask_string; }
+  inline std::string GetALCTHotChanMaskString(int layer) { if(layer>=0 && layer<6)  return ALCTHotChannelMaskArray_[layer]; else return NULL; }
   //
   //
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -961,6 +967,8 @@ private:
   void WriteDelayLineControlReg_();                  //writes Write values to ALCT
   void ReadDelayLineControlReg_();                  //fills Read values with values read from ALCT
   //
+  std::string ALCTHotChannelMaskArray_[6];          // !!!Note: this is not the same as in firmware/hardware!
+                                                    // Here bit=0 channel ON (default state); bit=1 channel OFF.
 };
 
   } // namespace emu::pc
