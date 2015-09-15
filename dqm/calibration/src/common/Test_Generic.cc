@@ -796,12 +796,10 @@ int applyParameters(TH1* object, bookParams& params)
           //object->Draw();
         }
 
-      /*
         if ((itr = params.find("SetOptStat")) != params.end()) {
         gStyle->SetOptStat(itr->second.c_str());
 
         }
-      */
 
       if ((itr = params.find("SetStats")) != params.end())
         {

@@ -506,8 +506,8 @@ void TestCanvas_userHisto::Draw (void)
   if (theStyle == NULL)  theStyle = new TStyle("Style", "Style");
   if (theStyle != NULL)
     {
-      theStyle->SetOptStat(0);
-      theStyle->SetOptTitle(0);
+      // theStyle->SetOptStat(0);
+      // theStyle->SetOptTitle(0);
       theStyle->SetPalette(1,0);
       theStyle->cd();
     }
