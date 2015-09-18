@@ -3633,6 +3633,7 @@ void ALCTController::PrintHotChannelMask() {
 		       hot_channel_mask);
   //
   int char_counter = RegSizeAlctFastFpga_RD_HOTCHAN_MASK_/8 - 1;
+  int char_counter2 = char_counter;
   //
   (*MyOutput_) << "ALCT: Hot Channel Mask for ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 	       << " (from right to left):" << std::endl;
@@ -3646,7 +3647,14 @@ void ALCTController::PrintHotChannelMask() {
 		   << (hot_channel_mask[char_counter] & 0xf) << " ";
       char_counter--;
     }
-      (*MyOutput_) << std::endl;
+    (*MyOutput_) << " reverse ";
+    for (int layer_counter=GetNumberOfChannelsPerLayer()/8; layer_counter>0; layer_counter--) {
+      (*MyOutput_) << std::hex
+		   << ((~hot_channel_mask[char_counter2] >> 4) & 0xf) 
+		   << (~hot_channel_mask[char_counter2] & 0xf);
+      char_counter2--;
+    }
+    (*MyOutput_) << std::dec << std::endl;
   }
   return;
 }
