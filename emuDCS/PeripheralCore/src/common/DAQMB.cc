@@ -992,7 +992,7 @@ bool DAQMB::checkDAQMBXMLValues() {
   }
   else if(hardware_version_==2)
   {
-    std::cout << "ODAMB: checkXMLValues() for crate " << this->crate() << " slot " << this->slot() << std::endl;
+    std::cout << "ODMB: checkXMLValues() for crate " << this->crate() << " slot " << this->slot() << std::endl;
     // check ODMB and DCFEBs here
     bool print_errors=true;
     bool confmatch=true;

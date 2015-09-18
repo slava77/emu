@@ -55,14 +55,14 @@ bool EmuLogger::compareValues(std::string TypeOfTest, int testval, int compareva
   if (equal) {
     //
     if (testval == compareval) {
-      // if (print_errors) (*MyOutput_) << "PASS = 0x" << std::hex << compareval << std::endl;
+      // if (print_errors) (*MyOutput_) << "PASS = 0x" << std::hex << compareval << std::dec << std::endl;
       return true;
     } else {
       if (print_errors) {
-	(*MyOutput_) << TypeOfTest << " FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << std:: hex << testval << std::endl;
+	(*MyOutput_) << TypeOfTest << " FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << testval << std::dec << std::endl;
 	//
 	std::ostringstream dump;
-	dump << TypeOfTest << " FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << std:: hex << testval << std::endl;
+	dump << TypeOfTest << " FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << testval << std::dec << std::endl;
 	//if (print_errors) SendOutput(dump.str(),"ERROR");
       }
       return false;
@@ -71,14 +71,14 @@ bool EmuLogger::compareValues(std::string TypeOfTest, int testval, int compareva
   } else {
     //
     if (testval != compareval) {
-      // if (print_errors) (*MyOutput_) << "PASS -> 0x" << std::hex << testval << " not equal to 0x" <<std::hex << compareval << std::endl;
+      // if (print_errors) (*MyOutput_) << "PASS -> 0x" << std::hex << testval << " not equal to 0x" << compareval << std::dec << std::endl;
       return true;
     } else {
       if (print_errors) {
-	(*MyOutput_) << TypeOfTest << " FAIL -> expected = returned = 0x" << std::hex << testval << std::endl;
+	(*MyOutput_) << TypeOfTest << " FAIL -> expected = returned = 0x" << std::hex << testval << std::dec << std::endl;
 	//
 	std::ostringstream dump;
-	dump << TypeOfTest << " FAIL -> expected = returned = 0x" << std::hex << testval << std::endl;
+	dump << TypeOfTest << " FAIL -> expected = returned = 0x" << std::hex << testval << std::dec << std::endl;
 	//SendOutput(dump.str(),"ERROR");
       }
       return false;
