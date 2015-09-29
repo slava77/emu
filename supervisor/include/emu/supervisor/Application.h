@@ -234,6 +234,8 @@ private: // XDAQ parameters
 
   bool isUsingTCDS_;		///< Will be FALSE if a legacy TTCci application is found. Then the legacy TTC system will be used instead of TCDS.
 
+  xdata::Boolean isDAQResponsive_; ///< Will be FALSE once a SOAP exchange fails. This is to prevent a stuck local DAQ from holding up the run.
+
 	xdata::Integer64 nevents_;
 	unsigned int step_counter_;
 
