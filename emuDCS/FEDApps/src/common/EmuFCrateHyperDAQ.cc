@@ -2981,7 +2981,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 		otherTable(0,4) << "Decoded Chambers/Status";
 		
 		otherTable(2,0) << "Input buffer empty";
-		otherTable(3,0) << "Special decode bits (8-bit)";
+		otherTable(3,0) << "Special FIFO decode (8-bit)";
 		otherTable(4,0) << "Input buffer full history";
 		otherTable(5,0) << "Special decode bits (4-bit)";
 		otherTable(6,0) << "InRD0/2 C-code status (8-bit)";
@@ -3005,7 +3005,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
 
 			unsigned int readFIFOStat = myDDU->readFIFOStatus(dt);
-			otherTable(2,iDevType*2+1) << std::showbase << std::hex << ((readFIFOStat >> 8) & 0xff);
+			otherTable(2,iDevType*2+1) << std::showbase << std::hex << ((readFIFOStat) & 0xff);
 			//if (((readFIFOStat >> 8) & 0xff)) otherTable(0,iDevType*2+1).setClass("bad");
 			otherTable(2,iDevType*2+1).setClass("ok");
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3015,10 +3015,10 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 				}
 			}
 
-			otherTable(3,iDevType*2+1) << std::showbase << std::hex << ((readFIFOStat) & 0xff);
-			if (((readFIFOStat) & 0xfc)) otherTable(3,iDevType*2+1).setClass("warning");
+			otherTable(3,iDevType*2+1) << std::showbase << std::hex << ((readFIFOStat >> 8) & 0xff);
+			if (((readFIFOStat >> 8) & 0xfc)) otherTable(3,iDevType*2+1).setClass("warning");
 			else otherTable(3,iDevType*2+1).setClass("ok");
-			std::map<std::string, std::string> readFIFOStatComments = DDUDebugger::FIFOStatus(dt, (readFIFOStat) & 0xff, myDDU);
+			std::map<std::string, std::string> readFIFOStatComments = DDUDebugger::FIFOStatus(dt, (readFIFOStat >> 8) & 0xff, myDDU);
 			for (std::map< std::string, std::string >::iterator iComment = readFIFOStatComments.begin();
 				iComment != readFIFOStatComments.end();
 				iComment++) {
