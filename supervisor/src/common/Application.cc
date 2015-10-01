@@ -1304,6 +1304,19 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       // Execute our explicit PM commands:
       if ( pm_       ) pm_      ->configureSequence();
     }
+    else{
+      int index = getCalibParamIndex(run_type_);
+      // Configure TTC
+      if (index >= 0) {
+	m.setParameters( "ttc::TTCciControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ttcci_ ) );
+      }
+      m.sendCommand( "ttc::TTCciControl", "configure" );    
+      // Configure LTC
+      if (index >= 0) {
+	m.setParameters( "ttc::LTCControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ltc_ ) );
+      }
+      m.sendCommand( "ttc::LTCControl", "configure" );
+    } // if ( ! isUsingTCDS_ )
 
     m.setResponseTimeout( 600 ); // Allow PCrates ample time to be configured.
     if ( !isCalibrationMode() ) {
@@ -1332,35 +1345,12 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       } 
     }
 
-    if ( ! isUsingTCDS_ ){
-      int index = getCalibParamIndex(run_type_);
-      // Configure TTC
-      if (index >= 0) {
-	m.setParameters( "ttc::TTCciControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ttcci_ ) );
-      }
-      m.sendCommand( "ttc::TTCciControl", "configure" );    
-      // Configure LTC
-      if (index >= 0) {
-	m.setParameters( "ttc::LTCControl" , emu::soap::Parameters().add( "Configuration", &calib_params_[index].bag.ltc_ ) );
-      }
-      m.sendCommand( "ttc::LTCControl", "configure" );
-    } // if ( ! isUsingTCDS_ )
-
     xdata::String runType( "global" );
     if      ( isCalibrationMode()     ) runType = "calibration";
     else if ( controlTFCellOp_.value_ ) runType = "local";
     m.setParameters( "emu::fed::Manager", emu::soap::Parameters().add( "runType", &runType ) );
     // Configure FED
     m.sendCommand( "emu::fed::Manager", "Configure" );
-
-    // if (isCalibrationMode()) {
-    //   m.setResponseTimeout( 600 ); // Allow PCrates ample time to be configured for calibration run.
-    // 		if (isAlctCalibrationMode())
-    // 		  m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "ConfigCalALCT" );
-    // 		else
-    // 		  m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "ConfigCalCFEB");
-    //   m.resetResponseTimeout(); // Reset response timeout to default value.
-    // }   
 
     // By now the local DAQ must have finished configuring. Checking it is practically only needed
     // in tests when the local DAQ Manager is the only supervised app. We certainly don't need to do it
