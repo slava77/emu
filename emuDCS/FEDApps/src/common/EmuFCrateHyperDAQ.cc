@@ -1183,11 +1183,11 @@ void emu::fed::EmuFCrateHyperDAQ::DDURegisterDump(xgi::Input *in, xgi::Output *o
       
       outfile << setw(col1) << "DDU L1A-to-start max process time:";
       dduValue = (*iDDU)->readMaxTimeoutCount();
-      outfile << setw(col2) << (((dduValue) & 0xFF) * 400.0) << " ns"; 
+      outfile << setw(col2) << (((dduValue) & 0xFF) * 400.0) << "ns"; 
       outfile << endl;  
       
       outfile << setw(col1) << "DDU start-to-end max process time:";
-      outfile << setw(col2) << std::showbase << std::hex << (((dduValue >> 8) & 0xFF) * 6.4) << " mus";
+      outfile << setw(col2) << std::showbase << std::hex << (((dduValue >> 8) & 0xFF) * 6.4) << "mus";
       outfile << endl;  
       
       outfile << endl;  
@@ -2313,26 +2313,10 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 
 		const cgicc::Cgicc cgi(in);
 
-		// Wells debugging:
-		// get the crate number
-		cgicc::const_form_iterator name = cgi.getElement("crate");
-		unsigned int cgiCrate = 0;
-		if (name != cgi.getElements().end()) {
-		  cgiCrate = cgi["crate"]->getIntegerValue();
-		  LOG4CPLUS_INFO(getApplicationLogger(), "DDUDebug:  got crate successfully."); 
-		} else {
-		  std::ostringstream error;
-		  error << "Error getting crate from CGI input";
-		  LOG4CPLUS_INFO(getApplicationLogger(), "DDUDebug:  failed to get crate."); 
-		  LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-		  XCEPT_RAISE(emu::fed::exception::OutOfBoundsException, error.str());
-		}
-
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
-		//		unsigned int cgiCrate = cratePair.first;
-		cgiCrate = cratePair.first;
+		unsigned int cgiCrate = cratePair.first;
 		Crate *myCrate = cratePair.second;
 
 		std::pair<unsigned int, DDU *> boardPair = getCGIBoard<DDU>(cgi);
@@ -7539,8 +7523,6 @@ throw (emu::fed::exception::OutOfBoundsException)
 
 	// get the crate number
 	cgicc::const_form_iterator name = cgi.getElement("crate");
-
-	LOG4CPLUS_INFO(getApplicationLogger(), "About to get crate in ::getCGICrate");  
 
 	unsigned int cgiCrate = 0;
 	if (name != cgi.getElements().end()) {
