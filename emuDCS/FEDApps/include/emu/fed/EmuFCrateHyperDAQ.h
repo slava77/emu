@@ -73,6 +73,9 @@ namespace emu {
 			**/
 			void uploadConfFile(xgi::Input *in, xgi::Output *out);
 
+			/** Send values of all registers to a log file.  **/
+			void DDURegisterDump(xgi::Input *in, xgi::Output *out);
+
 			/** Page listing the DDU firmware broadcast options. **/
 			void DDUBroadcast(xgi::Input *in, xgi::Output *out);
 
