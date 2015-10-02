@@ -467,7 +467,8 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
 },
 {
 "objID": "ME-1/2/22", "name": "ME-1/2/22", "list": [
-  {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB3 DAV 0.000%", "severity": "3", "obj": "CFEB3"}
+  {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB3 DAV 0.000%", "severity": "3", "obj": "CFEB3"},
+  {"testID": "CSC_WITHOUT_ALCT", "scope": "CSC", "descr": "No ALCT Data: 100.0% - Killed in readout on 29.09.2015", "severity": "4", "obj": "ALCT"}
   ]
 },
 {

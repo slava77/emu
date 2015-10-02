@@ -1223,7 +1223,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       int csc_cntr=0;
       uint32_t min_events=400;
       double rms_limit = 1.81;
-      if (theFormatVersion == 2013) rms_limit = 1.91;
+      if (theFormatVersion == 2013) rms_limit = 2.01;
       for (int j=int(h->GetYaxis()->GetXmax())-1; j>= int(h->GetYaxis()->GetXmin()); j--)
         for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
           {
