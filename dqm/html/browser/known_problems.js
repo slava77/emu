@@ -2,6 +2,9 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
                        , "genDate": "2010-02-19 11:12:00 CET"
                        , "report":
                        [
+{"objID": "ME+1/1/01", "name": "ME+1/1/01", "list": [
+        {"testID": "CSC_LOWERED_HV_SEGMENT", "scope": "CSC", "descr": "Lowered HV Segment: Layer5 (SCA efficiency < average)", "severity": "1", "obj": "Layer5"}
+]},
 {
 "objID": "ME+1/1/15", "name": "ME+1/1/15", "list": [
   {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB3 Layer6 Ch#19 HStrip83", "severity": "1", "obj": "CFEB3 Layer6 Ch#19"},
@@ -24,6 +27,10 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
   {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB6 Layer3 Ch#32 HStrip192", "severity": "1", "obj": "CFEB6 Layer3 Ch#32"}
   ]
 },
+{"objID": "ME+1/1/33", "name": "ME+1/1/33", "list": [
+        {"testID": "CSC_LOWERED_HV_SEGMENT", "scope": "CSC", "descr": "Lowered HV Segment: Layer1 (SCA efficiency < average)", "severity": "1", "obj": "Layer1"},
+        {"testID": "CSC_LOWERED_HV_SEGMENT", "scope": "CSC", "descr": "Lowered HV Segment: Layer3 (SCA efficiency < average)", "severity": "1", "obj": "Layer3"}
+]},
 {
 "objID": "ME+1/2/03", "name": "ME+1/2/03", "list": [
   {"testID": "CSC_CFEB_SCA_DEAD_CHANNEL", "scope": "CSC", "descr": "Dead SCA channel: CFEB5 Layer5 Ch#1", "severity": "1", "obj": "CFEB5 Layer5 Ch#1"}
@@ -412,6 +419,12 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
   {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB4 DAV 0.000%", "severity": "3", "obj": "CFEB4"}
   ]
 },
+{"objID": "ME-1/1/04", "name": "ME-1/1/04", "list": [
+        {"testID": "CSC_LOWERED_HV_SEGMENT", "scope": "CSC", "descr": "Lowered HV Segment: Layer1 (SCA efficiency < average)", "severity": "1", "obj": "Layer1"}
+]},
+{"objID": "ME-1/1/05", "name": "ME-1/1/05", "list": [
+        {"testID": "CSC_LOWERED_HV_SEGMENT", "scope": "CSC", "descr": "Lowered HV Segment: Layer2 (SCA efficiency < average)", "severity": "1", "obj": "Layer2"}
+]},
 {
 "objID": "ME-1/1/13", "name": "ME-1/1/13", "list": [
   {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer4 Ch#1 HStrip33", "severity": "1", "obj": "CFEB2 Layer4 Ch#1"}
@@ -430,6 +443,10 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
   {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB3 Layer3 Ch#1 HStrip65", "severity": "1", "obj": "CFEB3 Layer3 Ch#1"}
   ]
 },
+{"objID": "ME-1/1/25", "name": "ME-1/1/25", "list": [
+        {"testID": "CSC_LOWERED_HV_SEGMENT", "scope": "CSC", "descr": "Lowered HV Segment: Layer6 (SCA efficiency < average)", "severity": "1", "obj": "Layer6"}
+]},
+
 {
 "objID": "ME-1/2/07", "name": "ME-1/2/07", "list": [
   {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB2 Layer2 Ch#2 HStrip34", "severity": "1", "obj": "CFEB2 Layer2 Ch#2"}
