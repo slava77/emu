@@ -641,6 +641,29 @@ int EmuPlotter::generateOnlineReport(std::string runname)
             }
         }
 
+      me = findME(CSC_folders[i], "ALCT0_KeyWG",  sourcedir);
+      if (me && (nWireGroups>0))
+        {
+          float hot_thresh = 7.0;
+          TH1D* h = reinterpret_cast<TH1D*>(me);
+          int entries = h->GetEntries();
+          double avg_alct_occupancy = (h->Integral(0, nWireGroups)/nWireGroups);
+          if ((avg_alct_occupancy > 0) && (entries > nWireGroups*100))
+            {
+              for (int wg=0; wg<nWireGroups; wg++)
+                {
+                  double val = h->GetBinContent(wg);
+                  if (val >= hot_thresh*avg_alct_occupancy)
+                    {
+                      std::string diag=Form("Hot ALCT Key WireGroup %d (occupancy %.1f > %.1f average). Possible ALCT SEU.", wg+1, val/avg_alct_occupancy, hot_thresh );
+                      dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_ALCT_HOT_KEYWG"));
+                    }
+                }
+            }
+        }
+
+
+
 
       // -- CFEBs DAV checks
       me = findME(CSC_folders[i], "Actual_DMB_CFEB_DAV_Frequency",  sourcedir);

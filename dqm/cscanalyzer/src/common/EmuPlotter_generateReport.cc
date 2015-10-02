@@ -1514,6 +1514,28 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
             }
         }
 
+      me = findME(CSC_folders[i], "ALCT0_KeyWG",  sourcedir);
+      if (me && (nWireGroups>0))
+        {
+          float hot_thresh = 7.0;
+          TH1D* h = reinterpret_cast<TH1D*>(me);
+          int entries = h->GetEntries();
+          double avg_alct_occupancy = (h->Integral(0, nWireGroups)/nWireGroups);
+          if ((avg_alct_occupancy > 0) && (entries> nWireGroups*100))
+            {
+              for (int wg=0; wg<nWireGroups; wg++)
+                {
+                  double val = h->GetBinContent(wg);
+                  if (val >= hot_thresh*avg_alct_occupancy)
+                    {
+                      std::string diag=Form("Hot ALCT Key WireGroup %d (occupancy %.1f > %.1f average). Possible ALCT SEU.", wg+1, val/avg_alct_occupancy, hot_thresh );
+                      dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_ALCT_HOT_KEYWG"));
+                    }
+                }
+            }
+          delete me;
+        }
+
       // -- CFEBs DAV checks
       me = findME(CSC_folders[i], "Actual_DMB_CFEB_DAV_Frequency",  sourcedir);
       me2 = findME(CSC_folders[i], "Actual_DMB_CFEB_DAV_Rate",  sourcedir);
@@ -1703,7 +1725,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
                   std::vector<double> SCAsums;
                   SCAsums.clear();
                   int noSCAs = 0;
-                  double low_sca_thresh = 0.2; // !!! Rasing default theshold from 0.2 to 0.55 to be able to detect cable swap problems;
+                  double low_sca_thresh = 0.25; // !!! Rasing default theshold from 0.2 to 0.55 to be able to detect cable swap problems;
                   double high_sca_thresh = 3.0;
 
                   if ( nentries >= (10*16*nActiveCFEBs) )
