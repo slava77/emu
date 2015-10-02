@@ -56,6 +56,7 @@ var TESTS_MAP = {
 	{"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "testPlot": "TMB/TMB-CLCT_Cathode_Comparator_Hit_Occupancy_per_Half_Strip", "testScope": "CSC"},
 	{"testID": "CSC_ALCT_NO_ANODE_DATA", "testPlot": "ALCT/ALCT_Anode_Hit_Occupancy_per_Wire_Group", "testScope": "CSC"},
 	{"testID": "CSC_ALCT_AFEB_NOISY", "testPlot": "ALCT/ALCT_Anode_Hit_Occupancy_per_Wire_Group", "testScope": "CSC"},
+        {"testID": "CSC_ALCT_HOT_KEYWG", "testPlot": "ALCT/ALCT_ALCT0_Key_Wiregroups__Patterns_and_Quality", "testScope": "CSC"},
 	{"testID": "CSC_NO_HV_SEGMENT", "testPlot": "ALCT/ALCT_Anode_Hit_Occupancy_per_Wire_Group", "testScope": "CSC"},
         {"testID": "CSC_ALCT_TIMING", "testPlot": "ALCT/ALCT_ALCT0_BXN_and_ALCT_L1A_BXN_Synchronization", "testScope": "CSC"},
 	{"testID": "CSC_CLCT_TIMING", "testPlot": "TMB/TMB-CLCT_CLCT0_BXN_and_TMB_L1A_BXN_Synchronization", "testScope": "CSC"},
