@@ -5,17 +5,17 @@
 WITHCOLORS="y"
 
 TMPDIR=tmp_compareXMLs
-E1=$TMPDIR/elements_${1:t}
-E2=$TMPDIR/elements_${2:t}
-A1=$TMPDIR/attributes_${1:t}
-A2=$TMPDIR/attributes_${2:t}
-A12=$TMPDIR/attributes_${1:t}_${2:t}
-AV1=$TMPDIR/attributeValues_${1:t}
-AV2=$TMPDIR/attributeValues_${2:t}
-VCA1=$TMPDIR/valuesOfCommonAttr_${1:t}
-VCA2=$TMPDIR/valuesOfCommonAttr_${2:t}
-DVCA1=$TMPDIR/differingValueCommonAttr_${1:t}
-DVCA2=$TMPDIR/differingValueCommonAttr_${2:t}
+E1=$TMPDIR/elements_1
+E2=$TMPDIR/elements_2
+A1=$TMPDIR/attributes_1
+A2=$TMPDIR/attributes_2
+A12=$TMPDIR/attributes_1_2
+AV1=$TMPDIR/attributeValues_1
+AV2=$TMPDIR/attributeValues_2
+VCA1=$TMPDIR/valuesOfCommonAttr_1
+VCA2=$TMPDIR/valuesOfCommonAttr_2
+DVCA1=$TMPDIR/differingValueCommonAttr_1
+DVCA2=$TMPDIR/differingValueCommonAttr_2
 
 mkdir -p $TMPDIR
 
