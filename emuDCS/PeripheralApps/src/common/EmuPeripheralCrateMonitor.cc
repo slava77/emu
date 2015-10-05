@@ -3184,7 +3184,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   unsigned int readtime;
   unsigned short crateok, good_chamber=0, good_tmbchamber=0, ccbtag, csra2, csra3;
   unsigned short mpcreg0, mpcreg1=0, mpcreg2=0, mpcreg3=0;
-  float val, V7;
+  float val, V7, dmb_temp;
   std::vector<DAQMB*> myVector;
   xdata::InfoSpace * is;
   int ip, slot, ch_state;
@@ -3319,14 +3319,24 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
 
         if((ch_state & 0x7F)==0) 
         {
+          /* DMB temperature */
+          dmb_temp=(*dmbdata)[j*TOTAL_DCS_COUNTERS+40];
+          if(dmb_temp<80. && dmb_temp>5.)
+          {  /* if the DMB temperature reading is OK, then check the 7Vs */
             /* Analog power */
             V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+38];
             if(V7<3.0) ch_state |= 512;
             /* Digital power */
             V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+39];
             if(V7<3.0) ch_state |= 1024;
+          } 
+          else
+          {
+            /* treat it as bad DMB reading */
+            ch_state |= 16;  
+          }
         }
-        if(ch_state&0xFD8) problem_readings++;   // possible reading error (exclude bits 0-2,5)
+        if(ch_state&0x9D8) problem_readings++;   // possible reading error (exclude bits 0-2,5,9,10)
         *out << " " << ch_state; 
         *out << " " << readtime << " " << ip;
 
@@ -3362,8 +3372,8 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         *out << std::setprecision(4) << std::fixed;
         for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
         {  
-           /* for error conditions on bits 0-6,9-10, don't send data */
-           if((ch_state & 0x67F)==0)
+           /* for error conditions on bits 0-6, don't send data */
+           if((ch_state & 0x7F)==0)
            { 
               val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
               *out << " " << val;
@@ -3393,7 +3403,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
          if(reload_vcc)
          {
             crateVector[i]->vmeController()->reset();
-            ::usleep(300000);
+            ::usleep(1000000);
             crateVector[i]->SetLife( true );
             crateVector[i]->vmeController()->SetLife(true);
             vcc_reset[i] = vcc_reset[i] + 1;
@@ -3423,7 +3433,7 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
   unsigned int readtime;
   unsigned short crateok, good_chamber=0, good_tmbchamber=0, ccbtag, csra2, csra3;
   unsigned short mpcreg0, mpcreg1=0, mpcreg2=0, mpcreg3=0;
-  float val, V7;
+  float val, V7, lvdb_temp;
   std::vector<DAQMB*> myVector;
   xdata::InfoSpace * is;
   int ip, slot, ch_state;
@@ -3571,14 +3581,24 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
 
         if((ch_state & 0x7F)==0) 
         {
+          /* LVDB temperature */
+          lvdb_temp=(*dmbdata)[j*TOTAL_DCS_COUNTERS+55];
+          if(dmb_temp<80. && dmb_temp>5.)
+          {  /* if the LVDB temperature reading is OK, then check the 7Vs */
             /* Analog power */
             V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+50];
             if(V7<3.0) ch_state |= 512;
             /* Digital power */
             V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+51];
             if(V7<3.0) ch_state |= 1024;
+          } 
+          else
+          {
+            /* treat it as bad DMB reading */
+            ch_state |= 16;  
+          }
         }
-        if(ch_state&0xFD8) problem_readings++;   // possible reading error (exclude bits 0-2,5)
+        if(ch_state&0x9D8) problem_readings++;   // possible reading error (exclude bits 0-2,5,9,10)
         *out << " " << ch_state; 
 
         *out << " " << readtime << " " << ip;
@@ -3615,8 +3635,8 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         *out << std::setprecision(4) << std::fixed;
         for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
         {  
-           /* for error conditions on bits 0-6,9-10, don't send data */
-           if((ch_state & 0x67F)==0)
+           /* for error conditions on bits 0-6, don't send data */
+           if((ch_state & 0x7F)==0)
            { 
               val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
               *out << " " << val;
