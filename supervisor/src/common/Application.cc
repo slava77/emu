@@ -1457,8 +1457,12 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
       if (state_table_.getState("ttc::LTCControl", 0) != "enabled") {
 	m.sendCommand( "ttc::LTCControl", "enable" );
       }
-      xdata::String attributeValue( "Stop" );
-      m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
+      // There should be no cyclic generators defined in non-calibration runs, so no need to stop them. In calibration runs, however, ...
+      if (isCalibrationMode()) {
+	// ... we will start the cyclic generators later, in a separate thread.
+	xdata::String attributeValue( "Stop" );
+	m.sendCommand( "ttc::LTCControl", "Cyclic", emu::soap::Parameters::none, emu::soap::Attributes().add( "Param", &attributeValue ) );
+      }
     }
 
     // Enable TF Cell operation
