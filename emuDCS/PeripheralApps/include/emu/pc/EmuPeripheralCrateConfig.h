@@ -473,6 +473,7 @@ private:
   void TMBResetSyncError(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
   void TMBRawHits(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ALCTRawHits(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void DisableALCTTestPulse(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBPrintCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBResetCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBCounterForFixedTime(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -481,7 +482,7 @@ private:
   void forceScope(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void readoutScope(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TriggerTestInjectCLCT(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void TMBLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void OTMBLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void TMBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   
   void TMBBPIReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);

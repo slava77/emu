@@ -4505,5 +4505,16 @@ int ALCTController::CheckFirmwareConfiguration() {
   //
 }
 
+void ALCTController::DisableTestPulse()
+{
+    for (int layer=0; layer<MAX_NUM_LAYERS; layer++) 
+         SetTestpulseStripMask_(layer,OFF);
+    WriteTestpulseStripMask_();
+
+    SetTestpulsePowerSwitchReg_(OFF);
+    WriteTestpulsePowerSwitchReg_();
+    return;
+}
+
   } // namespace emu::pc
   } // namespace emu

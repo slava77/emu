@@ -278,6 +278,8 @@ class ALCTController : public EmuLogger
   //                                                             = 0 = OFF
 		    int source=ADB_SYNC);            //source = [OFF, ADB_SYNC, ADB_ASYNC, LEMO, SELF]
   //
+  void DisableTestPulse();                // disable Test Pulse
+  //
   void SetUpRandomALCT();
   //
   //

@@ -452,7 +452,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBResetSyncError, "TMBResetSyncError");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBRawHits, "TMBRawHits");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTRawHits, "ALCTRawHits");
-  xgi::bind(this,&EmuPeripheralCrateConfig::TMBLoadFirmware, "TMBLoadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::DisableALCTTestPulse, "DisableALCTTestPulse");
+  xgi::bind(this,&EmuPeripheralCrateConfig::OTMBLoadFirmware, "OTMBLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBReadFirmware, "TMBReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIReset, "TMBBPIReset");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBBPIDisable, "TMBBPIDisable");
@@ -8117,6 +8118,32 @@ void EmuPeripheralCrateConfig::ALCTRawHits(xgi::Input * in, xgi::Output * out )
   //
 }
 //
+void EmuPeripheralCrateConfig::DisableALCTTestPulse(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  int tmb=0;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "DisableALCTTestPulse:  TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  }
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  if(thisTMB)
+  {
+     ALCTController * thisALCT = thisTMB->alctController();
+     //
+     if(thisALCT) thisALCT->DisableTestPulse();
+     //
+  }
+  this->TMBUtils(in,out);
+  //
+}
+//
 void EmuPeripheralCrateConfig::TMBCheckStateMachines(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -10497,6 +10524,15 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
+  *out << cgicc::td().set("ALIGN","left");
+  std::string DisALCTTestPulse = toolbox::toString("/%s/DisableALCTTestPulse",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",DisALCTTestPulse) ;
+  *out << cgicc::input().set("type","submit").set("value","Disable ALCT Test Pulse") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
   //////////////////////////////////////////////
   *out << cgicc::tr();
   //
@@ -10514,17 +10550,23 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() ;
   *out << cgicc::td();
   //
-  //
-  *out << cgicc::td().set("ALIGN","left");
-  std::string TMBLoadFirmware = toolbox::toString("/%s/TMBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",TMBLoadFirmware) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Load TMB firmware to PROM") << std::endl ;
-  sprintf(buf,"%d",tmb);
-  *out << cgicc::br();
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  *out << FirmwareDir_+"otmb/me11_otmb.mcs";
-  *out << cgicc::form() << std::endl ;
-  *out << cgicc::td();
+  if (thisTMB->GetHardwareVersion()==2) 
+  {
+     //
+     *out << cgicc::td().set("ALIGN","left");
+     std::string OTMBLoadFirmware = toolbox::toString("/%s/OTMBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
+     *out << cgicc::form().set("method","GET").set("action",OTMBLoadFirmware) << std::endl ;
+     *out << cgicc::input().set("type","submit").set("value","Load OTMB firmware to PROM (BPI)") << std::endl ;
+     sprintf(buf,"%d",tmb);
+     *out << cgicc::br();
+     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+     *out << cgicc::form() << std::endl ;
+     *out << cgicc::td();
+     *out << cgicc::td();
+     *out << FirmwareDir_+"otmb/me11_otmb.mcs";
+     *out << cgicc::td();
+  }
+
   //
   //////////////////////////////////////////////
   *out << cgicc::tr();
@@ -10554,17 +10596,20 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //////////////////////////////////////////////
   //
   *out << cgicc::tr();
+if (thisTMB->GetHardwareVersion()==2) 
+{
+
   *out << cgicc::td().set("ALIGN","left");
   if (showBPITools_ &&  cgi.queryCheckbox("HideBPITools")) showBPITools_ = false;
   if (!cgi.queryCheckbox("HideBPITools") && cgi.queryCheckbox("ShowBPITools")) showBPITools_ = true;
   *out << cgicc::form().set("method", "GET").set("action", "");
   if (showBPITools_ ){
     *out << cgicc::input().set("type", "checkbox").set("checked","").set("name", "HideBPITools");
-    *out << "Hide BPI Tools";
+    *out << "Hide BPI Debug Tools";
   }
   else {
     *out << cgicc::input().set("type", "checkbox").set("checked","").set("name", "ShowBPITools");
-    *out << "Show BPI Tools";
+    *out << "Show BPI Debug Tools";
   }
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
@@ -10775,6 +10820,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     //
     *out << cgicc::td();
   }//showBPITools
+}     // hardware_version_==2 
   //
   //--------------------------------------------------------
   *out << cgicc::table();
@@ -10850,7 +10896,7 @@ void EmuPeripheralCrateConfig::TMBReadFirmware(xgi::Input * in, xgi::Output * ou
   this->TMBUtils(in,out);
 }
 //
-void EmuPeripheralCrateConfig::TMBLoadFirmware(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
+void EmuPeripheralCrateConfig::OTMBLoadFirmware(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception) {
   //
   cgicc::Cgicc cgi(in);
   //
