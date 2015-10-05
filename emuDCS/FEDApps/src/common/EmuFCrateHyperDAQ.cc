@@ -4136,12 +4136,12 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 
 			unsigned int readTimeout = myDDU->readTimeout(dt);
 			fiberTable(10,iDevType*2+1) << std::showbase << std::hex << ((readTimeout >> 8) & 0xff);
-			if (((readTimeout >> 8) & 0xff)) fiberTable(20,iDevType*2+1).setClass("bad");
-			else fiberTable(20,iDevType*2+1).setClass("ok");
+			if (((readTimeout >> 8) & 0xff)) fiberTable(10,iDevType*2+1).setClass("bad");
+			else fiberTable(10,iDevType*2+1).setClass("ok");
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readTimeout >> 8) & 0xff) & (1<<iFiber)) {
 					//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-					fiberTable(20,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
+					fiberTable(10,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","red");
 				}
 			}
