@@ -3583,7 +3583,7 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         {
           /* LVDB temperature */
           lvdb_temp=(*dmbdata)[j*TOTAL_DCS_COUNTERS+55];
-          if(dmb_temp<80. && dmb_temp>5.)
+          if(lvdb_temp<80. && lvdb_temp>5.)
           {  /* if the LVDB temperature reading is OK, then check the 7Vs */
             /* Analog power */
             V7=(*dmbdata)[j*TOTAL_DCS_COUNTERS+50];

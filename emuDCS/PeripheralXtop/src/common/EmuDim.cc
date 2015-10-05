@@ -705,23 +705,25 @@ void EmuDim::StartDim()
 int EmuDim::UpdateChamber(int ch)
 {
    int mode = OpMode_;
+   bool lv_ok=false, temp_ok=false;
+
    if(mode<=0) mode = 2;
    if(ch>=0 && ch < TOTAL_CHAMBERS && chamb[ch].Ready())
    {
      if(chamb[ch].GetType()<=1)
      {
-         chamb[ch].GetDimLV(mode, &(EmuDim_lv[ch]));
-         chamb[ch].GetDimTEMP(mode, &(EmuDim_temp[ch]));
+         lv_ok=chamb[ch].GetDimLV(mode, &(EmuDim_lv[ch]));
+         temp_ok=chamb[ch].GetDimTEMP(mode, &(EmuDim_temp[ch]));
      }
      else
      {
-         chamb[ch].GetDimLV2(mode, &(EmuDim_lv2[ch]));
-         chamb[ch].GetDimTEMP2(mode, &(EmuDim_temp2[ch]));
+         lv_ok=chamb[ch].GetDimLV2(mode, &(EmuDim_lv2[ch]));
+         temp_ok=chamb[ch].GetDimTEMP2(mode, &(EmuDim_temp2[ch]));
      }
      try 
      {
-         if(LV_1_Service[ch]) LV_1_Service[ch]->updateService();
-         if(TEMP_1_Service[ch]) TEMP_1_Service[ch]->updateService();
+         if(lv_ok && LV_1_Service[ch]) LV_1_Service[ch]->updateService();
+         if(temp_ok && TEMP_1_Service[ch]) TEMP_1_Service[ch]->updateService();
      } catch (...) {}
          return 1;
    }

@@ -153,9 +153,9 @@ void Chamber::Fill(char *buffer, int source)
 //    2        reading error removed
 //    3        true reading with all errors
 
-void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
+bool Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
 {
-   if(type_==2) return;
+   if(type_==2) return false;
 
    int *info, this_st;
    float *data;
@@ -209,12 +209,12 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
    dim_lv->FPGA_bits = info[4];
    dim_lv->update_time = info[1];
    dim_lv->status = this_st;
-
+   return ((this_st & 0x058)==0); 
 }
 
-void Chamber::GetDimLV2(int hint, LV_2_DimBroker *dim_lv )
+bool Chamber::GetDimLV2(int hint, LV_2_DimBroker *dim_lv )
 {
-   if(type_<=1) return;
+   if(type_<=1) return false;
 
    int *info, this_st;
    float *data;
@@ -274,12 +274,13 @@ void Chamber::GetDimLV2(int hint, LV_2_DimBroker *dim_lv )
    dim_lv->FPGA_bits = int(data[78]);
    dim_lv->update_time = info[1];
    dim_lv->status = this_st;
+   return ((this_st & 0x058)==0); 
 
 }
 
-void Chamber::GetDimTEMP(int hint, TEMP_1_DimBroker *dim_temp )
+bool Chamber::GetDimTEMP(int hint, TEMP_1_DimBroker *dim_temp )
 {
-   if(type_==2) return;
+   if(type_==2) return false;
 
    int *info, this_st;
    float *data, total_temp;
@@ -307,11 +308,12 @@ void Chamber::GetDimTEMP(int hint, TEMP_1_DimBroker *dim_temp )
 
    dim_temp->update_time = info[1];
    dim_temp->status = this_st;
+   return ((this_st & 0x058)==0); 
 }
 
-void Chamber::GetDimTEMP2(int hint, TEMP_2_DimBroker *dim_temp )
+bool Chamber::GetDimTEMP2(int hint, TEMP_2_DimBroker *dim_temp )
 {
-   if(type_<=1) return;
+   if(type_<=1) return false;
 
    int *info, this_st;
    float *data; //SK: unused:, total_temp;
@@ -339,6 +341,7 @@ void Chamber::GetDimTEMP2(int hint, TEMP_2_DimBroker *dim_temp )
 
    dim_temp->update_time = info[1];
    dim_temp->status = this_st;
+   return ((this_st & 0x058)==0); 
 }
 
   } // namespace emu::x2p
