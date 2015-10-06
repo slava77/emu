@@ -220,7 +220,8 @@ void emu::fed::EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		if (myCrate->getDDUs().size()) {
 			*out << cgicc::span() << std::endl;
 			location.str("");			
-			location << "/" << getApplicationDescriptor()->getURN() << "/DDURegisterDump?crate=" << cgiCrate;  
+			//			location << "/" << getApplicationDescriptor()->getURN() << "/DDURegisterDump?crate=" << cgiCrate;  
+			location << "/" << getApplicationDescriptor()->getURN() << "/DDURegisterDump"; 
 			*out << cgicc::form()
 				.set("method","post")
 				.set("action",location.str()) << std::endl;
@@ -1019,10 +1020,11 @@ throw (emu::fed::exception::ConfigurationException)
 
 void emu::fed::EmuFCrateHyperDAQ::DDURegisterDump(xgi::Input *in, xgi::Output *out)
 // Dump contents of all DDU registers.
-// Modeled on the code in DDUDebug.  
+// Same information as provided by DDUDebug() and InFPGA().  
 {
 
   try {
+
 
     // PGK Patented check-for-initialization
     if (crateVector_.size()==0) {
@@ -1030,22 +1032,15 @@ void emu::fed::EmuFCrateHyperDAQ::DDURegisterDump(xgi::Input *in, xgi::Output *o
       return Default(in,out);
     }
 
-    const cgicc::Cgicc cgi(in);
-               
-    // First, I need a crate.
-    std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
-    unsigned int cgiCrate = cratePair.first;
-    Crate *myCrate = cratePair.second;
-
     std::ostringstream backLocation;
-    backLocation << "mainPage?crate=" << cgiCrate;
+    backLocation << "mainPage?crate=" << crateVector_[0]->number();
                
-    // log file format: DDURegisterDump_crateX_YYYYMMDD-hhmmss.log
+    // log file format: DDURegisterDump_YYYYMMDD-hhmmss.log
     char datebuf[32];  
     time_t theTime = time(NULL);
     strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H-%M-%S", localtime(&theTime));
     std::stringstream fileName;
-    fileName << "/tmp/DDURegisterDump" << "_crate" << cgiCrate << "_" << datebuf << ".log";  
+    fileName << "/tmp/DDURegisterDump" << "_" << datebuf << ".log";  
     std::ofstream outfile;
     outfile.open(fileName.str().c_str(), std::ios::trunc);
     if (!outfile.is_open()) {
@@ -1062,1167 +1057,1173 @@ void emu::fed::EmuFCrateHyperDAQ::DDURegisterDump(xgi::Input *in, xgi::Output *o
     int col2 = 15;
     int col3 = 15;
 
-    
-    // Loop over all the DDUs
-    std::vector<DDU *> myDDUs = myCrate->getDDUs();
-    for (std::vector<DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
+
+    // Loop over all crates.
+    for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
+      Crate *myCrate = (*iCrate);  
+
+      // Loop over all the DDUs
+      std::vector<DDU *> myDDUs = myCrate->getDDUs();
+      for (std::vector<DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
       
-      outfile << "************************************************************************" << endl;  
-      outfile << "************************************************************************" << endl; 
-      outfile << "Printing information for DDU in crate " << myCrate->number() << ", slot " << (*iDDU)->slot() << endl;  
+	outfile << "************************************************************************" << endl;  
+	outfile << "************************************************************************" << endl; 
+	outfile << "Printing information for DDU in crate " << myCrate->number() << ", slot " << (*iDDU)->slot() << endl;  
       
-      outfile << left << setw(col1) << "Register";  
-      outfile << setw(col2) << "Value"; 
-      outfile << setw(col3) << "Decoded Status" << std::endl;  
+	outfile << left << setw(col1) << "Register";  
+	outfile << setw(col2) << "Value"; 
+	outfile << setw(col3) << "Decoded Status" << std::endl;  
 
 
-      outfile << setw(col1) << "DDU Source ID a.k.a. SLink ID (16-bit):";  
-      unsigned long int dduValue = (*iDDU)->readSlinkId();  
-      outfile << setw(col2) << dduValue << std::endl;  
+	outfile << setw(col1) << "DDU Source ID a.k.a. SLink ID (16-bit):";  
+	unsigned long int dduValue = (*iDDU)->readSlinkId();  
+	outfile << setw(col2) << dduValue << std::endl;  
       
-      outfile << setw(col1) << "DDU L1 scaler:";  
-      dduValue = (*iDDU)->readL1Scaler(DDUFPGA);
-      outfile << setw(col2) << dduValue << endl;
+	outfile << setw(col1) << "DDU L1 scaler:";  
+	dduValue = (*iDDU)->readL1Scaler(DDUFPGA);
+	outfile << setw(col2) << dduValue << endl;
       
-      outfile << setw(col1) << "DDU control FPGA status (32-bit):";
-      bool debugTrapValidDDU = false;
-      dduValue = (*iDDU)->readFPGAStatus(DDUFPGA);
-      outfile << setw(col2) << std::showbase << std::hex << dduValue;
-      if (dduValue & 0x00008000) {
-	outfile << setw(col3) << "bad";  
-	debugTrapValidDDU = true;
-      }  else if (dduValue & 0xDE4F4BFF) outfile << setw(col3) << "warning";  
-      else outfile << setw(col3) << "ok";
-      std::map<std::string, std::string> dduComments = DDUDebugger::FPGAStatus(DDUFPGA, dduValue);
-      for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
-	   iComment != dduComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << ", ";  
-      }
-      outfile << endl; 
+	outfile << setw(col1) << "DDU control FPGA status (32-bit):";
+	bool debugTrapValidDDU = false;
+	dduValue = (*iDDU)->readFPGAStatus(DDUFPGA);
+	outfile << setw(col2) << std::showbase << std::hex << dduValue;
+	if (dduValue & 0x00008000) {
+	  outfile << setw(col3) << "bad";  
+	  debugTrapValidDDU = true;
+	}  else if (dduValue & 0xDE4F4BFF) outfile << setw(col3) << "warning";  
+	else outfile << setw(col3) << "ok";
+	std::map<std::string, std::string> dduComments = DDUDebugger::FPGAStatus(DDUFPGA, dduValue);
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
+	     iComment != dduComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << ", ";  
+	}
+	outfile << endl; 
 
-      outfile << setw(col1) << "DDU output status (16-bit):";  
-      dduValue = (*iDDU)->readOutputStatus();
-      outfile << setw(col2) << std::showbase << std::hex << dduValue; 
-      if      (dduValue & 0x00000080) outfile << setw(col3) << "bad";  
-      else if (dduValue & 0x00004000) outfile << setw(col3) << "warning";  
-      else                            outfile << setw(col3) << "ok";  
-      dduComments = DDUDebugger::OutputStatus(dduValue);
-      for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
-	   iComment != dduComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << ", ";  
-      }
-      outfile << endl;        
+	outfile << setw(col1) << "DDU output status (16-bit):";  
+	dduValue = (*iDDU)->readOutputStatus();
+	outfile << setw(col2) << std::showbase << std::hex << dduValue; 
+	if      (dduValue & 0x00000080) outfile << setw(col3) << "bad";  
+	else if (dduValue & 0x00004000) outfile << setw(col3) << "warning";  
+	else                            outfile << setw(col3) << "ok";  
+	dduComments = DDUDebugger::OutputStatus(dduValue);
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
+	     iComment != dduComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << ", ";  
+	}
+	outfile << endl;        
 
-      outfile << setw(col1) << "Error bus A register bits (16-bit):";
-      dduValue = (*iDDU)->readEBRegister(0);
-      outfile << setw(col2) << std::showbase << std::hex << dduValue;
-      if      (dduValue & 0x0000C00C) outfile << setw(col3) << "bad";
-      else if (dduValue & 0x000001C8) outfile << setw(col3) << "warning";
-      else                            outfile << setw(col3) << "ok";  
-      dduComments = DDUDebugger::EBRegister(0, dduValue);  
-      for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
-	   iComment != dduComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << ", ";  
-      }
-      outfile << endl;        
+	outfile << setw(col1) << "Error bus A register bits (16-bit):";
+	dduValue = (*iDDU)->readEBRegister(0);
+	outfile << setw(col2) << std::showbase << std::hex << dduValue;
+	if      (dduValue & 0x0000C00C) outfile << setw(col3) << "bad";
+	else if (dduValue & 0x000001C8) outfile << setw(col3) << "warning";
+	else                            outfile << setw(col3) << "ok";  
+	dduComments = DDUDebugger::EBRegister(0, dduValue);  
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
+	     iComment != dduComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << ", ";  
+	}
+	outfile << endl;        
       
-      outfile << setw(col1) << "Error bus B register bits (16-bit):";
-      dduValue = (*iDDU)->readEBRegister(1);
-      outfile << setw(col2) << std::showbase << std::hex << dduValue;
-      if      (dduValue & 0x00000011) outfile << setw(col3) << "bad"; 
-      else if (dduValue & 0x0000D08E) outfile << setw(col3) << "warning";
-      else                            outfile << setw(col3) << "ok";
-      dduComments = DDUDebugger::EBRegister(1, dduValue);
-      for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
-	   iComment != dduComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << ", ";  
-      }
-      outfile << endl;        
+	outfile << setw(col1) << "Error bus B register bits (16-bit):";
+	dduValue = (*iDDU)->readEBRegister(1);
+	outfile << setw(col2) << std::showbase << std::hex << dduValue;
+	if      (dduValue & 0x00000011) outfile << setw(col3) << "bad"; 
+	else if (dduValue & 0x0000D08E) outfile << setw(col3) << "warning";
+	else                            outfile << setw(col3) << "ok";
+	dduComments = DDUDebugger::EBRegister(1, dduValue);
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
+	     iComment != dduComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << ", ";  
+	}
+	outfile << endl;        
       
-      outfile << setw(col1) << "Error bus C register bits (16-bit):";
-      dduValue = (*iDDU)->readEBRegister(2);
-      outfile << setw(col2) << std::showbase << std::hex << dduValue;
-      if (dduValue & 0x0000BFBF) outfile << setw(col3) << "warning";  
-      else                       outfile << setw(col3) << "ok";  
-      dduComments = DDUDebugger::EBRegister(2, dduValue);
-      for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
-	   iComment != dduComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << ", ";  
-      }
-      outfile << endl;        
+	outfile << setw(col1) << "Error bus C register bits (16-bit):";
+	dduValue = (*iDDU)->readEBRegister(2);
+	outfile << setw(col2) << std::showbase << std::hex << dduValue;
+	if (dduValue & 0x0000BFBF) outfile << setw(col3) << "warning";  
+	else                       outfile << setw(col3) << "ok";  
+	dduComments = DDUDebugger::EBRegister(2, dduValue);
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
+	     iComment != dduComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << ", ";  
+	}
+	outfile << endl;        
       
-      outfile << setw(col1) << "DDU PROM 0 User Code:";
-      dduValue = (*iDDU)->readUserCode(DDUPROM0);
-      outfile << setw(col2) << std::showbase << std::hex << dduValue << endl;               
+	outfile << setw(col1) << "DDU PROM 0 User Code:";
+	dduValue = (*iDDU)->readUserCode(DDUPROM0);
+	outfile << setw(col2) << std::showbase << std::hex << dduValue << endl;               
       
-      outfile << setw(col1) << "DDU PROM 1 User Code:";
-      dduValue = (*iDDU)->readUserCode(DDUPROM1);
-      outfile << setw(col2) << std::showbase << std::hex << dduValue << endl;  
+	outfile << setw(col1) << "DDU PROM 1 User Code:";
+	dduValue = (*iDDU)->readUserCode(DDUPROM1);
+	outfile << setw(col2) << std::showbase << std::hex << dduValue << endl;  
       
-      outfile << setw(col1) << "DDU FPGA User Code:";  
-      dduValue = (*iDDU)->readUserCode(DDUFPGA);
-      outfile << setw(col2) << std::showbase << std::hex << dduValue << endl; 
+	outfile << setw(col1) << "DDU FPGA User Code:";  
+	dduValue = (*iDDU)->readUserCode(DDUFPGA);
+	outfile << setw(col2) << std::showbase << std::hex << dduValue << endl; 
       
-      outfile << "Other DDU Information" << std::endl;
+	outfile << "Other DDU Information" << std::endl;
       
-      outfile << setw(col1) << "DDU near full warning (8-bit):";
-      dduValue = (*iDDU)->readWarningMonitor();
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue) & 0xFF);
-      if ((dduValue) & 0xFF) outfile << setw(col3) << "questionable"; 
-      else outfile << "ok";
-      outfile << endl;
+	outfile << setw(col1) << "DDU near full warning (8-bit):";
+	dduValue = (*iDDU)->readWarningMonitor();
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue) & 0xFF);
+	if ((dduValue) & 0xFF) outfile << setw(col3) << "questionable"; 
+	else outfile << "ok";
+	outfile << endl;
       
-      outfile << setw(col1) << "DDU near full historical (8-bit):";
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 8) & 0xFF);
-      if ((dduValue >> 8) & 0xFF) outfile << setw(col3) << "questionable";
-      else outfile << "ok";
-      outfile << endl;  
+	outfile << setw(col1) << "DDU near full historical (8-bit):";
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 8) & 0xFF);
+	if ((dduValue >> 8) & 0xFF) outfile << setw(col3) << "questionable";
+	else outfile << "ok";
+	outfile << endl;  
       
-      outfile << setw(col1) << "DDU L1A-to-start max process time:";
-      dduValue = (*iDDU)->readMaxTimeoutCount();
-      outfile << setw(col2) << (((dduValue) & 0xFF) * 400.0) << "ns"; 
-      outfile << endl;  
+	outfile << setw(col1) << "DDU L1A-to-start max process time:";
+	dduValue = (*iDDU)->readMaxTimeoutCount();
+	outfile << setw(col2) << (((dduValue) & 0xFF) * 400.0) << "ns"; 
+	outfile << endl;  
       
-      outfile << setw(col1) << "DDU start-to-end max process time:";
-      outfile << setw(col2) << std::showbase << std::hex << (((dduValue >> 8) & 0xFF) * 6.4) << "mus";
-      outfile << endl;  
+	outfile << setw(col1) << "DDU start-to-end max process time:";
+	outfile << setw(col2) << std::showbase << std::hex << (((dduValue >> 8) & 0xFF) * 6.4) << "mus";
+	outfile << endl;  
       
-      outfile << endl;  
-      outfile << "*** Individual Fiber Information ***" << endl; 
+	outfile << endl;  
+	outfile << "*** Individual Fiber Information ***" << endl; 
             
-      outfile << setw(col1) << "First event DMBLIVE:";  
-      dduValue = (*iDDU)->readDMBLiveAtFirstEvent();
-      outfile << setw(col2) << std::showbase << std::hex << dduValue;
-      for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-	if (dduValue & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber)->getName() << "  ";  
+	outfile << setw(col1) << "First event DMBLIVE:";  
+	dduValue = (*iDDU)->readDMBLiveAtFirstEvent();
+	outfile << setw(col2) << std::showbase << std::hex << dduValue;
+	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+	  if (dduValue & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber)->getName() << "  ";  
+	  }
 	}
-      }
-      outfile << endl;
+	outfile << endl;
       
-      outfile << setw(col1) << "Latest event DMBLIVE:";  
-      dduValue = (*iDDU)->readDMBLive();
-      outfile << setw(col2) << std::showbase << std::hex << dduValue;  
-      for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-	if (dduValue & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber)->getName() << "  ";
+	outfile << setw(col1) << "Latest event DMBLIVE:";  
+	dduValue = (*iDDU)->readDMBLive();
+	outfile << setw(col2) << std::showbase << std::hex << dduValue;  
+	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+	  if (dduValue & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber)->getName() << "  ";
+	  }
 	}
-      }
-      outfile << endl;
+	outfile << endl;
       
-      outfile << setw(col1) << "CRC error:";
-      dduValue = (*iDDU)->readCRCError();  
-      outfile << setw(col2) << std::showbase << std::hex << dduValue;  
-      if (dduValue) outfile << setw(col3) << "bad";  
-      else          outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-	if (dduValue & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber)->getName() << "  "; 
+	outfile << setw(col1) << "CRC error:";
+	dduValue = (*iDDU)->readCRCError();  
+	outfile << setw(col2) << std::showbase << std::hex << dduValue;  
+	if (dduValue) outfile << setw(col3) << "bad";  
+	else          outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+	  if (dduValue & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber)->getName() << "  "; 
+	  }
 	}
-      }
-      outfile << endl;  
+	outfile << endl;  
                        
-      outfile << setw(col1) << "Data transmit error:";
-      dduValue = (*iDDU)->readXmitError();
-      outfile << setw(col2) << std::showbase << std::hex << dduValue;
-      if (dduValue) outfile << setw(col3) << "bad";  
-      else          outfile << setw(col3) << "ok";
-      for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-	if (dduValue & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber)->getName() << "  ";  
-	}
-      }
-      outfile << endl;
-      
-      outfile << setw(col1) << "DMB error:";
-      dduValue = (*iDDU)->readDMBError();
-      outfile << setw(col2) << std::showbase << std::hex << dduValue;
-      if (dduValue) outfile << setw(col3) << "bad";
-      else          outfile << setw(col3) << "ok";
-      for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-	if (dduValue & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber)->getName() << "  ";  
-	}
-      }
-      outfile << endl;  
-      
-      outfile << setw(col1) << "TMB error:";
-      dduValue = (*iDDU)->readTMBError();
-      outfile << setw(col2) << std::showbase << std::hex << dduValue;
-      if (dduValue) outfile << setw(col3) << "bad";
-      else          outfile << setw(col3) << "ok";
-      for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-	if (dduValue & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber)->getName() << "  ";  
-	}
-      }
-      outfile << endl;  
-      
-      
-      outfile << setw(col1) << "ALCT error:"; 
-      dduValue = (*iDDU)->readALCTError();
-      outfile << setw(col2) << std::showbase << std::hex << dduValue;
-      if (dduValue) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok";
-      for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-	if (dduValue & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber)->getName() << "  ";  
-	}
-      }
-      outfile << endl;
-      
-      outfile << setw(col1) << "Lost-in-event error:";
-      dduValue = (*iDDU)->readLIEError();
-      outfile << setw(col2) << std::showbase << std::hex << dduValue;
-      if (dduValue) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-	if (dduValue & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber)->getName() << "  ";  
-	}
-      }
-      outfile << endl;
-      outfile << endl;
-
-      outfile << "*** Printing values from inrdTable ***" << endl;        
-      outfile << setw(col1) << "Stuck data error:";
-      dduValue = (*iDDU)->readFIFOStatus(0);  
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
-      if ((dduValue >> 12) & 0xF) outfile << setw(col3) << "bad"; 
-      else                        outfile << setw(col3) << "ok";   
-      outfile << endl; 
-      
-      outfile << setw(col1) << "Fiber or FIFO connection error:";
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
-      if ((dduValue >> 8) & 0xF) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok";
-      outfile << endl; 
-      
-      outfile << setw(col1) << "L1A mismatch:";
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);  
-      if ((dduValue >> 4) & 0xF) outfile << setw(col3) << "warning";
-      else outfile << setw(col3) << "ok";
-      outfile << endl; 
-      
-      outfile << setw(col1) << "InRD with active fiber: ";
-      outfile << setw(col2) << std::showbase << std::hex << (dduValue & 0xF) << endl;
-      
-      outfile << setw(col1) << "Active ext. FIFO empty: ";
-      dduValue = (*iDDU)->readFIFOStatus(1);
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 10) & 0xF) << endl;
-      
-      outfile << setw(col1) << "InRD near full warning: ";
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 4) & 0xF); 
-      if ((dduValue >> 4) & 0xF) outfile << setw(col3) << "warning"; 
-      else outfile << setw(col3) << "ok";
-      outfile << endl; 
-      
-      outfile << setw(col1) << "Ext. FIFO almost-full: ";
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue) & 0xF);
-      if ((dduValue) & 0xF) outfile << "questionable";
-      else outfile << setw(col3) << "ok";
-      outfile << endl; 
-      
-      outfile << setw(col1) << "Special decode bits";
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 8) & 0x43);
-      if ((dduValue >> 8) & 0x81) outfile << setw(col3) << "warning";
-      else outfile << setw(col3) << "ok";  
-      dduComments = DDUDebugger::FIFOStatus(1, (dduValue >> 8) & 0x43);
-      for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
-	   iComment != dduComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << "  ";
-      }
-      outfile << endl; 
-      
-      outfile << setw(col1) << "Timeout-EndBusy: ";
-      dduValue = (*iDDU)->readFIFOStatus(2);
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
-      if ((dduValue >> 12) & 0xF) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok";
-      outfile << endl; 
-      
-      outfile << setw(col1) << "Timeout-EndWait";
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
-      if ((dduValue >> 8) & 0xF) outfile << setw(col3) << "warning";
-      else outfile << setw(col3) << "ok";
-      outfile << endl; 
-      
-      outfile << setw(col1) << "Timeout-Start";
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
-      if ((dduValue >> 4) & 0xF) outfile << setw(col3) << "warning";
-      else outfile << setw(col3) << "ok";
-      outfile << endl; 
-      
-      outfile << setw(col1) << "Lost-in-data error";
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue) & 0xF);
-      if ((dduValue) & 0xF) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok";
-      outfile << endl; 
-      
-      outfile << setw(col1) << "Raw ext. FIFO empty";
-      dduValue = (*iDDU)->readFFError();
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 10) & 0xF) << endl;
-      
-      outfile << setw(col1) << "InRD FIFO full";
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
-      if ((dduValue >> 4) & 0xF) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok";
-      outfile << endl; 
-      
-      outfile << setw(col1) << "Ext. FIFO full";
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue) & 0xF);
-      if ((dduValue) & 0xF) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok";
-      outfile << endl; 
-      
-      outfile << setw(col1) << "Special decode bits";
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 8) & 0x43);
-      if ((dduValue >> 8) & 0x1) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok";
-      dduComments = DDUDebugger::FFError((dduValue >> 8) & 0x43);
-      for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
-	   iComment != dduComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << "  ";  
-      }
-      outfile << endl; 
-      
-      outfile << setw(col1) << "InRD hard error";
-      dduValue = (*iDDU)->readInRDStatus();
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
-      if ((dduValue >> 12) & 0xF) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok"; 
-      outfile << endl; 
-      
-      outfile << setw(col1) << "InRD sync error";
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
-      if ((dduValue >> 8) & 0xF) outfile << setw(col3) << "warning"; 
-      else outfile << setw(col3) << "ok";
-      outfile << endl; 
-      
-      outfile << setw(col1) << "InRD single event error";
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue) & 0xF);
-      if ((dduValue) & 0xF) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok";
-      outfile << endl; 
-      
-      
-      outfile << setw(col1) << "InRD multiple transmit errors";
-      dduValue = (*iDDU)->readInCHistory();
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue) & 0xF);
-      if ((dduValue) & 0xF) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok";
-      outfile << endl;        
-
-      outfile << setw(col1) << "Special decode bits";
-      //dduValue = (*iDDU)->readFFError(2);
-      outfile << setw(col2) << std::showbase << std::hex << ((dduValue) & 0xFFF);
-      if ((dduValue) & 0xC00) outfile << setw(col3) << "bad";
-      else if ((dduValue) & 0x2DF) outfile << setw(col3) << "warning";
-      else outfile << setw(col3) << "ok";
-      dduComments = DDUDebugger::FFError((dduValue) & 0xFFF);
-      for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
-	   iComment != dduComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << "  ";  
-      }    
-      outfile << endl; 
-
-      outfile << endl;       
-      outfile << "*** DDU Diagnostic Trap Decoding ***" << endl;        
-      if (debugTrapValidDDU) {
-
-	// Here it is.
-	std::vector<uint16_t> lcode = (*iDDU)->readDebugTrap(DDUFPGA);
-	std::vector<std::string> bigComments = DDUDebugger::DDUDebugTrap(lcode, (*iDDU));
-
-	std::stringstream diagCode;
-	diagCode << std::setfill('0');
-	diagCode << std::hex;
-	diagCode << std::setw(4) << lcode[11] << lcode[10] << " ";
-	diagCode << std::setw(4) << lcode[9] << lcode[8] << " ";
-	diagCode << std::setw(4) << lcode[7] << lcode[6] << " ";
-	diagCode << std::setw(4) << lcode[5] << lcode[4] << " ";
-	diagCode << std::setw(4) << lcode[3] << lcode[2] << " ";
-	diagCode << std::setw(4) << lcode[1] << lcode[0];
-
-	outfile << "Trap value (194 bits): " << diagCode.str() << endl;
-
-	for (std::vector<std::string>::iterator iComment = bigComments.begin(); iComment != bigComments.end(); iComment++) {
-	  outfile << (*iComment) << endl;
-	}
-	
-	outfile << "The status registers are frozen in the trap only after an error occurs.  The values in the trap remain valid until a reset." << endl;
-	
-      } else {
-	outfile << "Diagnostic trap is only valid after an InFPGA error has been detected." << endl;
-      }
-      
-
-      outfile << endl;       
-      outfile << "*** General InFPGA Information ***" << endl;        
-
-      // Do this for both InFPGAs
-      enum DEVTYPE devTypes[2] = {
-	INFPGA0,
-	INFPGA1
-      };
-
-      // This is used to check if the debug trap is valid.  One for each device.
-      bool debugTrapValid[2] = {
-	false,
-	false
-      };
-
-      outfile << "*** InFPGA0 (fibers 7-0) ***" << endl;        
-      unsigned int iDevType = 0;  
-
-      outfile << setw(col1)  << "Input FPGA0 Status (32-bit)";
-      enum DEVTYPE dt = devTypes[iDevType];
-      unsigned long int infpgastat = (*iDDU)->readFPGAStatus(dt);
-      outfile << setw(col2) << std::showbase << std::hex << infpgastat;
-      if   (infpgastat & 0x00004000)   outfile << setw(col3) << "warning";
-      if   (infpgastat & 0x00008000) { outfile << setw(col3) << "bad";
-	debugTrapValid[iDevType] = true;
-      }
-
-      if (!(infpgastat & 0x0000C000)) outfile << setw(col3) << "ok";  
-      std::map<std::string, std::string> infpgastatComments = DDUDebugger::FPGAStatus(dt, infpgastat);
-      for (std::map<std::string,std::string>::iterator iComment = infpgastatComments.begin();
-	   iComment != infpgastatComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << "  "; 
-      }
-      outfile << endl;  
-
-      outfile << setw(col1)  << "L1 Event Scaler0 (24-bit)";
-      unsigned long int L1Scaler = (*iDDU)->readL1Scaler(dt);
-      outfile << setw(col2) << L1Scaler << endl;
-
-
-      outfile << setw(col1)  << "L1 Event Scaler1 (24-bit)";
-      unsigned long int L1Scaler1 = (*iDDU)->readL1Scaler1(dt);
-      outfile << setw(col2) << L1Scaler1 << endl;
-
-      outfile << setw(col1)  << "Input PROM0 User Code";
-      unsigned long int promcode = (iDevType == 0) ? (*iDDU)->readUserCode(INPROM0) : (*iDDU)->readUserCode(INPROM1);
-      outfile << setw(col2) << std::showbase << std::hex << promcode << endl; 
-
-      outfile << setw(col1)  << "Input FPGA0 User Code";
-      unsigned long int fpgacode = (*iDDU)->readUserCode(dt);
-      outfile << setw(col2) << std::showbase << std::hex << fpgacode << endl;
-      
-
-      outfile << endl;  
-      outfile << "*** InFPGA1 (fibers 14-8) ***" << endl;        
-      iDevType = 1;  
-
-      outfile << setw(col1)  << "Input FPGA1 Status (32-bit)";
-      dt = devTypes[iDevType];
-      infpgastat = (*iDDU)->readFPGAStatus(dt);
-      outfile << setw(col2) << std::showbase << std::hex << infpgastat;
-      if   (infpgastat & 0x00004000)  outfile << setw(col3) << "warning";
-      if   (infpgastat & 0x00008000) { outfile << setw(col3) << "bad";
-	debugTrapValid[iDevType] = true;
-      }
-      if (!(infpgastat & 0x0000C000)) outfile << setw(col3) << "ok";  
-      infpgastatComments = DDUDebugger::FPGAStatus(dt, infpgastat);
-      for (std::map<std::string,std::string>::iterator iComment = infpgastatComments.begin();
-	   iComment != infpgastatComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << "  "; 
-      }
-      outfile << endl;  
-
-      outfile << setw(col1)  << "L1 Event Scaler2 (24-bit)";
-      L1Scaler = (*iDDU)->readL1Scaler(dt);
-      outfile << setw(col2) << L1Scaler << endl;
-
-      outfile << setw(col1)  << "L1 Event Scaler3 (24-bit)";
-      L1Scaler1 = (*iDDU)->readL1Scaler1(dt);
-      outfile << setw(col2) << L1Scaler1 << endl;
-
-      outfile << setw(col1)  << "Input PROM1 User Code";
-      promcode = (iDevType == 0) ? (*iDDU)->readUserCode(INPROM0) : (*iDDU)->readUserCode(INPROM1);
-      outfile << setw(col2) << std::showbase << std::hex << promcode << endl; 
-
-      outfile << setw(col1)  << "Input FPGA1 User Code";
-      fpgacode = (*iDDU)->readUserCode(dt);
-      outfile << setw(col2) << std::showbase << std::hex << fpgacode << endl;
-      
-
-      outfile << endl;
-      outfile << "*** Individual Fiber Information ***" << endl;
-      outfile << "*** InFPGA0 (fibers 7-0) ***" << endl;
-      iDevType = 0;  
-
-      dt = devTypes[iDevType];
-      unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
- 
-      outfile << setw(col1) << "DMB full";
-      unsigned int readDMBWarning = (*iDDU)->readDMBWarning(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readDMBWarning >> 8) & 0xff);
-      if (((readDMBWarning >> 8) & 0xff)) outfile << setw(col3) << "bad";
-      else                                outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readDMBWarning >> 8) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-      outfile << setw(col1) << "DMB warning";
-      outfile << setw(col2) << std::showbase << std::hex << ((readDMBWarning) & 0xff);
-      if (((readDMBWarning) & 0xff)) outfile << setw(col3) << "warning";
-      else outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readDMBWarning) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "orange" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-      outfile << setw(col1) << "Connection error";
-      unsigned int checkFiber = (*iDDU)->readFiberStatus(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((checkFiber >> 8) & 0xff);  
-      if (((checkFiber >> 8) & 0xff)) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((checkFiber >> 8) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-
-      outfile << setw(col1) << "Link active";
-      outfile << setw(col2) << std::showbase << std::hex << ((checkFiber) & 0xff);
-      outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((checkFiber) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-      outfile << setw(col1) << "Stuck data";
-      unsigned int readDMBSync = (*iDDU)->readDMBSync(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readDMBSync >> 8) & 0xff);
-      if (((readDMBSync >> 8) & 0xff)) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readDMBSync >> 8) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-      outfile << setw(col1) << "L1A mismatch";
-      outfile << setw(col2) << std::showbase << std::hex << ((readDMBSync) & 0xff);
-      if (((readDMBSync) & 0xff)) outfile << setw(col3) << "warning";
-      else outfile << setw(col3) << "ok";
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readDMBSync) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "orange" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-
-      outfile << setw(col1) << "GT-Rx error";
-      unsigned int readRxError = (*iDDU)->readRxError(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readRxError >> 8) & 0xff);
-      if (((readRxError >> 8) & 0xff)) outfile << setw(col3) << "questionable"; 
-      else outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readRxError >> 8) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "blue" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-      outfile << setw(col1) << "Timeout-start";
-      outfile << setw(col2) << std::showbase << std::hex << ((readRxError) & 0xff);
-      if (((readRxError) & 0xff)) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";  
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readRxError) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-
-      outfile << setw(col1) << "Timeout-end busy";
-      unsigned int readTimeout = (*iDDU)->readTimeout(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readTimeout) & 0xff);
-      if (((readTimeout) & 0xff)) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readTimeout) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }      
-      outfile << endl;  
-
-      outfile << setw(col1) << "Timeout-end wait";
-      outfile << setw(col2) << std::showbase << std::hex << ((readTimeout) & 0xff);
-      if (((readTimeout) & 0xff)) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readTimeout) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-      outfile << setw(col1) << "SCA full history";
-      unsigned int readTxError = (*iDDU)->readTxError(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readTxError >> 8) & 0xff);
-      outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readTxError >> 8) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
-	}
-      }  
-      outfile << endl;  
-
-      outfile << setw(col1) << "CSC transmit error";
-      outfile << setw(col2) << std::showbase << std::hex << ((readTxError) & 0xff);
-      if (((readTxError) & 0xff)) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok";
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readTxError) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-
-      outfile << setw(col1) << "DDU lost-in-event error";
-      unsigned int readLostError = (*iDDU)->readLostError(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readLostError >> 8) & 0xff);
-      if (((readLostError) & 0xff)) outfile << setw(col3) << "warning"; 
-      else outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readLostError >> 8) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "orange" << "  ";  
-	}
-      } 
-      outfile << endl;  
-
-
-      outfile << setw(col1) << "DDU lost-in-data error";
-      outfile << setw(col2) << std::showbase << std::hex << ((readLostError) & 0xff);
-      if (((readLostError) & 0xff)) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readLostError) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-
-      outfile << endl;  
-      outfile << "*** InFPGA1 (fibers 14-8) ***" << endl;
-      iDevType = 1;  
-
-      dt = devTypes[iDevType];
-      fiberOffset = (dt == INFPGA0 ? 0 : 8);
- 
-      outfile << setw(col1) << "DMB full";
-      readDMBWarning = (*iDDU)->readDMBWarning(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readDMBWarning >> 8) & 0xff);
-      if (((readDMBWarning >> 8) & 0xff)) outfile << setw(col3) << "bad";
-      else                                outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readDMBWarning >> 8) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-      outfile << setw(col1) << "DMB warning";
-      outfile << setw(col2) << std::showbase << std::hex << ((readDMBWarning) & 0xff);
-      if (((readDMBWarning) & 0xff)) outfile << setw(col3) << "warning";
-      else outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readDMBWarning) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "orange" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-      outfile << setw(col1) << "Connection error";
-      checkFiber = (*iDDU)->readFiberStatus(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((checkFiber >> 8) & 0xff);  
-      if (((checkFiber >> 8) & 0xff)) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((checkFiber >> 8) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-
-      outfile << setw(col1) << "Link active";
-      outfile << setw(col2) << std::showbase << std::hex << ((checkFiber) & 0xff);
-      outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((checkFiber) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-      outfile << setw(col1) << "Stuck data";
-      readDMBSync = (*iDDU)->readDMBSync(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readDMBSync >> 8) & 0xff);
-      if (((readDMBSync >> 8) & 0xff)) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readDMBSync >> 8) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-      outfile << setw(col1) << "L1A mismatch";
-      outfile << setw(col2) << std::showbase << std::hex << ((readDMBSync) & 0xff);
-      if (((readDMBSync) & 0xff)) outfile << setw(col3) << "warning";
-      else outfile << setw(col3) << "ok";
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readDMBSync) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "orange" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-
-      outfile << setw(col1) << "GT-Rx error";
-      readRxError = (*iDDU)->readRxError(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readRxError >> 8) & 0xff);
-      if (((readRxError >> 8) & 0xff)) outfile << setw(col3) << "questionable"; 
-      else outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readRxError >> 8) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "blue" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-      outfile << setw(col1) << "Timeout-start";
-      outfile << setw(col2) << std::showbase << std::hex << ((readRxError) & 0xff);
-      if (((readRxError) & 0xff)) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";  
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readRxError) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-
-      outfile << setw(col1) << "Timeout-end busy";
-      readTimeout = (*iDDU)->readTimeout(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readTimeout) & 0xff);
-      if (((readTimeout) & 0xff)) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readTimeout) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }      
-      outfile << endl;  
-
-      outfile << setw(col1) << "Timeout-end wait";
-      outfile << setw(col2) << std::showbase << std::hex << ((readTimeout) & 0xff);
-      if (((readTimeout) & 0xff)) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readTimeout) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-      outfile << setw(col1) << "SCA full history";
-      readTxError = (*iDDU)->readTxError(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readTxError >> 8) & 0xff);
-      outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readTxError >> 8) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
-	}
-      }  
-      outfile << endl;  
-
-      outfile << setw(col1) << "CSC transmit error";
-      outfile << setw(col2) << std::showbase << std::hex << ((readTxError) & 0xff);
-      if (((readTxError) & 0xff)) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok";
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readTxError) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-
-      outfile << setw(col1) << "DDU lost-in-event error";
-      readLostError = (*iDDU)->readLostError(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readLostError >> 8) & 0xff);
-      if (((readLostError) & 0xff)) outfile << setw(col3) << "warning"; 
-      else outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readLostError >> 8) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "orange" << "  ";  
-	}
-      } 
-      outfile << endl;  
-
-
-      outfile << setw(col1) << "DDU lost-in-data error";
-      outfile << setw(col2) << std::showbase << std::hex << ((readLostError) & 0xff);
-      if (((readLostError) & 0xff)) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readLostError) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
-	}
-      }
-      outfile << endl;  
-
-
-      outfile << endl;
-      outfile << "*** Other Fiber/InRD Information ***" << endl;
-      outfile << "*** InFPGA0 (fibers 7-0) ***" << endl;
-      iDevType = 0;
-
-      dt = devTypes[iDevType];
-      fiberOffset = (dt == INFPGA0 ? 0 : 8);
-
-
-      outfile << setw(col1) << "Input buffer empty";
-      unsigned int readFIFOStat = (*iDDU)->readFIFOStatus(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readFIFOStat) & 0xff);
-      outfile << setw(col2) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readFIFOStat >> 8) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
-	}
-      }
-      outfile << endl;
-
-      outfile << setw(col1) << "Special FIFO decode (8-bit)";  
-      outfile << setw(col2) << std::showbase << std::hex << ((readFIFOStat >> 8) & 0xff);
-      if (((readFIFOStat >> 8) & 0xfc)) outfile << setw(col3) << "warning"; 
-      else outfile << setw(col3) << "ok"; 
-      std::map<std::string, std::string> readFIFOStatComments = DDUDebugger::FIFOStatus(dt, (readFIFOStat >> 8) & 0xff, (*iDDU));
-      for (std::map< std::string, std::string >::iterator iComment = readFIFOStatComments.begin();
-	   iComment != readFIFOStatComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << "  "; 
-      }
-      outfile << endl;
-
-      outfile << setw(col1) << "Input buffer full history";
-      unsigned int readFIFOFull = (*iDDU)->readFIFOFull(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readFIFOFull) & 0xff);
-      if (((readFIFOFull) & 0xff)) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";  
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readFIFOFull) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
-	}
-      }
-      outfile << endl;
-
-      outfile << setw(col1) << "Special decode bits (4-bit)";
-      outfile << setw(col2) << std::showbase << std::hex << ((readFIFOFull >> 8) & 0xff);
-      if (((readFIFOFull >> 8) & 0xf)) outfile << setw(col3) << "warning";  
-      else outfile << setw(col3) << "ok"; 
-      std::map<std::string, std::string> readFIFOFullComments = DDUDebugger::FIFOFull(dt,(readFIFOFull >> 8) & 0xff, (*iDDU));
-      for (std::map< std::string, std::string >::iterator iComment = readFIFOFullComments.begin();
-	   iComment != readFIFOFullComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << "  "; 
-      }
-      outfile << endl;
-
-      outfile << setw(col1) << "InRD0/2 C-code status (8-bit)";
-      unsigned int readCCodeStat = (*iDDU)->readCCodeStatus(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readCCodeStat) & 0xff);
-      if ((readCCodeStat & 0xff) == 0x20) outfile << setw(col3) << "warning"; 
-      else if (readCCodeStat & 0xff) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok"; 
-      std::map<std::string, std::string> readCCodeStatComments = DDUDebugger::CCodeStatus(dt, (readCCodeStat) & 0xff);
-      for (std::map< std::string, std::string >::iterator iComment = readCCodeStatComments.begin();
-	   iComment != readCCodeStatComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << "  "; 
-      }
-      outfile << endl;
-
-      outfile << setw(col1) << "InRD1/3 C-code status (8-bit)";
-      outfile << setw(col2) << std::showbase << std::hex << ((readCCodeStat >> 8) & 0xff);
-      if (((readCCodeStat >> 8) & 0xff) == 0x20) outfile << setw(col3) << "warning";
-      else if (((readCCodeStat >> 8) & 0xff)) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";  
-      readCCodeStatComments = DDUDebugger::CCodeStatus(dt, (readCCodeStat >> 8) & 0xff);
-      for (std::map< std::string, std::string >::iterator iComment = readCCodeStatComments.begin();
-	   iComment != readCCodeStatComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << "  "; 
-      }
-      outfile << endl;
-
-
-      outfile << "*** InFPGA1 (fibers 14-8) ***" << endl;
-      iDevType = 1;
-
-      dt = devTypes[iDevType];
-      fiberOffset = (dt == INFPGA0 ? 0 : 8);
-
-
-      outfile << setw(col1) << "Input buffer empty";
-      readFIFOStat = (*iDDU)->readFIFOStatus(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readFIFOStat) & 0xff);
-      outfile << setw(col2) << "ok"; 
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readFIFOStat >> 8) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
-	}
-      }
-      outfile << endl;
-
-      outfile << setw(col1) << "Special FIFO decode (8-bit)";  
-      outfile << setw(col2) << std::showbase << std::hex << ((readFIFOStat >> 8) & 0xff);
-      if (((readFIFOStat >> 8) & 0xfc)) outfile << setw(col3) << "warning"; 
-      else outfile << setw(col3) << "ok"; 
-      readFIFOStatComments = DDUDebugger::FIFOStatus(dt, (readFIFOStat >> 8) & 0xff, (*iDDU));
-      for (std::map< std::string, std::string >::iterator iComment = readFIFOStatComments.begin();
-	   iComment != readFIFOStatComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << "  "; 
-      }
-      outfile << endl;
-
-      outfile << setw(col1) << "Input buffer full history";
-      readFIFOFull = (*iDDU)->readFIFOFull(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readFIFOFull) & 0xff);
-      if (((readFIFOFull) & 0xff)) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";  
-      for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-	if (((readFIFOFull) & 0xff) & (1<<iFiber)) {
-	  outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
-	}
-      }
-      outfile << endl;
-
-      outfile << setw(col1) << "Special decode bits (4-bit)";
-      outfile << setw(col2) << std::showbase << std::hex << ((readFIFOFull >> 8) & 0xff);
-      if (((readFIFOFull >> 8) & 0xf)) outfile << setw(col3) << "warning";  
-      else outfile << setw(col3) << "ok"; 
-      readFIFOFullComments = DDUDebugger::FIFOFull(dt,(readFIFOFull >> 8) & 0xff, (*iDDU));
-      for (std::map< std::string, std::string >::iterator iComment = readFIFOFullComments.begin();
-	   iComment != readFIFOFullComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << "  "; 
-      }
-      outfile << endl;
-
-      outfile << setw(col1) << "InRD0/2 C-code status (8-bit)";
-      readCCodeStat = (*iDDU)->readCCodeStatus(dt);
-      outfile << setw(col2) << std::showbase << std::hex << ((readCCodeStat) & 0xff);
-      if ((readCCodeStat & 0xff) == 0x20) outfile << setw(col3) << "warning"; 
-      else if (readCCodeStat & 0xff) outfile << setw(col3) << "bad";
-      else outfile << setw(col3) << "ok"; 
-      readCCodeStatComments = DDUDebugger::CCodeStatus(dt, (readCCodeStat) & 0xff);
-      for (std::map< std::string, std::string >::iterator iComment = readCCodeStatComments.begin();
-	   iComment != readCCodeStatComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << "  "; 
-      }
-      outfile << endl;
-
-      outfile << setw(col1) << "InRD1/3 C-code status (8-bit)";
-      outfile << setw(col2) << std::showbase << std::hex << ((readCCodeStat >> 8) & 0xff);
-      if (((readCCodeStat >> 8) & 0xff) == 0x20) outfile << setw(col3) << "warning";
-      else if (((readCCodeStat >> 8) & 0xff)) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";  
-      readCCodeStatComments = DDUDebugger::CCodeStatus(dt, (readCCodeStat >> 8) & 0xff);
-      for (std::map< std::string, std::string >::iterator iComment = readCCodeStatComments.begin();
-	   iComment != readCCodeStatComments.end();
-	   iComment++) {
-	outfile << iComment->first << "=" << iComment->second << "  "; 
-      }
-      outfile << endl;
-
-      outfile << endl;
-      outfile << "*** Memory Control Information (22 fifos)" << endl;
-      outfile << "*** InFPGA0 (fibers 7-0) ***" << endl;
-      iDevType = 0;
-      dt = devTypes[iDevType];
-      unsigned int memValue = (*iDDU)->readFiberDiagnostics(dt,0);
- 
-      outfile << setw(col1) << "FIFOs Used, Fibers 3-0";
-      outfile << setw(col2) << std::showbase << std::hex << memValue;
-      outfile << setw(col3) << "ok" << endl;  
-
-      outfile << setw(col1) << "FIFOs Used, Fibers 7-4";
-      memValue = (*iDDU)->readFiberDiagnostics(dt,1);
-      outfile << setw(col2) << std::showbase << std::hex << memValue;
-      outfile << setw(col3) << "ok" << endl;  
-
-      outfile << setw(col1) << "MemCtrl0 FIFOs Available";
-      memValue = (*iDDU)->readAvailableMemory(dt);
-      outfile << setw(col2) << (memValue & 0x1f);
-      if ((memValue & 0x1f) == 1) outfile << setw(col3) << "warning"; 
-      else if ((memValue & 0x1f) == 0) outfile << setw(col3) << "bad";  
-      else outfile << setw(col3) << "ok";  
-      outfile << endl;
-
-      outfile << setw(col1) << "MemCtrl1 FIFOs Available";
-      outfile << setw(col2) << ((memValue >> 5) & 0x1f);
-      if (((memValue >> 5) & 0x1f) == 1) outfile << setw(col3) << "warning";
-      if (((memValue >> 5) & 0x1f) == 0) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";  
-      outfile << endl;
-
-      outfile << setw(col1) << "MemCtrl0 Minimum FIFOs Available";
-      memValue = (*iDDU)->readMinMemory(dt);
-      outfile << setw(col2) << (memValue & 0x1f);
-      if ((memValue & 0x1f) == 1) outfile << setw(col3) << "warning";
-      else if ((memValue & 0x1f) == 0) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";  
-      outfile << endl;
-
-      outfile << setw(col1) << "MemCtrl1 Minimum FIFOs Available";
-      outfile << setw(col2) << ((memValue >> 5) & 0x1f);
-      if (((memValue >> 5) & 0x1f) == 1) outfile << setw(col3) << "warning";
-      if (((memValue >> 5) & 0x1f) == 0) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";  
-      outfile << endl;
-
-      for (unsigned int ireg = 0; ireg < 4; ireg++) {
-	outfile << setw(col1) << "Write Memory Active, Fibers " << dec << ireg*2 + 1 + 8*iDevType << "-" << setw(col1 - 32) << ireg*2 + 8*iDevType;  
-	memValue = (*iDDU)->readActiveWriteMemory(dt,ireg);
-	outfile << setw(col2) << std::showbase << std::hex << memValue;
-	outfile << setw(col3) << "ok";  
-	std::map< std::string, std::string> memComments = DDUDebugger::ActiveWriteMemory(dt, ireg, memValue, (*iDDU));
-	for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
-	     iComment != memComments.end();
-	     iComment++) {
-	  outfile << iComment->first << "=" << iComment->second << "  "; 
+	outfile << setw(col1) << "Data transmit error:";
+	dduValue = (*iDDU)->readXmitError();
+	outfile << setw(col2) << std::showbase << std::hex << dduValue;
+	if (dduValue) outfile << setw(col3) << "bad";  
+	else          outfile << setw(col3) << "ok";
+	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+	  if (dduValue & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber)->getName() << "  ";  
+	  }
 	}
 	outfile << endl;
-      }
-      outfile << endl;
-
-
-      outfile << "*** InFPGA1 (fibers 14-8) ***" << endl;
-      iDevType = 1;
-      dt = devTypes[iDevType];
-      memValue = (*iDDU)->readFiberDiagnostics(dt,0);
- 
-      outfile << setw(col1) << "FIFOs Used, Fibers 11-8";
-      outfile << setw(col2) << std::showbase << std::hex << memValue;
-      outfile << setw(col3) << "ok" << endl;  
-
-      outfile << setw(col1) << "FIFOs Used, Fibers 15-12";
-      memValue = (*iDDU)->readFiberDiagnostics(dt,1);
-      outfile << setw(col2) << std::showbase << std::hex << memValue;
-      outfile << setw(col3) << "ok" << endl;  
-
-      outfile << setw(col1) << "MemCtrl2 FIFOs Available";
-      memValue = (*iDDU)->readAvailableMemory(dt);
-      outfile << setw(col2) << (memValue & 0x1f);
-      if ((memValue & 0x1f) == 1) outfile << setw(col3) << "warning"; 
-      else if ((memValue & 0x1f) == 0) outfile << setw(col3) << "bad";  
-      else outfile << setw(col3) << "ok";  
-      outfile << endl;
-
-      outfile << setw(col1) << "MemCtrl3 FIFOs Available";
-      outfile << setw(col2) << ((memValue >> 5) & 0x1f);
-      if (((memValue >> 5) & 0x1f) == 1) outfile << setw(col3) << "warning";
-      if (((memValue >> 5) & 0x1f) == 0) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";  
-      outfile << endl;
-
-      outfile << setw(col1) << "MemCtrl2 Minimum FIFOs Available";
-      memValue = (*iDDU)->readMinMemory(dt);
-      outfile << setw(col2) << (memValue & 0x1f);
-      if ((memValue & 0x1f) == 1) outfile << setw(col3) << "warning";
-      else if ((memValue & 0x1f) == 0) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";  
-      outfile << endl;
-
-      outfile << setw(col1) << "MemCtrl3 Minimum FIFOs Available";
-      outfile << setw(col2) << ((memValue >> 5) & 0x1f);
-      if (((memValue >> 5) & 0x1f) == 1) outfile << setw(col3) << "warning";
-      if (((memValue >> 5) & 0x1f) == 0) outfile << setw(col3) << "bad"; 
-      else outfile << setw(col3) << "ok";  
-      outfile << endl;
-
-      for (unsigned int ireg = 0; ireg < 4; ireg++) {
-	outfile << setw(col1) << "Write Memory Active, Fibers " << dec << ireg*2 + 1 + 8*iDevType << "-" << setw(col1 - 32) << ireg*2 + 8*iDevType;  
-	memValue = (*iDDU)->readActiveWriteMemory(dt,ireg);
-	outfile << setw(col2) << std::showbase << std::hex << memValue;
-	outfile << setw(col3) << "ok";  
-	std::map< std::string, std::string> memComments = DDUDebugger::ActiveWriteMemory(dt, ireg, memValue, (*iDDU));
-	for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
-	     iComment != memComments.end();
-	     iComment++) {
-	  outfile << iComment->first << "=" << iComment->second << "  "; 
+      
+	outfile << setw(col1) << "DMB error:";
+	dduValue = (*iDDU)->readDMBError();
+	outfile << setw(col2) << std::showbase << std::hex << dduValue;
+	if (dduValue) outfile << setw(col3) << "bad";
+	else          outfile << setw(col3) << "ok";
+	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+	  if (dduValue & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber)->getName() << "  ";  
+	  }
+	}
+	outfile << endl;  
+      
+	outfile << setw(col1) << "TMB error:";
+	dduValue = (*iDDU)->readTMBError();
+	outfile << setw(col2) << std::showbase << std::hex << dduValue;
+	if (dduValue) outfile << setw(col3) << "bad";
+	else          outfile << setw(col3) << "ok";
+	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+	  if (dduValue & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber)->getName() << "  ";  
+	  }
+	}
+	outfile << endl;  
+      
+      
+	outfile << setw(col1) << "ALCT error:"; 
+	dduValue = (*iDDU)->readALCTError();
+	outfile << setw(col2) << std::showbase << std::hex << dduValue;
+	if (dduValue) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok";
+	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+	  if (dduValue & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber)->getName() << "  ";  
+	  }
 	}
 	outfile << endl;
-      }
-      outfile << endl;
       
-      outfile << "*** InFPGA Diagnostic Trap Decoding *** " << endl;        
-      for (unsigned int iDevType = 0; iDevType < 2; iDevType++) {
-	enum DEVTYPE dt = devTypes[iDevType];
-	
-	outfile << "*** INFPGA" << dec << iDevType << " *** " << endl;  
-	
-	if (debugTrapValid[iDevType]) {
-	  
-	  std::vector<uint16_t> lcode = (*iDDU)->readDebugTrap(dt);
-	  std::vector<std::string> bigComments = DDUDebugger::INFPGADebugTrap(dt, lcode);
-	  
+	outfile << setw(col1) << "Lost-in-event error:";
+	dduValue = (*iDDU)->readLIEError();
+	outfile << setw(col2) << std::showbase << std::hex << dduValue;
+	if (dduValue) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+	  if (dduValue & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber)->getName() << "  ";  
+	  }
+	}
+	outfile << endl;
+	outfile << endl;
+
+	outfile << "*** Printing values from inrdTable ***" << endl;        
+	outfile << setw(col1) << "Stuck data error:";
+	dduValue = (*iDDU)->readFIFOStatus(0);  
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
+	if ((dduValue >> 12) & 0xF) outfile << setw(col3) << "bad"; 
+	else                        outfile << setw(col3) << "ok";   
+	outfile << endl; 
+      
+	outfile << setw(col1) << "Fiber or FIFO connection error:";
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
+	if ((dduValue >> 8) & 0xF) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok";
+	outfile << endl; 
+      
+	outfile << setw(col1) << "L1A mismatch:";
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);  
+	if ((dduValue >> 4) & 0xF) outfile << setw(col3) << "warning";
+	else outfile << setw(col3) << "ok";
+	outfile << endl; 
+      
+	outfile << setw(col1) << "InRD with active fiber: ";
+	outfile << setw(col2) << std::showbase << std::hex << (dduValue & 0xF) << endl;
+      
+	outfile << setw(col1) << "Active ext. FIFO empty: ";
+	dduValue = (*iDDU)->readFIFOStatus(1);
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 10) & 0xF) << endl;
+      
+	outfile << setw(col1) << "InRD near full warning: ";
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 4) & 0xF); 
+	if ((dduValue >> 4) & 0xF) outfile << setw(col3) << "warning"; 
+	else outfile << setw(col3) << "ok";
+	outfile << endl; 
+      
+	outfile << setw(col1) << "Ext. FIFO almost-full: ";
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue) & 0xF);
+	if ((dduValue) & 0xF) outfile << "questionable";
+	else outfile << setw(col3) << "ok";
+	outfile << endl; 
+      
+	outfile << setw(col1) << "Special decode bits";
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 8) & 0x43);
+	if ((dduValue >> 8) & 0x81) outfile << setw(col3) << "warning";
+	else outfile << setw(col3) << "ok";  
+	dduComments = DDUDebugger::FIFOStatus(1, (dduValue >> 8) & 0x43);
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
+	     iComment != dduComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << "  ";
+	}
+	outfile << endl; 
+      
+	outfile << setw(col1) << "Timeout-EndBusy: ";
+	dduValue = (*iDDU)->readFIFOStatus(2);
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
+	if ((dduValue >> 12) & 0xF) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok";
+	outfile << endl; 
+      
+	outfile << setw(col1) << "Timeout-EndWait";
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
+	if ((dduValue >> 8) & 0xF) outfile << setw(col3) << "warning";
+	else outfile << setw(col3) << "ok";
+	outfile << endl; 
+      
+	outfile << setw(col1) << "Timeout-Start";
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
+	if ((dduValue >> 4) & 0xF) outfile << setw(col3) << "warning";
+	else outfile << setw(col3) << "ok";
+	outfile << endl; 
+      
+	outfile << setw(col1) << "Lost-in-data error";
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue) & 0xF);
+	if ((dduValue) & 0xF) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok";
+	outfile << endl; 
+      
+	outfile << setw(col1) << "Raw ext. FIFO empty";
+	dduValue = (*iDDU)->readFFError();
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 10) & 0xF) << endl;
+      
+	outfile << setw(col1) << "InRD FIFO full";
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
+	if ((dduValue >> 4) & 0xF) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok";
+	outfile << endl; 
+      
+	outfile << setw(col1) << "Ext. FIFO full";
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue) & 0xF);
+	if ((dduValue) & 0xF) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok";
+	outfile << endl; 
+      
+	outfile << setw(col1) << "Special decode bits";
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 8) & 0x43);
+	if ((dduValue >> 8) & 0x1) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok";
+	dduComments = DDUDebugger::FFError((dduValue >> 8) & 0x43);
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
+	     iComment != dduComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << "  ";  
+	}
+	outfile << endl; 
+      
+	outfile << setw(col1) << "InRD hard error";
+	dduValue = (*iDDU)->readInRDStatus();
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
+	if ((dduValue >> 12) & 0xF) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok"; 
+	outfile << endl; 
+      
+	outfile << setw(col1) << "InRD sync error";
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
+	if ((dduValue >> 8) & 0xF) outfile << setw(col3) << "warning"; 
+	else outfile << setw(col3) << "ok";
+	outfile << endl; 
+      
+	outfile << setw(col1) << "InRD single event error";
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue) & 0xF);
+	if ((dduValue) & 0xF) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok";
+	outfile << endl; 
+      
+      
+	outfile << setw(col1) << "InRD multiple transmit errors";
+	dduValue = (*iDDU)->readInCHistory();
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue) & 0xF);
+	if ((dduValue) & 0xF) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok";
+	outfile << endl;        
+
+	outfile << setw(col1) << "Special decode bits";
+	//dduValue = (*iDDU)->readFFError(2);
+	outfile << setw(col2) << std::showbase << std::hex << ((dduValue) & 0xFFF);
+	if ((dduValue) & 0xC00) outfile << setw(col3) << "bad";
+	else if ((dduValue) & 0x2DF) outfile << setw(col3) << "warning";
+	else outfile << setw(col3) << "ok";
+	dduComments = DDUDebugger::FFError((dduValue) & 0xFFF);
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
+	     iComment != dduComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << "  ";  
+	}    
+	outfile << endl; 
+
+	outfile << endl;       
+	outfile << "*** DDU Diagnostic Trap Decoding ***" << endl;        
+	if (debugTrapValidDDU) {
+
+	  // Here it is.
+	  std::vector<uint16_t> lcode = (*iDDU)->readDebugTrap(DDUFPGA);
+	  std::vector<std::string> bigComments = DDUDebugger::DDUDebugTrap(lcode, (*iDDU));
+
 	  std::stringstream diagCode;
 	  diagCode << std::setfill('0');
 	  diagCode << std::hex;
-	  diagCode << std::setw(8) << lcode[5] << " ";
-	  diagCode << std::setw(8) << lcode[4] << " ";
-	  diagCode << std::setw(8) << lcode[3] << " ";
-	  diagCode << std::setw(8) << lcode[2] << " ";
-	  diagCode << std::setw(8) << lcode[1] << " ";
-	  diagCode << std::setw(8) << lcode[0];
-	  outfile << "Trap value (194 bits): " << diagCode.str() << endl;
-	  
-	  for (std::vector<std::string>::iterator iComment = bigComments.begin(); iComment != bigComments.end(); iComment++) {
-	    outfile << (*iComment) << endl;  
-	  }
+	  diagCode << std::setw(4) << lcode[11] << lcode[10] << " ";
+	  diagCode << std::setw(4) << lcode[9] << lcode[8] << " ";
+	  diagCode << std::setw(4) << lcode[7] << lcode[6] << " ";
+	  diagCode << std::setw(4) << lcode[5] << lcode[4] << " ";
+	  diagCode << std::setw(4) << lcode[3] << lcode[2] << " ";
+	  diagCode << std::setw(4) << lcode[1] << lcode[0];
 
-	  outfile << "The status registers are frozen in the trap only after an error occurs.  The values in the trap remain valid until a reset." << endl;  
-	  
-	} else { 
-	  outfile << "Diagnostic trap is only valid after an InFPGA error has been detected." << endl;  
+	  outfile << "Trap value (194 bits): " << diagCode.str() << endl;
+
+	  for (std::vector<std::string>::iterator iComment = bigComments.begin(); iComment != bigComments.end(); iComment++) {
+	    outfile << (*iComment) << endl;
+	  }
+	
+	  outfile << "The status registers are frozen in the trap only after an error occurs.  The values in the trap remain valid until a reset." << endl;
+	
+	} else {
+	  outfile << "Diagnostic trap is only valid after an InFPGA error has been detected." << endl;
 	}
-      }
       
-    }  // end loop over DDU's  
+
+	outfile << endl;       
+	outfile << "*** General InFPGA Information ***" << endl;        
+
+	// Do this for both InFPGAs
+	enum DEVTYPE devTypes[2] = {
+	  INFPGA0,
+	  INFPGA1
+	};
+
+	// This is used to check if the debug trap is valid.  One for each device.
+	bool debugTrapValid[2] = {
+	  false,
+	  false
+	};
+
+	outfile << "*** InFPGA0 (fibers 7-0) ***" << endl;        
+	unsigned int iDevType = 0;  
+
+	outfile << setw(col1)  << "Input FPGA0 Status (32-bit)";
+	enum DEVTYPE dt = devTypes[iDevType];
+	unsigned long int infpgastat = (*iDDU)->readFPGAStatus(dt);
+	outfile << setw(col2) << std::showbase << std::hex << infpgastat;
+	if   (infpgastat & 0x00004000)   outfile << setw(col3) << "warning";
+	if   (infpgastat & 0x00008000) { outfile << setw(col3) << "bad";
+	  debugTrapValid[iDevType] = true;
+	}
+
+	if (!(infpgastat & 0x0000C000)) outfile << setw(col3) << "ok";  
+	std::map<std::string, std::string> infpgastatComments = DDUDebugger::FPGAStatus(dt, infpgastat);
+	for (std::map<std::string,std::string>::iterator iComment = infpgastatComments.begin();
+	     iComment != infpgastatComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << "  "; 
+	}
+	outfile << endl;  
+
+	outfile << setw(col1)  << "L1 Event Scaler0 (24-bit)";
+	unsigned long int L1Scaler = (*iDDU)->readL1Scaler(dt);
+	outfile << setw(col2) << L1Scaler << endl;
+
+
+	outfile << setw(col1)  << "L1 Event Scaler1 (24-bit)";
+	unsigned long int L1Scaler1 = (*iDDU)->readL1Scaler1(dt);
+	outfile << setw(col2) << L1Scaler1 << endl;
+
+	outfile << setw(col1)  << "Input PROM0 User Code";
+	unsigned long int promcode = (iDevType == 0) ? (*iDDU)->readUserCode(INPROM0) : (*iDDU)->readUserCode(INPROM1);
+	outfile << setw(col2) << std::showbase << std::hex << promcode << endl; 
+
+	outfile << setw(col1)  << "Input FPGA0 User Code";
+	unsigned long int fpgacode = (*iDDU)->readUserCode(dt);
+	outfile << setw(col2) << std::showbase << std::hex << fpgacode << endl;
+      
+
+	outfile << endl;  
+	outfile << "*** InFPGA1 (fibers 14-8) ***" << endl;        
+	iDevType = 1;  
+
+	outfile << setw(col1)  << "Input FPGA1 Status (32-bit)";
+	dt = devTypes[iDevType];
+	infpgastat = (*iDDU)->readFPGAStatus(dt);
+	outfile << setw(col2) << std::showbase << std::hex << infpgastat;
+	if   (infpgastat & 0x00004000)  outfile << setw(col3) << "warning";
+	if   (infpgastat & 0x00008000) { outfile << setw(col3) << "bad";
+	  debugTrapValid[iDevType] = true;
+	}
+	if (!(infpgastat & 0x0000C000)) outfile << setw(col3) << "ok";  
+	infpgastatComments = DDUDebugger::FPGAStatus(dt, infpgastat);
+	for (std::map<std::string,std::string>::iterator iComment = infpgastatComments.begin();
+	     iComment != infpgastatComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << "  "; 
+	}
+	outfile << endl;  
+
+	outfile << setw(col1)  << "L1 Event Scaler2 (24-bit)";
+	L1Scaler = (*iDDU)->readL1Scaler(dt);
+	outfile << setw(col2) << L1Scaler << endl;
+
+	outfile << setw(col1)  << "L1 Event Scaler3 (24-bit)";
+	L1Scaler1 = (*iDDU)->readL1Scaler1(dt);
+	outfile << setw(col2) << L1Scaler1 << endl;
+
+	outfile << setw(col1)  << "Input PROM1 User Code";
+	promcode = (iDevType == 0) ? (*iDDU)->readUserCode(INPROM0) : (*iDDU)->readUserCode(INPROM1);
+	outfile << setw(col2) << std::showbase << std::hex << promcode << endl; 
+
+	outfile << setw(col1)  << "Input FPGA1 User Code";
+	fpgacode = (*iDDU)->readUserCode(dt);
+	outfile << setw(col2) << std::showbase << std::hex << fpgacode << endl;
+      
+
+	outfile << endl;
+	outfile << "*** Individual Fiber Information ***" << endl;
+	outfile << "*** InFPGA0 (fibers 7-0) ***" << endl;
+	iDevType = 0;  
+
+	dt = devTypes[iDevType];
+	unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
+ 
+	outfile << setw(col1) << "DMB full";
+	unsigned int readDMBWarning = (*iDDU)->readDMBWarning(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readDMBWarning >> 8) & 0xff);
+	if (((readDMBWarning >> 8) & 0xff)) outfile << setw(col3) << "bad";
+	else                                outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readDMBWarning >> 8) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+	outfile << setw(col1) << "DMB warning";
+	outfile << setw(col2) << std::showbase << std::hex << ((readDMBWarning) & 0xff);
+	if (((readDMBWarning) & 0xff)) outfile << setw(col3) << "warning";
+	else outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readDMBWarning) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "orange" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+	outfile << setw(col1) << "Connection error";
+	unsigned int checkFiber = (*iDDU)->readFiberStatus(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((checkFiber >> 8) & 0xff);  
+	if (((checkFiber >> 8) & 0xff)) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((checkFiber >> 8) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+
+	outfile << setw(col1) << "Link active";
+	outfile << setw(col2) << std::showbase << std::hex << ((checkFiber) & 0xff);
+	outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((checkFiber) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+	outfile << setw(col1) << "Stuck data";
+	unsigned int readDMBSync = (*iDDU)->readDMBSync(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readDMBSync >> 8) & 0xff);
+	if (((readDMBSync >> 8) & 0xff)) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readDMBSync >> 8) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+	outfile << setw(col1) << "L1A mismatch";
+	outfile << setw(col2) << std::showbase << std::hex << ((readDMBSync) & 0xff);
+	if (((readDMBSync) & 0xff)) outfile << setw(col3) << "warning";
+	else outfile << setw(col3) << "ok";
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readDMBSync) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "orange" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+
+	outfile << setw(col1) << "GT-Rx error";
+	unsigned int readRxError = (*iDDU)->readRxError(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readRxError >> 8) & 0xff);
+	if (((readRxError >> 8) & 0xff)) outfile << setw(col3) << "questionable"; 
+	else outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readRxError >> 8) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "blue" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+	outfile << setw(col1) << "Timeout-start";
+	outfile << setw(col2) << std::showbase << std::hex << ((readRxError) & 0xff);
+	if (((readRxError) & 0xff)) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";  
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readRxError) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+
+	outfile << setw(col1) << "Timeout-end busy";
+	unsigned int readTimeout = (*iDDU)->readTimeout(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readTimeout) & 0xff);
+	if (((readTimeout) & 0xff)) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readTimeout) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}      
+	outfile << endl;  
+
+	outfile << setw(col1) << "Timeout-end wait";
+	outfile << setw(col2) << std::showbase << std::hex << ((readTimeout) & 0xff);
+	if (((readTimeout) & 0xff)) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readTimeout) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+	outfile << setw(col1) << "SCA full history";
+	unsigned int readTxError = (*iDDU)->readTxError(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readTxError >> 8) & 0xff);
+	outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readTxError >> 8) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
+	  }
+	}  
+	outfile << endl;  
+
+	outfile << setw(col1) << "CSC transmit error";
+	outfile << setw(col2) << std::showbase << std::hex << ((readTxError) & 0xff);
+	if (((readTxError) & 0xff)) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok";
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readTxError) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+
+	outfile << setw(col1) << "DDU lost-in-event error";
+	unsigned int readLostError = (*iDDU)->readLostError(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readLostError >> 8) & 0xff);
+	if (((readLostError) & 0xff)) outfile << setw(col3) << "warning"; 
+	else outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readLostError >> 8) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "orange" << "  ";  
+	  }
+	} 
+	outfile << endl;  
+
+
+	outfile << setw(col1) << "DDU lost-in-data error";
+	outfile << setw(col2) << std::showbase << std::hex << ((readLostError) & 0xff);
+	if (((readLostError) & 0xff)) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readLostError) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+
+	outfile << endl;  
+	outfile << "*** InFPGA1 (fibers 14-8) ***" << endl;
+	iDevType = 1;  
+
+	dt = devTypes[iDevType];
+	fiberOffset = (dt == INFPGA0 ? 0 : 8);
+ 
+	outfile << setw(col1) << "DMB full";
+	readDMBWarning = (*iDDU)->readDMBWarning(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readDMBWarning >> 8) & 0xff);
+	if (((readDMBWarning >> 8) & 0xff)) outfile << setw(col3) << "bad";
+	else                                outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readDMBWarning >> 8) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+	outfile << setw(col1) << "DMB warning";
+	outfile << setw(col2) << std::showbase << std::hex << ((readDMBWarning) & 0xff);
+	if (((readDMBWarning) & 0xff)) outfile << setw(col3) << "warning";
+	else outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readDMBWarning) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "orange" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+	outfile << setw(col1) << "Connection error";
+	checkFiber = (*iDDU)->readFiberStatus(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((checkFiber >> 8) & 0xff);  
+	if (((checkFiber >> 8) & 0xff)) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((checkFiber >> 8) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+
+	outfile << setw(col1) << "Link active";
+	outfile << setw(col2) << std::showbase << std::hex << ((checkFiber) & 0xff);
+	outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((checkFiber) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+	outfile << setw(col1) << "Stuck data";
+	readDMBSync = (*iDDU)->readDMBSync(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readDMBSync >> 8) & 0xff);
+	if (((readDMBSync >> 8) & 0xff)) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readDMBSync >> 8) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+	outfile << setw(col1) << "L1A mismatch";
+	outfile << setw(col2) << std::showbase << std::hex << ((readDMBSync) & 0xff);
+	if (((readDMBSync) & 0xff)) outfile << setw(col3) << "warning";
+	else outfile << setw(col3) << "ok";
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readDMBSync) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "orange" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+
+	outfile << setw(col1) << "GT-Rx error";
+	readRxError = (*iDDU)->readRxError(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readRxError >> 8) & 0xff);
+	if (((readRxError >> 8) & 0xff)) outfile << setw(col3) << "questionable"; 
+	else outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readRxError >> 8) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "blue" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+	outfile << setw(col1) << "Timeout-start";
+	outfile << setw(col2) << std::showbase << std::hex << ((readRxError) & 0xff);
+	if (((readRxError) & 0xff)) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";  
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readRxError) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+
+	outfile << setw(col1) << "Timeout-end busy";
+	readTimeout = (*iDDU)->readTimeout(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readTimeout) & 0xff);
+	if (((readTimeout) & 0xff)) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readTimeout) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}      
+	outfile << endl;  
+
+	outfile << setw(col1) << "Timeout-end wait";
+	outfile << setw(col2) << std::showbase << std::hex << ((readTimeout) & 0xff);
+	if (((readTimeout) & 0xff)) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readTimeout) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+	outfile << setw(col1) << "SCA full history";
+	readTxError = (*iDDU)->readTxError(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readTxError >> 8) & 0xff);
+	outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readTxError >> 8) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
+	  }
+	}  
+	outfile << endl;  
+
+	outfile << setw(col1) << "CSC transmit error";
+	outfile << setw(col2) << std::showbase << std::hex << ((readTxError) & 0xff);
+	if (((readTxError) & 0xff)) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok";
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readTxError) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+
+	outfile << setw(col1) << "DDU lost-in-event error";
+	readLostError = (*iDDU)->readLostError(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readLostError >> 8) & 0xff);
+	if (((readLostError) & 0xff)) outfile << setw(col3) << "warning"; 
+	else outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readLostError >> 8) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "orange" << "  ";  
+	  }
+	} 
+	outfile << endl;  
+
+
+	outfile << setw(col1) << "DDU lost-in-data error";
+	outfile << setw(col2) << std::showbase << std::hex << ((readLostError) & 0xff);
+	if (((readLostError) & 0xff)) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readLostError) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "red" << "  ";  
+	  }
+	}
+	outfile << endl;  
+
+
+	outfile << endl;
+	outfile << "*** Other Fiber/InRD Information ***" << endl;
+	outfile << "*** InFPGA0 (fibers 7-0) ***" << endl;
+	iDevType = 0;
+
+	dt = devTypes[iDevType];
+	fiberOffset = (dt == INFPGA0 ? 0 : 8);
+
+
+	outfile << setw(col1) << "Input buffer empty";
+	unsigned int readFIFOStat = (*iDDU)->readFIFOStatus(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readFIFOStat) & 0xff);
+	outfile << setw(col2) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readFIFOStat >> 8) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
+	  }
+	}
+	outfile << endl;
+
+	outfile << setw(col1) << "Special FIFO decode (8-bit)";  
+	outfile << setw(col2) << std::showbase << std::hex << ((readFIFOStat >> 8) & 0xff);
+	if (((readFIFOStat >> 8) & 0xfc)) outfile << setw(col3) << "warning"; 
+	else outfile << setw(col3) << "ok"; 
+	std::map<std::string, std::string> readFIFOStatComments = DDUDebugger::FIFOStatus(dt, (readFIFOStat >> 8) & 0xff, (*iDDU));
+	for (std::map< std::string, std::string >::iterator iComment = readFIFOStatComments.begin();
+	     iComment != readFIFOStatComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << "  "; 
+	}
+	outfile << endl;
+
+	outfile << setw(col1) << "Input buffer full history";
+	unsigned int readFIFOFull = (*iDDU)->readFIFOFull(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readFIFOFull) & 0xff);
+	if (((readFIFOFull) & 0xff)) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";  
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readFIFOFull) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
+	  }
+	}
+	outfile << endl;
+
+	outfile << setw(col1) << "Special decode bits (4-bit)";
+	outfile << setw(col2) << std::showbase << std::hex << ((readFIFOFull >> 8) & 0xff);
+	if (((readFIFOFull >> 8) & 0xf)) outfile << setw(col3) << "warning";  
+	else outfile << setw(col3) << "ok"; 
+	std::map<std::string, std::string> readFIFOFullComments = DDUDebugger::FIFOFull(dt,(readFIFOFull >> 8) & 0xff, (*iDDU));
+	for (std::map< std::string, std::string >::iterator iComment = readFIFOFullComments.begin();
+	     iComment != readFIFOFullComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << "  "; 
+	}
+	outfile << endl;
+
+	outfile << setw(col1) << "InRD0/2 C-code status (8-bit)";
+	unsigned int readCCodeStat = (*iDDU)->readCCodeStatus(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readCCodeStat) & 0xff);
+	if ((readCCodeStat & 0xff) == 0x20) outfile << setw(col3) << "warning"; 
+	else if (readCCodeStat & 0xff) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok"; 
+	std::map<std::string, std::string> readCCodeStatComments = DDUDebugger::CCodeStatus(dt, (readCCodeStat) & 0xff);
+	for (std::map< std::string, std::string >::iterator iComment = readCCodeStatComments.begin();
+	     iComment != readCCodeStatComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << "  "; 
+	}
+	outfile << endl;
+
+	outfile << setw(col1) << "InRD1/3 C-code status (8-bit)";
+	outfile << setw(col2) << std::showbase << std::hex << ((readCCodeStat >> 8) & 0xff);
+	if (((readCCodeStat >> 8) & 0xff) == 0x20) outfile << setw(col3) << "warning";
+	else if (((readCCodeStat >> 8) & 0xff)) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";  
+	readCCodeStatComments = DDUDebugger::CCodeStatus(dt, (readCCodeStat >> 8) & 0xff);
+	for (std::map< std::string, std::string >::iterator iComment = readCCodeStatComments.begin();
+	     iComment != readCCodeStatComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << "  "; 
+	}
+	outfile << endl;
+
+
+	outfile << "*** InFPGA1 (fibers 14-8) ***" << endl;
+	iDevType = 1;
+
+	dt = devTypes[iDevType];
+	fiberOffset = (dt == INFPGA0 ? 0 : 8);
+
+
+	outfile << setw(col1) << "Input buffer empty";
+	readFIFOStat = (*iDDU)->readFIFOStatus(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readFIFOStat) & 0xff);
+	outfile << setw(col2) << "ok"; 
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readFIFOStat >> 8) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
+	  }
+	}
+	outfile << endl;
+
+	outfile << setw(col1) << "Special FIFO decode (8-bit)";  
+	outfile << setw(col2) << std::showbase << std::hex << ((readFIFOStat >> 8) & 0xff);
+	if (((readFIFOStat >> 8) & 0xfc)) outfile << setw(col3) << "warning"; 
+	else outfile << setw(col3) << "ok"; 
+	readFIFOStatComments = DDUDebugger::FIFOStatus(dt, (readFIFOStat >> 8) & 0xff, (*iDDU));
+	for (std::map< std::string, std::string >::iterator iComment = readFIFOStatComments.begin();
+	     iComment != readFIFOStatComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << "  "; 
+	}
+	outfile << endl;
+
+	outfile << setw(col1) << "Input buffer full history";
+	readFIFOFull = (*iDDU)->readFIFOFull(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readFIFOFull) & 0xff);
+	if (((readFIFOFull) & 0xff)) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";  
+	for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+	  if (((readFIFOFull) & 0xff) & (1<<iFiber)) {
+	    outfile << (*iDDU)->getFiber(iFiber + fiberOffset)->getName() << "=" << "none" << "  ";  
+	  }
+	}
+	outfile << endl;
+
+	outfile << setw(col1) << "Special decode bits (4-bit)";
+	outfile << setw(col2) << std::showbase << std::hex << ((readFIFOFull >> 8) & 0xff);
+	if (((readFIFOFull >> 8) & 0xf)) outfile << setw(col3) << "warning";  
+	else outfile << setw(col3) << "ok"; 
+	readFIFOFullComments = DDUDebugger::FIFOFull(dt,(readFIFOFull >> 8) & 0xff, (*iDDU));
+	for (std::map< std::string, std::string >::iterator iComment = readFIFOFullComments.begin();
+	     iComment != readFIFOFullComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << "  "; 
+	}
+	outfile << endl;
+
+	outfile << setw(col1) << "InRD0/2 C-code status (8-bit)";
+	readCCodeStat = (*iDDU)->readCCodeStatus(dt);
+	outfile << setw(col2) << std::showbase << std::hex << ((readCCodeStat) & 0xff);
+	if ((readCCodeStat & 0xff) == 0x20) outfile << setw(col3) << "warning"; 
+	else if (readCCodeStat & 0xff) outfile << setw(col3) << "bad";
+	else outfile << setw(col3) << "ok"; 
+	readCCodeStatComments = DDUDebugger::CCodeStatus(dt, (readCCodeStat) & 0xff);
+	for (std::map< std::string, std::string >::iterator iComment = readCCodeStatComments.begin();
+	     iComment != readCCodeStatComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << "  "; 
+	}
+	outfile << endl;
+
+	outfile << setw(col1) << "InRD1/3 C-code status (8-bit)";
+	outfile << setw(col2) << std::showbase << std::hex << ((readCCodeStat >> 8) & 0xff);
+	if (((readCCodeStat >> 8) & 0xff) == 0x20) outfile << setw(col3) << "warning";
+	else if (((readCCodeStat >> 8) & 0xff)) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";  
+	readCCodeStatComments = DDUDebugger::CCodeStatus(dt, (readCCodeStat >> 8) & 0xff);
+	for (std::map< std::string, std::string >::iterator iComment = readCCodeStatComments.begin();
+	     iComment != readCCodeStatComments.end();
+	     iComment++) {
+	  outfile << iComment->first << "=" << iComment->second << "  "; 
+	}
+	outfile << endl;
+
+	outfile << endl;
+	outfile << "*** Memory Control Information (22 fifos)" << endl;
+	outfile << "*** InFPGA0 (fibers 7-0) ***" << endl;
+	iDevType = 0;
+	dt = devTypes[iDevType];
+	unsigned int memValue = (*iDDU)->readFiberDiagnostics(dt,0);
+ 
+	outfile << setw(col1) << "FIFOs Used, Fibers 3-0";
+	outfile << setw(col2) << std::showbase << std::hex << memValue;
+	outfile << setw(col3) << "ok" << endl;  
+
+	outfile << setw(col1) << "FIFOs Used, Fibers 7-4";
+	memValue = (*iDDU)->readFiberDiagnostics(dt,1);
+	outfile << setw(col2) << std::showbase << std::hex << memValue;
+	outfile << setw(col3) << "ok" << endl;  
+
+	outfile << setw(col1) << "MemCtrl0 FIFOs Available";
+	memValue = (*iDDU)->readAvailableMemory(dt);
+	outfile << setw(col2) << (memValue & 0x1f);
+	if ((memValue & 0x1f) == 1) outfile << setw(col3) << "warning"; 
+	else if ((memValue & 0x1f) == 0) outfile << setw(col3) << "bad";  
+	else outfile << setw(col3) << "ok";  
+	outfile << endl;
+
+	outfile << setw(col1) << "MemCtrl1 FIFOs Available";
+	outfile << setw(col2) << ((memValue >> 5) & 0x1f);
+	if (((memValue >> 5) & 0x1f) == 1) outfile << setw(col3) << "warning";
+	if (((memValue >> 5) & 0x1f) == 0) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";  
+	outfile << endl;
+
+	outfile << setw(col1) << "MemCtrl0 Minimum FIFOs Available";
+	memValue = (*iDDU)->readMinMemory(dt);
+	outfile << setw(col2) << (memValue & 0x1f);
+	if ((memValue & 0x1f) == 1) outfile << setw(col3) << "warning";
+	else if ((memValue & 0x1f) == 0) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";  
+	outfile << endl;
+
+	outfile << setw(col1) << "MemCtrl1 Minimum FIFOs Available";
+	outfile << setw(col2) << ((memValue >> 5) & 0x1f);
+	if (((memValue >> 5) & 0x1f) == 1) outfile << setw(col3) << "warning";
+	if (((memValue >> 5) & 0x1f) == 0) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";  
+	outfile << endl;
+
+	for (unsigned int ireg = 0; ireg < 4; ireg++) {
+	  outfile << setw(col1) << "Write Memory Active, Fibers " << dec << ireg*2 + 1 + 8*iDevType << "-" << setw(col1 - 32) << ireg*2 + 8*iDevType;  
+	  memValue = (*iDDU)->readActiveWriteMemory(dt,ireg);
+	  outfile << setw(col2) << std::showbase << std::hex << memValue;
+	  outfile << setw(col3) << "ok";  
+	  std::map< std::string, std::string> memComments = DDUDebugger::ActiveWriteMemory(dt, ireg, memValue, (*iDDU));
+	  for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
+	       iComment != memComments.end();
+	       iComment++) {
+	    outfile << iComment->first << "=" << iComment->second << "  "; 
+	  }
+	  outfile << endl;
+	}
+	outfile << endl;
+
+
+	outfile << "*** InFPGA1 (fibers 14-8) ***" << endl;
+	iDevType = 1;
+	dt = devTypes[iDevType];
+	memValue = (*iDDU)->readFiberDiagnostics(dt,0);
+ 
+	outfile << setw(col1) << "FIFOs Used, Fibers 11-8";
+	outfile << setw(col2) << std::showbase << std::hex << memValue;
+	outfile << setw(col3) << "ok" << endl;  
+
+	outfile << setw(col1) << "FIFOs Used, Fibers 15-12";
+	memValue = (*iDDU)->readFiberDiagnostics(dt,1);
+	outfile << setw(col2) << std::showbase << std::hex << memValue;
+	outfile << setw(col3) << "ok" << endl;  
+
+	outfile << setw(col1) << "MemCtrl2 FIFOs Available";
+	memValue = (*iDDU)->readAvailableMemory(dt);
+	outfile << setw(col2) << (memValue & 0x1f);
+	if ((memValue & 0x1f) == 1) outfile << setw(col3) << "warning"; 
+	else if ((memValue & 0x1f) == 0) outfile << setw(col3) << "bad";  
+	else outfile << setw(col3) << "ok";  
+	outfile << endl;
+
+	outfile << setw(col1) << "MemCtrl3 FIFOs Available";
+	outfile << setw(col2) << ((memValue >> 5) & 0x1f);
+	if (((memValue >> 5) & 0x1f) == 1) outfile << setw(col3) << "warning";
+	if (((memValue >> 5) & 0x1f) == 0) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";  
+	outfile << endl;
+
+	outfile << setw(col1) << "MemCtrl2 Minimum FIFOs Available";
+	memValue = (*iDDU)->readMinMemory(dt);
+	outfile << setw(col2) << (memValue & 0x1f);
+	if ((memValue & 0x1f) == 1) outfile << setw(col3) << "warning";
+	else if ((memValue & 0x1f) == 0) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";  
+	outfile << endl;
+
+	outfile << setw(col1) << "MemCtrl3 Minimum FIFOs Available";
+	outfile << setw(col2) << ((memValue >> 5) & 0x1f);
+	if (((memValue >> 5) & 0x1f) == 1) outfile << setw(col3) << "warning";
+	if (((memValue >> 5) & 0x1f) == 0) outfile << setw(col3) << "bad"; 
+	else outfile << setw(col3) << "ok";  
+	outfile << endl;
+
+	for (unsigned int ireg = 0; ireg < 4; ireg++) {
+	  outfile << setw(col1) << "Write Memory Active, Fibers " << dec << ireg*2 + 1 + 8*iDevType << "-" << setw(col1 - 32) << ireg*2 + 8*iDevType;  
+	  memValue = (*iDDU)->readActiveWriteMemory(dt,ireg);
+	  outfile << setw(col2) << std::showbase << std::hex << memValue;
+	  outfile << setw(col3) << "ok";  
+	  std::map< std::string, std::string> memComments = DDUDebugger::ActiveWriteMemory(dt, ireg, memValue, (*iDDU));
+	  for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
+	       iComment != memComments.end();
+	       iComment++) {
+	    outfile << iComment->first << "=" << iComment->second << "  "; 
+	  }
+	  outfile << endl;
+	}
+	outfile << endl;
+      
+	outfile << "*** InFPGA Diagnostic Trap Decoding *** " << endl;        
+	for (unsigned int iDevType = 0; iDevType < 2; iDevType++) {
+	  enum DEVTYPE dt = devTypes[iDevType];
+	
+	  outfile << "*** INFPGA" << dec << iDevType << " *** " << endl;  
+	
+	  if (debugTrapValid[iDevType]) {
+	  
+	    std::vector<uint16_t> lcode = (*iDDU)->readDebugTrap(dt);
+	    std::vector<std::string> bigComments = DDUDebugger::INFPGADebugTrap(dt, lcode);
+	  
+	    std::stringstream diagCode;
+	    diagCode << std::setfill('0');
+	    diagCode << std::hex;
+	    diagCode << std::setw(8) << lcode[5] << " ";
+	    diagCode << std::setw(8) << lcode[4] << " ";
+	    diagCode << std::setw(8) << lcode[3] << " ";
+	    diagCode << std::setw(8) << lcode[2] << " ";
+	    diagCode << std::setw(8) << lcode[1] << " ";
+	    diagCode << std::setw(8) << lcode[0];
+	    outfile << "Trap value (194 bits): " << diagCode.str() << endl;
+	  
+	    for (std::vector<std::string>::iterator iComment = bigComments.begin(); iComment != bigComments.end(); iComment++) {
+	      outfile << (*iComment) << endl;  
+	    }
+
+	    outfile << "The status registers are frozen in the trap only after an error occurs.  The values in the trap remain valid until a reset." << endl;  
+	  
+	  } else { 
+	    outfile << "Diagnostic trap is only valid after an InFPGA error has been detected." << endl;  
+	  }
+	}
+      
+      }  // end loop over DDU's  
     
+    } // end loop over crates  
+
     outfile.close();  
     return webRedirect(out,backLocation.str());
                    
