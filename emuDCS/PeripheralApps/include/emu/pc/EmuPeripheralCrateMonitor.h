@@ -151,7 +151,7 @@ protected:
 
   static const int TOTAL_DCS_COUNTERS=64;
   static const int TOTAL_TMB_VOLTAGES=16;
-  static const int TOTAL_DCFEB_MONS=200;  // (19+8)*7+9+2 (2 is reserved)
+  static const int TOTAL_DCFEB_MONS=222;  // (19+8+3)*7+9+3 (3 are reserved)
   static const int MAX_TMB_COUNTERS=120;;
   
 public:

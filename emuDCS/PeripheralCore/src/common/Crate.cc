@@ -904,7 +904,7 @@ void Crate::MonitorDCS2(int cycle, char * buf, unsigned mask, bool read_dcfeb)
   //                1   good reading
   //                0   bad reading or no reading (skipped/masked)
 
-  int rn, TOTAL_DCS_COUNTERS=200; // (19+8)*7+9+2 aligned at 4 bytes (integer)
+  int rn, TOTAL_DCS_COUNTERS=222; // (19+8+3)*7+9+3 aligned at 4 bytes (integer)
   short *buf2, flag=0;
   unsigned dmask, tmask;
 

@@ -8921,14 +8921,16 @@ int DAQMB::DCSread2(char *data, bool read_dcfeb)
 //     loop through all DCFEBs
 //     {    1. DCFEB SYSMON
 //          2. DCFEB ADC
+//          3. DCFEB SEU
 //     }
 
   int retn=0;
   short *data2= (short *)data;
   int TOTAL_SYSMON=19;
   int TOTAL_ADC=8;
-  int TOTAL_DCFEB=TOTAL_SYSMON+TOTAL_ADC;
-  int TOTAL_ODMB=9;
+  int TOTAL_SEU=3;
+  int TOTAL_DCFEB=TOTAL_SYSMON+TOTAL_ADC+TOTAL_SEU;;
+  int TOTAL_ODMB=9+3;  // 3 reserved
 
   if (hardware_version_!=2) return 0;
 
@@ -8942,7 +8944,12 @@ int DAQMB::DCSread2(char *data, bool read_dcfeb)
       int febnum=cfebs_[lfeb].number();
       for(unsigned i=0; i<fsysmon.size(); i++)
       {
-         data2[febnum*TOTAL_DCFEB+i]=int(fsysmon[i]*100);
+         if(i==10)
+            data2[febnum*TOTAL_DCFEB+i]=int(fsysmon[i]);
+         else if(i==15)
+            data2[febnum*TOTAL_DCFEB+i]=dcfeb_qpll_lost_count(cfebs_[lfeb]);  // #15 replaced with QPLL lost counter
+         else
+            data2[febnum*TOTAL_DCFEB+i]=int(fsysmon[i]*100);
       }
       fsysmon.clear();
       std::vector<float> dadc=dcfeb_adc(cfebs_[lfeb]);
@@ -8950,9 +8957,12 @@ int DAQMB::DCSread2(char *data, bool read_dcfeb)
       {
          data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+i]=int(dadc[i]*100);
       }
+      data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+TOTAL_ADC]=0x3FF & SEM_read_status(cfebs_[lfeb]);
+      data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+TOTAL_ADC+1]=SEM_read_errcnt(cfebs_[lfeb]);
+      data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+TOTAL_ADC+2]=0;
     }
-    retn += TOTAL_DCFEB;
   }
+  retn += 7*TOTAL_DCFEB;
   std::vector<float> dsysmon=odmb_fpga_adc();
   for(unsigned int i=0; i<dsysmon.size(); i++)
   {

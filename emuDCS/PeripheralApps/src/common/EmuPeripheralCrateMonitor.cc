@@ -609,7 +609,12 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                      for(unsigned ii=0; ii<buf2[0]; ii++)
                      {   
                         unsigned short rdv = buf2[ii+2];
-                        (*febdata)[ii] = 0.01*rdv;
+                        unsigned chii=ii%TOTAL_DCFEB_MONS;
+                        unsigned cnt_idx = chii%30;
+                        unsigned dcfebn = chii/30;
+                        // for each DCFEB, data #10, #15, #27-#29 are binary, not floating point values
+                        if(dcfebn<7 && (cnt_idx== 10 || cnt_idx==15 || cnt_idx==27 || cnt_idx==28 || cnt_idx==29))  (*febdata)[ii] = rdv;
+                        else (*febdata)[ii] = 0.01*rdv;
                      }
                   }
                 }
@@ -637,17 +642,9 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                        else if(vindex==14)
                        {  /* OTMB GTX RX status */
                           rdv = rdv & 0x7F;
-                          (*dmbdata)[ii] = rdv+0.1;
+                          (*dmbdata)[ii] = rdv+0.001;  //pad 0.001 as a maker
                        }
-                       else
-                       {  /* ALCT Temps */
-                          rdv = rdv & 0x3FF;
-                          float Vout= (float)(rdv)*1.225/1023.0;
-                          if(Vout<1.225)
-                              (*dmbdata)[ii] =100.0*(Vout-0.75)+25.0;
-                          else
-                              (*dmbdata)[ii] = -500.0;
-                       }
+                       else (*dmbdata)[ii] = -50.;
                    }
                    counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("TMBcrate"));
                    *counter16 = 1;
@@ -1600,7 +1597,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
      *out << cgicc::tr() << std::endl;
      float tp[4];
      tp[0]=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+57];
-     if(dcfebok) tp[1]=(*dcfebdata)[mychamb*TOTAL_DCFEB_MONS+27*cfebs];
+     if(dcfebok) tp[1]=(*dcfebdata)[mychamb*TOTAL_DCFEB_MONS+30*cfebs];  // ODMB temp
       else tp[1]=0.;
      tp[2]=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+55];
      tp[3]=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+56];
@@ -1608,7 +1605,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
      for(int cnt=0; cnt<11; cnt++)
      {
         if(cnt<4)  val=tp[cnt];
-        else if(dcfebok) val=(*dcfebdata)[mychamb*TOTAL_DCFEB_MONS+27*(cnt-4)];
+        else if(dcfebok) val=(*dcfebdata)[mychamb*TOTAL_DCFEB_MONS+30*(cnt-4)];
         else val=0.;
         *out <<cgicc::td();
         if(val<0.)    
@@ -3436,7 +3433,7 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
   float val, V7, lvdb_temp;
   std::vector<DAQMB*> myVector;
   xdata::InfoSpace * is;
-  int ip, slot, ch_state;
+  int ip, slot, ch_state, ival;
   unsigned int bad_module, ccbbits;
   bool gooddata, goodtmb, goodfeb;
 
@@ -3662,8 +3659,18 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         {  
            if(goodfeb && read_dcfeb && ((ch_state & 0x67F)==0))
            { 
-              val= (*febdata)[upgraded*TOTAL_DCFEB_MONS+k];
-              *out << " " << val;
+              int cnt_idx=k%30;
+              int dcfebn=k/30;
+              if(dcfebn<7 && (cnt_idx==10 ||cnt_idx==15 ||cnt_idx==27 ||cnt_idx==28 ||cnt_idx==29)) 
+              {
+                 ival=(*febdata)[upgraded*TOTAL_DCFEB_MONS+k];
+                 *out << " " << ival;
+              }
+              else
+              {
+                 val=(*febdata)[upgraded*TOTAL_DCFEB_MONS+k];
+                 *out << " " << val;
+              }
            }
            else
            {
