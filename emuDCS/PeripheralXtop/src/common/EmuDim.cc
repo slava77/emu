@@ -651,7 +651,7 @@ void EmuDim::StartDim()
          dim_lv_name = pref + "LV_1_" + chamb[i].GetLabel(); 
          dim_temp_name = pref + "TEMP_1_" + chamb[i].GetLabel(); 
 
-         LV_1_Service[i]= new DimService(dim_lv_name.c_str(),"F:5;F:5;F:5;F:5;F:5;F:5;F:8;F:16;I:4",
+         LV_1_Service[i]= new DimService(dim_lv_name.c_str(),"F:5;F:5;F:5;F:5;F:5;F:5;F:8;F:14;F:2;I:4",
            &(EmuDim_lv[i]), sizeof(LV_1_DimBroker));
          TEMP_1_Service[i]= new DimService(dim_temp_name.c_str(),"F:7;I:2",
            &(EmuDim_temp[i]), sizeof(TEMP_1_DimBroker));
@@ -663,7 +663,7 @@ void EmuDim::StartDim()
          dim_lv2_name = pref + "LV_2_" + chamb[i].GetLabel(); 
          dim_temp2_name = pref + "TEMP_2_" + chamb[i].GetLabel(); 
 
-         LV_1_Service[i]= new DimService(dim_lv2_name.c_str(),"F:7;F:7;F:7;F:7;F:7;F:7;F:8;F:14;F:7;F:7;F:2;I:4",
+         LV_1_Service[i]= new DimService(dim_lv2_name.c_str(),"F:7;F:7;F:7;F:7;F:7;F:7;F:8;F:14;F:7;F:7;F:2;F:7;I:3;I:7;I:7;I:7;I:7;I:4",
            &(EmuDim_lv2[i]), sizeof(LV_2_DimBroker));
          TEMP_1_Service[i]= new DimService(dim_temp2_name.c_str(),"F:4;F:7;F:7;F:7;I:2",
            &(EmuDim_temp2[i]), sizeof(TEMP_2_DimBroker));
