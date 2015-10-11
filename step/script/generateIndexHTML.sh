@@ -15,7 +15,7 @@ print "Generating $RESULTSDIR/index.html"
     CSCS=( $(print ME*(/) ) )
     print "<!DOCTYPE html>"
     print "<html>"
-    print "<head><title>${RESULTSDIR:t}</title><head>"
+    print "<head><title>${RESULTSDIR:t}</title></head>"
     print "<style>"
     print "body { background-color:#ffffff; }"
     print "table { background-color:#ffffff; border-collapse: separate; }"
@@ -52,7 +52,7 @@ print "Generating $RESULTSDIR/index.html"
 	PLOTCODE=${${IMAGEFILE:r}##*_}
 	print "<tr><td colspan=\"2\"><a id=\"sum_$PLOTCODE\" href=\"#top\"><img src=\"$IMAGEFILE\" alt=\"$IMAGEFILE\"></a></td></tr>"
     done
-    print "<table>"
+    print "</table>"
     print "</body>"
     print "</html>"
 } > index.html
