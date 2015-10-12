@@ -832,7 +832,7 @@ public:
 
   // various counters in ODMB
   inline unsigned odmb_read_l1a_match(const unsigned device){return ReadRegister(L1A_MATCH_BASE | (device << 4));}
-  inline unsigned odmb_read_gap(const unsigned device){return ReadRegister(GAP_BASE | (device << 4));}
+  inline unsigned odmb_read_gap(const unsigned device){return ReadRegister(L1A_GAP_BASE | (device << 4));}
   inline unsigned odmb_read_stored_packets(const unsigned device){return ReadRegister(STORED_PACKETS_BASE | (device << 4));}
   inline unsigned odmb_read_shipped_packets(const unsigned device){return ReadRegister(SHIPPED_PACKETS_BASE | (device << 4));}
   inline unsigned odmb_read_num_lcts(const unsigned device){return ReadRegister(NUM_LCTS_BASE | (device << 4));}
@@ -1038,7 +1038,7 @@ public:
   int l1a_lct_scope_, cfeb_dav_scope_, tmb_dav_scope_, alct_dav_scope_, active_dav_scope_ ;
   int  TestStatus_[20];
   unsigned char FinalCounter[10];
-  unsigned short NewCounter[20];
+  unsigned short NewCounter[100];
   //
   unsigned long int expected_control_firmware_tag_;
   int       expected_vme_firmware_tag_;
@@ -1077,20 +1077,26 @@ public:
   static const unsigned DCFEB_DONE = 0x3120;
   static const unsigned ODMB_QPLL = 0x3124;
   static const unsigned DCFEB_PULSE = 0x3200;
-  static const unsigned L1A_MATCH_BASE = 0x320C;
   static const unsigned DATA_MUX = 0x3300;
   static const unsigned TRIG_MUX = 0x3304;
   static const unsigned LVMB_MUX = 0x3308;
-  static const unsigned GAP_BASE = 0x330C;
   static const unsigned L1A_COUNTER = 0x33FC;
+  static const unsigned L1A_COUNTER2 = 0x35FC;
   static const unsigned L1A_MODE = 0x3400;
   static const unsigned MASK_L1A = 0x3408;
   static const unsigned MASK_PLS = 0x340C;
-  static const unsigned STORED_PACKETS_BASE = 0x340C;
   static const unsigned DDU_PACKETS = 0x34AC;
   static const unsigned QPLL_UNLOCKS = 0x34FC;
+  static const unsigned BAD_DDU_PLL = 0x3A8C;
+
+  // the following group are base registers, +(1-7) for DCFEB1-7, +8 OTMB, +9 ALCT 
+  static const unsigned L1A_MATCH_BASE = 0x320C;
+  static const unsigned L1A_GAP_BASE = 0x330C;
+  static const unsigned STORED_PACKETS_BASE = 0x340C;
   static const unsigned SHIPPED_PACKETS_BASE = 0x350C;
   static const unsigned NUM_LCTS_BASE = 0x370C;
+  static const unsigned BAD_CRC_BASE = 0x3A0C;
+  static const unsigned FIBER_ERROR_BASE = 0x3B0C;
 
   static const unsigned LCT_L1A_DLY = 0x4000;
   static const unsigned TMB_DLY = 0x4004;

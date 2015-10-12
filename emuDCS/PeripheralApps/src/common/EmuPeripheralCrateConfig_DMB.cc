@@ -3313,7 +3313,15 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   }
   std::string LVMBStatus =
       toolbox::toString("/%s/LVMBStatus?dmb=%d",getApplicationDescriptor()->getURN().c_str(),dmb);
-  *out << cgicc::a("LVMB Status").set("href",LVMBStatus) << cgicc::br() << std::endl;
+  *out << cgicc::a("LVMB Status").set("href",LVMBStatus) << std::endl;
+  if(hversion==2)
+  {
+     std::string ODMBCount =
+         toolbox::toString("/%s/ODMBCounters?dmb=%d",getApplicationDescriptor()->getURN().c_str(),dmb);
+     *out << cgicc::a("ODMB Counters").set("href",ODMBCount) << std::endl;
+
+  }
+  *out << cgicc::br() << std::endl;
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl;
@@ -4283,6 +4291,91 @@ void EmuPeripheralCrateConfig::RestoreCfebJtagIdle(xgi::Input * in, xgi::Output 
     this->DMBUtils(in,out);
     //
   }
+  
+void EmuPeripheralCrateConfig::ODMBCounters(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  } else {
+    std::cout << "Not dmb" << std::endl ;
+    dmb = DMB_;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+  Chamber * thisChamber = chamberVector[dmb];
+  //
+  char Name[100];
+  sprintf(Name,"%s ODMB Counters, crate=%s, slot=%d",
+	  (thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());
+  //
+  MyHeader(in,out,Name);
+  //
+  *out << cgicc::legend("ODMB Counters").set("style","color:blue") << std::endl ;
+  //
+  int hversion=thisDMB->GetHardwareVersion();
+  int indx, cfebs;
+  //
+  if (hversion!=2) return;
+  thisDMB->GetCounters();
+
+  cfebs=9;
+  *out << cgicc::table().set("border","1").set("cellpadding","4") << std::endl;
+  //
+  for(int ch=0; ch<8; ch++)
+  {
+     *out << cgicc::tr() << cgicc::td();
+     if(ch) *out << thisDMB->CounterName(ch-1) << cgicc::td();
+     else *out << "Counters" << cgicc::td();
+
+     for(int adc=0; adc<cfebs; adc++)
+     {
+        if(ch==0)
+        {
+            if(adc<7)
+              *out << cgicc::td() << " DCFEB " << adc+1 << cgicc::td();
+            else if(adc==7)
+              *out << cgicc::td() << " OTMB " << cgicc::td();
+            else if(adc==8)
+              *out << cgicc::td() << " ALCT " << cgicc::td();
+        }
+        else
+        {
+            if(ch>=6 && adc>6)
+            {
+              *out << cgicc::td() << cgicc::td();
+            }
+            else
+            {
+              indx=(ch-1)*cfebs+adc;
+              *out << cgicc::td() << thisDMB->GetCounter(indx);
+              *out << cgicc::td();
+            }
+        }
+     }
+     *out << cgicc::tr() << std::endl;
+  }
+  *out << cgicc::table() << cgicc::br() << std::endl;
+
+  *out << cgicc::table().set("border","1").set("cellpadding","4") << std::endl;
+   *out << cgicc::td() << "L1A Counter 16-bit" << cgicc::td() << std::endl;
+   *out << cgicc::td() << thisDMB->GetCounter(61) << cgicc::td() << cgicc::tr() << std::endl;
+   *out << cgicc::td() << "L1A (No Resync) 16-bit" << cgicc::td() << std::endl;
+   *out << cgicc::td() << thisDMB->GetCounter(62) << cgicc::td() << cgicc::tr() << std::endl;
+   *out << cgicc::td() << "Packets to DDU " << cgicc::td() << std::endl;
+   *out << cgicc::td() << thisDMB->GetCounter(63) << cgicc::td() << cgicc::tr() << std::endl;
+   *out << cgicc::td() << "DDU TX PLL lock lost " << cgicc::td() << std::endl;
+   *out << cgicc::td() << thisDMB->GetCounter(52) << cgicc::td() << cgicc::tr() << std::endl;
+   *out << cgicc::td() << "QPLL lock lost " << cgicc::td() << std::endl;
+   *out << cgicc::td() << thisDMB->GetCounter(64) << cgicc::td() << cgicc::tr() << std::endl;
+  *out << cgicc::table() << cgicc::br() << std::endl; 
+}
 
  }  // namespace emu::pc
 }  // namespace emu

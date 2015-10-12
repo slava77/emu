@@ -5664,22 +5664,38 @@ void DAQMB::devdoReset(){
 std::string DAQMB::CounterName(int counter){
   //
   std::string name = "NO counter found" ;
-  //
-  if ( counter == 0 ) name = "L1A to LCT delay";
-  if ( counter == 1 ) name = "CFEB DAV delay  ";
-  if ( counter == 2 ) name = "TMB DAV delay   ";
-  if ( counter == 3 ) name = "ALCT DAV delay  ";
-  if ( counter == 4 ) name = "L1A to LCT Scope";
-  if ( counter == 5 ) name = "CFEB DAV Scope  ";
-  if ( counter == 6 ) name = "TMB DAV Scope   ";
-  if ( counter == 7 ) name = "ALCT DAV Scope  ";
-  //
+  if(hardware_version_<=1)
+  {
+     //
+     if ( counter == 0 ) name = "L1A to LCT delay";
+     if ( counter == 1 ) name = "CFEB DAV delay  ";
+     if ( counter == 2 ) name = "TMB DAV delay   ";
+     if ( counter == 3 ) name = "ALCT DAV delay  ";
+     if ( counter == 4 ) name = "L1A to LCT Scope";
+     if ( counter == 5 ) name = "CFEB DAV Scope  ";
+     if ( counter == 6 ) name = "TMB DAV Scope   ";
+     if ( counter == 7 ) name = "ALCT DAV Scope  ";
+    //
+  } 
+  else if(hardware_version_==2)
+  {
+     //
+     if ( counter == 0 ) name = "L1A Match      ";
+     if ( counter == 1 ) name = "L1A Gap        ";
+     if ( counter == 2 ) name = "Packet Received";
+     if ( counter == 3 ) name = "Packet to DDU  ";
+     if ( counter == 4 ) name = "L1A            ";
+     if ( counter == 5 ) name = "Bad CRC        ";
+     if ( counter == 6 ) name = "Fiber Error    ";
+  }
   return name;
   //
 }
 //
 void DAQMB::PrintCounters(){
   //
+ if(hardware_version_<=1)
+ {
   readtimingCounter();
   //
   readtimingScope();
@@ -5716,6 +5732,7 @@ void DAQMB::PrintCounters(){
   for( int i=4; i>-1; i--) std::cout << ((GetActiveDavScope()>>i)&0x1) ;
   std::cout << std::endl ;
   //
+ }
 }
 
 void DAQMB::readtimingCounter()
@@ -5879,10 +5896,17 @@ char * DAQMB::GetCounters()
   }
   else if(hardware_version_==2)
   {
-     read_later(0x300C+0x3F);
-     for(int addr=0x71; addr<=0x77; addr++) read_later(0x300C+addr); 
-     for(int addr=0x21; addr<=0x29; addr++) read_later(0x300C+addr); 
-     read_now(0x300C+0x4A, (char *)NewCounter);
+     for(int addr=1; addr<=9; addr++) read_later(L1A_MATCH_BASE+(addr<<4));    // start 0
+     for(int addr=1; addr<=9; addr++) read_later(L1A_GAP_BASE+(addr<<4));      // start 9
+     for(int addr=1; addr<=9; addr++) read_later(STORED_PACKETS_BASE+(addr<<4));    // start 18
+     for(int addr=1; addr<=9; addr++) read_later(SHIPPED_PACKETS_BASE+(addr<<4));   // start 27
+     for(int addr=1; addr<=9; addr++) read_later(NUM_LCTS_BASE+(addr<<4));     // start 36   
+     for(int addr=1; addr<=9; addr++) read_later(BAD_CRC_BASE+(addr<<4));      // start 45
+     for(int addr=1; addr<=7; addr++) read_later(FIBER_ERROR_BASE+(addr<<4));  // start 54
+     read_later(L1A_COUNTER);        // at 61
+     read_later(L1A_COUNTER2);
+     read_later(DDU_PACKETS);
+     read_now(QPLL_UNLOCKS, (char *)NewCounter);  // at 64
      return (char *)NewCounter;
   }
   else return NULL;
@@ -5897,7 +5921,7 @@ unsigned DAQMB::GetCounter(int counter)
   }
   else if(hardware_version_==2)
   {
-     if(counter>=0 && counter<=18) r=NewCounter[counter];
+     if(counter>=0 && counter<=80) r=NewCounter[counter];
   }
   return r;
 }
@@ -6332,7 +6356,7 @@ void DAQMB::PrintCounters(int user_option){
       //
     }    
     //
-  }else{
+  }else{ // for  hardware_version_ == 2
     (*MyOutput_) << std::setw(20) << "L1A Count: " << std::setw(8) << read_l1a_count() << std::endl;
     (*MyOutput_) << std::setw(20) << "Packets to DDU: " << std::setw(8) << read_num_ddu_packets() << std::endl;
     (*MyOutput_) << std::setw(20) << "QPLL unlocks: " << std::setw(8) << read_num_qpll_unlocks() << std::endl;
