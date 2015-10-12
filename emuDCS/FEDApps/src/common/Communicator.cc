@@ -1052,7 +1052,7 @@ throw (toolbox::fsm::exception::Exception)
 				XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e2, error.str());
 				exceptions.push_back(e2);
 			}
-			if (dduFPGAStat  & 0xdecfc3ff) { // The mask is important.  Used to be 0xdecfffff
+			if (dduFPGAStat  & 0x0000c000) { // The mask is important.  
 				std::ostringstream error;
 				error << "Configuration failure for DDU in crate " << std::dec << (*iCrate)->getNumber() << ", slot " << (*iDDU)->slot() << ": DDUFPGA status register (" << std::hex << dduFPGAStat << std::dec << "):" << std::endl;
 
