@@ -5684,7 +5684,7 @@ std::string DAQMB::CounterName(int counter){
      if ( counter == 1 ) name = "L1A Gap        ";
      if ( counter == 2 ) name = "Packet Received";
      if ( counter == 3 ) name = "Packet to DDU  ";
-     if ( counter == 4 ) name = "L1A            ";
+     if ( counter == 4 ) name = "LCT            ";
      if ( counter == 5 ) name = "Bad CRC        ";
      if ( counter == 6 ) name = "Fiber Error    ";
   }

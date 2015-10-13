@@ -4330,7 +4330,7 @@ void EmuPeripheralCrateConfig::ODMBCounters(xgi::Input * in, xgi::Output * out )
   //
   for(int ch=0; ch<8; ch++)
   {
-     *out << cgicc::tr() << cgicc::td();
+     *out << cgicc::td();
      if(ch) *out << thisDMB->CounterName(ch-1) << cgicc::td();
      else *out << "Counters" << cgicc::td();
 
@@ -4359,21 +4359,21 @@ void EmuPeripheralCrateConfig::ODMBCounters(xgi::Input * in, xgi::Output * out )
             }
         }
      }
-     *out << cgicc::tr() << std::endl;
+     *out << cgicc::tr() << cgicc::tr() << std::endl;
   }
   *out << cgicc::table() << cgicc::br() << std::endl;
 
   *out << cgicc::table().set("border","1").set("cellpadding","4") << std::endl;
    *out << cgicc::td() << "L1A Counter 16-bit" << cgicc::td() << std::endl;
-   *out << cgicc::td() << thisDMB->GetCounter(61) << cgicc::td() << cgicc::tr() << std::endl;
+   *out << cgicc::td() << thisDMB->GetCounter(61) << cgicc::td() << cgicc::tr() << cgicc::tr() << std::endl;
    *out << cgicc::td() << "L1A (No Resync) 16-bit" << cgicc::td() << std::endl;
-   *out << cgicc::td() << thisDMB->GetCounter(62) << cgicc::td() << cgicc::tr() << std::endl;
+   *out << cgicc::td() << thisDMB->GetCounter(62) << cgicc::td() << cgicc::tr() << cgicc::tr() << std::endl;
    *out << cgicc::td() << "Packets to DDU " << cgicc::td() << std::endl;
-   *out << cgicc::td() << thisDMB->GetCounter(63) << cgicc::td() << cgicc::tr() << std::endl;
+   *out << cgicc::td() << thisDMB->GetCounter(63) << cgicc::td() << cgicc::tr() << cgicc::tr() << std::endl;
    *out << cgicc::td() << "DDU TX PLL lock lost " << cgicc::td() << std::endl;
-   *out << cgicc::td() << thisDMB->GetCounter(52) << cgicc::td() << cgicc::tr() << std::endl;
+   *out << cgicc::td() << thisDMB->GetCounter(52) << cgicc::td() << cgicc::tr() << cgicc::tr() << std::endl;
    *out << cgicc::td() << "QPLL lock lost " << cgicc::td() << std::endl;
-   *out << cgicc::td() << thisDMB->GetCounter(64) << cgicc::td() << cgicc::tr() << std::endl;
+   *out << cgicc::td() << thisDMB->GetCounter(64) << cgicc::td() << cgicc::tr() << cgicc::tr() << std::endl;
   *out << cgicc::table() << cgicc::br() << std::endl; 
 }
 
