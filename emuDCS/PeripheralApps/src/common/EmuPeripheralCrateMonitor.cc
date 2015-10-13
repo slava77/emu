@@ -1809,10 +1809,11 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  int  Total_Temps=7;
-  float temp_max[8]={40., 40., 40., 40., 40., 40., 40., 40.};
-  float temp_min[8]={ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.};
+  int  Total_Temps=8;
+  float temp_max[10]={70., 70., 70., 70., 70., 70., 70., 70., 70., 70.};
+  float temp_min[10]={ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5., 5., 5.};
   float val;
+  bool upgraded=false;
 
   if(!Monitor_Ready_) return;
   //
@@ -1854,16 +1855,20 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
   xdata::Vector<xdata::Float> *dcsdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
   if(dcsdata==NULL || dcsdata->size()==0) return;
 
+  xdata::Vector<xdata::Float> *dcfebdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCFEBmons"));
+
   *out << cgicc::table().set("border","1").set("align","center");
   //
   *out <<cgicc::td();
   *out <<cgicc::td();
   //
   for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+    if(myVector[dmb]->GetHardwareVersion()==2) upgraded=true;
     *out <<cgicc::td();
     *out << crateVector[mycrate]->GetChamber(myVector[dmb])->GetLabel();
     *out <<cgicc::td();
   }
+  if(upgraded) Total_Temps += 2;
   //
   *out <<cgicc::tr();
   //
@@ -1880,11 +1885,29 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
       *out << std::setprecision(1) << std::fixed;
       if(count==6)
          val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+56];  // ALCT temp is at position 56  
+      else if(count==7)
+         val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+57];  // TMB temp is at position 57  
       else
-         val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+40+count];  
+      {
+         if(myVector[dmb]->GetHardwareVersion()==2)
+         {
+            if(count==0) val=(*dcfebdata)[dmb*TOTAL_DCFEB_MONS+210];
+            else
+            {
+              int idx=count-1;
+              if(idx>6) idx -=2;
+              val=(*dcfebdata)[dmb*TOTAL_DCFEB_MONS+30*idx];
+            }
+         }
+         else
+         {
+           if(count<6) val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+40+count];  
+           else val=-500.;
+         }
+      }
       if(val<0.)    
       {
-         if(count==5 && val < -50.)  *out << "-";
+         if((count==5 && val < -50.) || val<-100.)  *out << "-";
          else  *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
       } 
       else if(val > temp_max[count] || val < temp_min[count])
@@ -2489,7 +2512,16 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
             for(int i=0; i<blanks; i++) *out << cgicc::td() << cgicc::td();
          }
       }
-      int value = myVector[tmb]->GetCounter(this_tcounter_);
+      int value;
+      if(myVector[tmb]->GetHardwareVersion()==2 )
+      { 
+         int extraspace=0;
+         if(this_tcounter_>18) extraspace+=2;
+         if(this_tcounter_>78) extraspace+=11;
+         value=myVector[tmb]->GetCounter(this_tcounter_+extraspace);
+      }
+      else 
+         value=myVector[tmb]->GetCounter(this_tcounter_);
       /* 0xBAADBAAD from VCC for a failed VME access */
       if (  value == 0x3fffffff || value < 0 )
       {
@@ -3657,7 +3689,7 @@ void EmuPeripheralCrateMonitor::DCSOutput2(xgi::Input * in, xgi::Output * out )
         }
         for(int k=0; k<TOTAL_DCFEB_MONS; k++) 
         {  
-           if(goodfeb && read_dcfeb && ((ch_state & 0x67F)==0))
+           if(goodfeb && (read_dcfeb || k>=210) && ((ch_state & 0x67F)==0))
            { 
               int cnt_idx=k%30;
               int dcfebn=k/30;
@@ -4781,6 +4813,8 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TECounterName.push_back( "CFEB5 Temp");  // 5
     TECounterName.push_back( "ALCT  Temp");  // 
     TECounterName.push_back( "TMB Temp  ");  // 7
+    TECounterName.push_back( "CFEB6 Temp");  // 8
+    TECounterName.push_back( "CFEB7 Temp");  // 9
 
     TVCounterName.push_back( "V 5.0 ");  // 0
     TVCounterName.push_back( "V 3.3 ");  //
