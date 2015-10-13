@@ -110,6 +110,9 @@ xoap::MessageReference EmuDim::SoapInfo (xoap::MessageReference message)
         if(xmasst=="ON" || xmasst=="on")   xmas_state_ = 2;
         if(xmasst=="OFF" || xmasst=="off")  xmas_state_ = 4;   
         std::cout << getLocalDateTime() << " Xmas Report: state changed to " << xmasst << std::endl;
+        std::string confirm = "XMAS_" + xmasst;
+        strcpy(pvssrespond.command, confirm.c_str());
+        Confirmation_Service->updateService();
      }
      else
      {
