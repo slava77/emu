@@ -1891,21 +1891,24 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
             }
 
           //* Try to detect lowered ME11 HV segment
-          avgSCAlayer/=6;
-          for (unsigned int i=0; i < layerSCAsums.size(); i++)
+          if (ME11 && isBeam)
             {
-              double fract = layerSCAsums[i]/avgSCAlayer;
-              if (ME11 && (fract > 0.1) && fract < 0.8 )
+              avgSCAlayer/=6;
+              for (unsigned int i=0; i < layerSCAsums.size(); i++)
                 {
-                  std::string diag = Form("Lowered HV Segment: Layer%d (SCA efficiency %.2f of average)", i+1, fract);
-                  dqm_report.addEntry(cscName, entry.fillEntry(diag,MINOR, "CSC_LOWERED_HV_SEGMENT"));
-                  loweredHVsegment[i] = true;
-                }
-              if (ME11 && (fract > 0.0) && fract < 0.1 )
-                {
-                  std::string diag = Form("No HV Segment: Layer%d (SCA efficiency %.2f of average)", i+1, fract);
-                  dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_NO_HV_SEGMENT"));
-                  loweredHVsegment[i] = true;
+                  double fract = layerSCAsums[i]/avgSCAlayer;
+                  if ((fract > 0.1) && fract < 0.8 )
+                    {
+                      std::string diag = Form("Lowered HV Segment: Layer%d (SCA efficiency %.2f of average)", i+1, fract);
+                      dqm_report.addEntry(cscName, entry.fillEntry(diag,MINOR, "CSC_LOWERED_HV_SEGMENT"));
+                      loweredHVsegment[i] = true;
+                    }
+                  if ((fract > 0.0) && fract < 0.1 )
+                    {
+                      std::string diag = Form("No HV Segment: Layer%d (SCA efficiency %.2f of average)", i+1, fract);
+                      dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE, "CSC_NO_HV_SEGMENT"));
+                      loweredHVsegment[i] = true;
+                    }
                 }
             }
         }
