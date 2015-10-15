@@ -1207,8 +1207,8 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <SetGridx>1</SetGridx>
                 <SetGridy>1</SetGridy>
                 <SetLabelSizeZ>0.02</SetLabelSizeZ>
-		<SetMaximum>-140</SetMaximum>
-		<SetMinimum>-200</SetMinimum>
+		<SetMaximum>-150</SetMaximum>
+		<SetMinimum>-180</SetMinimum>
                 <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='M
 E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
                 <DrawType>ChamberMap</DrawType>
@@ -2586,9 +2586,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Average Quality</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>ALCT0 Average Quality</Title>
@@ -2617,9 +2614,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Average (ALCT0 BXN - L1A BXN)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Average (ALCT0 BXN - L1A BXN) vs Key Wiregroup</Title>
@@ -2742,9 +2736,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Average Quality</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>ALCT1 Average Quality</Title>
@@ -2773,9 +2764,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Average (ALCT1 BXN - L1A BXN)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Average (ALCT1 BXN - L1A BXN) vs Key Wiregroup</Title>
@@ -2857,9 +2845,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Anode Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Average Time Bin</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 1</Title>
@@ -2893,9 +2878,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Anode Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Average Time Bin</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 2</Title>
@@ -2929,9 +2911,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Anode Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Average Time Bin</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 3</Title>
@@ -2965,9 +2944,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Anode Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Average Time Bin</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 4</Title>
@@ -3001,9 +2977,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Anode Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Average Time Bin</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 5</Title>
@@ -3037,9 +3010,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Anode Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Average Time Bin</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 6</Title>
@@ -4714,9 +4684,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 1</Title>
@@ -4750,9 +4717,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 2</Title>
@@ -4786,9 +4750,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 3</Title>
@@ -4822,9 +4783,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 4</Title>
@@ -4858,9 +4816,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 5</Title>
@@ -4894,9 +4849,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 6</Title>
@@ -5224,9 +5176,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 1</Title>
@@ -5242,9 +5191,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 2</Title>
@@ -5260,9 +5206,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 3</Title>
@@ -5278,9 +5221,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 4</Title>
@@ -5296,9 +5236,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 5</Title>
@@ -5314,9 +5251,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 6</Title>
@@ -5331,9 +5265,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 1</Title>
@@ -5349,9 +5280,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 2</Title>
@@ -5367,9 +5295,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 3</Title>
@@ -5385,9 +5310,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 4</Title>
@@ -5403,9 +5325,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 5</Title>
@@ -5421,9 +5340,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>112</XMax>
 		<XBins>112</XBins>
 		<XTitle>Strip number</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 6</Title>
@@ -5783,9 +5699,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>224</XMax>
 		<XBins>56</XBins>
 		<XTitle>Key DiStrip</XTitle>
-		<YMin>0</YMin>
-		<YMax>7</YMax>
-		<YBins>7</YBins>
 		<YTitle>Average Quality</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>CLCT0 Average Quality</Title>
@@ -5862,9 +5775,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>224</XMax>
 		<XBins>224</XBins>
 		<XTitle>Key Half Strip</XTitle>
-		<YMin>0</YMin>
-		<YMax>7</YMax>
-		<YBins>7</YBins>
 		<YTitle>Average Quality</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>CLCT0 Average Quality</Title>
@@ -5922,12 +5832,11 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMax>224</XMax>
                 <XBins>224</XBins>
                 <XTitle>Key Half Strip</XTitle>
-                <YMin>-200</YMin>
-                <YMax>-140</YMax>
-                <YBins>60</YBins>
                 <YTitle>Average (CLCT0 BXN - L1A BXN)</YTitle>
                 <SetOptStat>em</SetOptStat>
                 <Title>Average (CLCT0 BXN - L1A BXN) vs Key Half Strip</Title>
+		<SetMinimum>-180</SetMinimum>
+		<SetMaximum>-150</SetMaximum>
                 <Folder>ALCT</Folder>
         </Histogram>
 	<Histogram>
@@ -6039,9 +5948,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>224</XMax>
 		<XBins>56</XBins>
 		<XTitle>Key DiStrip</XTitle>
-		<YMin>0</YMin>
-		<YMax>7</YMax>
-		<YBins>7</YBins>
 		<YTitle>Average Quality</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>CLCT1 Average Quality</Title>
@@ -6118,9 +6024,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>224</XMax>
 		<XBins>224</XBins>
 		<XTitle>Key Half Strip</XTitle>
-		<YMin>0</YMin>
-		<YMax>7</YMax>
-		<YBins>7</YBins>
 		<YTitle>Average Quality</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>CLCT1 Average Quality</Title>
@@ -6178,12 +6081,11 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMax>224</XMax>
                 <XBins>224</XBins>
                 <XTitle>Key Half Strip</XTitle>
-                <YMin>-200</YMin>
-                <YMax>-140</YMax>
-                <YBins>60</YBins>
                 <YTitle>Average (CLCT1 BXN - L1A BXN)</YTitle>
                 <SetOptStat>em</SetOptStat>
                 <Title>Average (CLCT1 BXN - L1A BXN) vs Key Half Strip</Title>
+		<SetMinimum>-180</SetMinimum>
+		<SetMaximum>-150</SetMaximum>
                 <Folder>ALCT</Folder>
         </Histogram>
 	<Histogram>
@@ -6277,9 +6179,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>224</XMax>
 		<XBins>224</XBins>
 		<XTitle>Cathode HalfStrip</XTitle>
-		<YMin>0</YMin>
-		<YMax>32</YMax>
-		<YBins>32</YBins>
 		<YTitle>Average Time Bin</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 1</Title>
@@ -6313,9 +6212,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>224</XMax>
 		<XBins>224</XBins>
 		<XTitle>Cathode HalfStrip</XTitle>
-		<YMin>0</YMin>
-		<YMax>32</YMax>
-		<YBins>32</YBins>
 		<YTitle>Average Time Bin</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 2</Title>
@@ -6349,9 +6245,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>224</XMax>
 		<XBins>224</XBins>
 		<XTitle>Cathode HalfStrip</XTitle>
-		<YMin>0</YMin>
-		<YMax>32</YMax>
-		<YBins>32</YBins>
 		<YTitle>Average Time Bin</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 3</Title>
@@ -6385,9 +6278,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>224</XMax>
 		<XBins>224</XBins>
 		<XTitle>Cathode HalfStrip</XTitle>
-		<YMin>0</YMin>
-		<YMax>32</YMax>
-		<YBins>32</YBins>
 		<YTitle>Average Time Bin</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 4</Title>
@@ -6421,9 +6311,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>224</XMax>
 		<XBins>224</XBins>
 		<XTitle>Cathode HalfStrip</XTitle>
-		<YMin>0</YMin>
-		<YMax>32</YMax>
-		<YBins>32</YBins>
 		<YTitle>Average Time Bin</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 5</Title>
@@ -6457,9 +6344,6 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
 		<XMax>224</XMax>
 		<XBins>224</XBins>
 		<XTitle>Cathode HalfStrip</XTitle>
-		<YMin>0</YMin>
-		<YMax>32</YMax>
-		<YBins>32</YBins>
 		<YTitle>Average Time Bin</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer = 6</Title>
