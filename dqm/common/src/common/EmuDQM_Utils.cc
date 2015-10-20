@@ -190,7 +190,7 @@ int getME11a_first_strip_index(std::string cscID, uint16_t fFormatVersion)
 
       /// get Endcap
       int endcap = 0;
-      if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME+1.1") ==0 )) endcap = 1;
+      if ((cscID.find("ME-1/1") == 0) || (cscID.find("ME-1.1") ==0 )) endcap = 1;
 
       /// get CSC position
       int csc_pos = 1;

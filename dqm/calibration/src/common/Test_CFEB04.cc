@@ -480,7 +480,8 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
           CSCMapItem::MapItem mapitem = cratemap->item(id);
           int first_strip_index=mapitem.stripIndex;
-          int strips_per_layer=mapitem.strips;
+          // int strips_per_layer=mapitem.strips;
+          int strips_per_layer = getNumStrips(cscID, theFormatVersion);
 
           double avg_gain=0;
           int avg_gain_cnt=0;
