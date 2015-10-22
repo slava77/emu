@@ -185,6 +185,9 @@ namespace emu {
 			
 			/// The threshold number of chambers required to be in an error state before sending an FMM
 			xdata::UnsignedInteger fmmErrorThreshold_;
+
+			/// The period with which the blacklist will be cleared.  
+			xdata::Integer clearBlacklistPeriod_;  
 			
 			/// Lifetime of the dynamic ignore list of bad chambers -- either by "run" or "red" for red recycle
 			xdata::String ignoreListLifetime_;

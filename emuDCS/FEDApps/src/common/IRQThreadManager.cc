@@ -26,14 +26,36 @@
 
 
 
-emu::fed::IRQThreadManager::IRQThreadManager(emu::fed::Communicator *application, const unsigned int &fmmErrorThreshold):
+emu::fed::IRQThreadManager::IRQThreadManager(emu::fed::Communicator *application, 
+					     const unsigned int &fmmErrorThreshold,
+					     const int &clearBlacklistPeriod):
 systemName_(""),
 fmmErrorThreshold_(fmmErrorThreshold),
 waitTimeAfterFMM_(5),
+clearBlacklistPeriod_(clearBlacklistPeriod), 
+lastClearBlacklist_(-1), 
 application_(application)
 {
 	data_ = new IRQData(application_);
 	threadVector_.clear();
+
+	time(&lastClearBlacklist_);
+
+
+	char datebuf[32];  
+	time_t theTime = time(NULL);
+	strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H-%M-%S", localtime(&theTime));
+	std::stringstream fileName;
+	fileName << "/tmp/HardResetLog_" << datebuf << ".log";  
+	logHardResets_ = new std::ofstream(fileName.str().c_str(), std::ios::trunc);  
+	if (!logHardResets_->is_open()) {
+	  std::ostringstream error;
+	  error << "The file " << fileName << " is not accessable for writing";
+	  log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");  
+	  LOG4CPLUS_FATAL(logger, error.str());
+	  XCEPT_DECLARE(emu::fed::exception::FileException, e, error.str());
+	}
+
 }
 
 
@@ -42,6 +64,7 @@ emu::fed::IRQThreadManager::~IRQThreadManager()
 {
 	try {
 		endThreads();
+		logHardResets_->close();  
 	} catch (...) {
 		// I don't care if this doesn't work.  Zombies will all die eventually, even if they leak a little memory (and brains).
 	}
@@ -62,7 +85,6 @@ void emu::fed::IRQThreadManager::attachCrates(std::vector<Crate *> &crateVec)
 }
 
 
-
 void emu::fed::IRQThreadManager::startThreads(const unsigned int &runNumber)
 throw (emu::fed::exception::FMMThreadException)
 {
@@ -72,6 +94,9 @@ throw (emu::fed::exception::FMMThreadException)
 	// data_ = new IRQData(application_); // Instantiate in constructor, not here
 	data_->fmmErrorThreshold = fmmErrorThreshold_;
 	data_->waitTimeAfterFMM = waitTimeAfterFMM_;
+	data_->clearBlacklistPeriod = clearBlacklistPeriod_; 
+	data_->lastClearBlacklist = lastClearBlacklist_; 
+	data_->logHardResets = logHardResets_; 
 
 	char datebuf[32];
 	std::stringstream fileName;
@@ -518,6 +543,8 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	DDUWarnMon dduWarnMonitor;
 	int unused = 0; // Unused 2nd parameter of pthread_setcancelstate
 
+	std::ofstream *logHardResets = locdata->logHardResets;  
+
 	// Continue unless someone tells us to stop.
 	while (1) { // Always looping until the thread is canceled
 
@@ -628,11 +655,98 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			//locdata->ticks[crateNumber]++;
 
 			// Set the time of the last tick.
-			//time_t tick;
-			//time(&tick);
-			//tm *tickInfo = localtime(&tick);
-			//std::string tickText(asctime(tickInfo));
+// 			time_t tick;
+// 			time(&tick);
+// 			tm *tickInfo = localtime(&tick);
+// 			std::string tickText(asctime(tickInfo));
 			//locdata->tickTime[crateNumber] = tickText;
+
+			// If clearBlacklistPeriod has been set to a positive value, then clear the blacklist 
+			// if the time elapsed since the last blacklist clear is more than 
+			// clearBlacklistPeriod.  
+			if (locdata->clearBlacklistPeriod > 0) {
+			  if ((time(NULL) - locdata->lastClearBlacklist) > locdata->clearBlacklistPeriod) {
+
+			    // loop over crates, then over DDU's, then over fibers
+			    // Set all fiber history to be false, i.e., no error.  
+			    for (IRQData::endcapHistory::iterator iCrate = locdata->errorHistory.begin(); iCrate != locdata->errorHistory.end(); ++iCrate) {
+			      unsigned int currCrateNum = iCrate->first;
+			      for (unsigned int iThread = 0; iThread < locdata->crateVec.size(); ++iThread) { 
+				emu::fed::Crate *currCrate = locdata->crateVec[iThread];
+				if (currCrate->number() == currCrateNum) {
+				  for (IRQData::crateHistory::iterator iSlot = iCrate->second.begin(); iSlot != iCrate->second.end(); ++iSlot ) {
+				    IRQData::fiberHistory &fibHist = iSlot->second;
+
+				    std::vector<emu::fed::DDU *> currDDUvec = currCrate->getDDUs();
+				    for (std::vector<DDU *>::iterator iDDU = currDDUvec.begin(); iDDU != currDDUvec.end(); ++iDDU) {
+				      if ((*iDDU)->slot() ==  iSlot->first) {
+
+					unsigned int bitsForME11 = -1; // initialize all bits to 1  
+					
+					std::ostringstream msg;
+					msg << "Debug:  about to clear blacklist "
+					    << "at time " << time(NULL) << ", lastClearBlacklist_ = " << locdata->lastClearBlacklist
+					    << ", clearBlacklistPeriod = " << locdata->clearBlacklistPeriod  
+					    << " for crate=" << crateNumber << ", slot=" << (*iDDU)->slot()
+					    << ", fibHist[IRQData::CURR_ERR]=" << fibHist[IRQData::CURR_ERR] 
+					    << ", fibHist[IRQData::FIRST_ERR]=" << fibHist[IRQData::FIRST_ERR] 
+					    << ", fibHist[IRQData::SECOND_ERR]=" << fibHist[IRQData::SECOND_ERR] ;  
+					
+					LOG4CPLUS_DEBUG(logger, msg);  
+					
+					char datebuf[32];
+					time_t theTime = time(NULL);
+					strftime(datebuf, sizeof(datebuf), "%Y/%m/%d %H:%M:%S: ", localtime(&theTime));
+					(*logHardResets) << datebuf << msg << endl;
+
+					for (unsigned int iFiber = 0; iFiber < 15; ++iFiber) {
+					  
+					  std::stringstream name;
+					  name << (*iDDU)->getFiber(iFiber)->getName();  
+					  string nameStr = name.str();  
+					  if (nameStr.find("+1/1/") == 0 || nameStr.find("-1/1/") == 0) {   // if nameStr begins with "+1/1/" or "-1/1/"  
+					    LOG4CPLUS_DEBUG(logger, "Debug:  setting bitsForME11 bit to 0 for fiber " << iFiber << " with name " << nameStr);  
+					    bitsForME11 = bitsForME11 & ~(1 << iFiber);  // set iFiber bit to 0  
+					  }
+					  // Define bitsForME11 to be the unsigned int corresponding to the bits 
+					  // for this DDU, with the ME1/1 bits set to 0 and all other bits set to 1.  
+					  // For example, if only fibers 0 and 5 are for ME1/1's, then 
+					  // bitsForME11 would be 1111 1111 1011 1110.  
+					  
+					}
+					fibHist[IRQData::CURR_ERR]   = fibHist[IRQData::CURR_ERR]   & bitsForME11; 
+					fibHist[IRQData::FIRST_ERR]  = fibHist[IRQData::FIRST_ERR]  & bitsForME11; 
+					fibHist[IRQData::SECOND_ERR] = fibHist[IRQData::SECOND_ERR] & bitsForME11; 
+					
+					std::bitset<16> statusBits(bitsForME11);  
+					std::string statusBitString = statusBits.to_string<char, char_traits<char>, allocator<char> >();
+					
+					msg << "Debug:  finished clear of blacklist for crate=" << crateNumber << ", slot=" << (*iDDU)->slot()
+					    << ", fibHist[IRQData::CURR_ERR]=" << fibHist[IRQData::CURR_ERR] 
+					    << ", fibHist[IRQData::FIRST_ERR]=" << fibHist[IRQData::FIRST_ERR] 
+					    << ", fibHist[IRQData::SECOND_ERR]=" << fibHist[IRQData::SECOND_ERR] 
+					    << ", ME1/1 status bits=" << statusBitString  ;  
+					
+					LOG4CPLUS_DEBUG(logger, msg); 					
+					
+					(*logHardResets) << msg << endl;
+					
+					
+					break; // Done, just needed the right DDU
+				      }  // end if statement
+				    } // end loop over DDU's
+				    
+				    
+// 				    fibHist[IRQData::CURR_ERR] = 0;    // This sets all chambers to be 0.  
+// 				    fibHist[IRQData::FIRST_ERR] = 0;   // This sets all chambers to be 0.  
+// 				    fibHist[IRQData::SECOND_ERR] = 0;  // This sets all chambers to be 0.  
+				  }
+				}
+			      }
+			    }
+			    time(&locdata->lastClearBlacklist);  
+			  }  
+			}
 
 			// If other thread has reset, then reset this thread, too.
 			if (locdata->resetCount)
@@ -903,7 +1017,15 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						} else { // REPORT TO SENTINEL!
 							std::ostringstream error;
 							error << "Fiber error read on crate " << crateNumber << " slot " << myDDU->slot() << " fiber " << iFiber << " (" << myDDU->getFiber(iFiber)->getName() << ")";
-							LOG4CPLUS_ERROR(logger, error.str());
+							LOG4CPLUS_ERROR(logger, error.str()); 
+							char datebuf[32];
+							time_t theTime = time(NULL);
+							strftime(datebuf, sizeof(datebuf), "%Y/%m/%d %H:%M:%S: ", localtime(&theTime));
+							locdata->errorHistoryChamber[myDDU->getFiber(iFiber)->getName()] += 1;  
+ 							(*logHardResets) << datebuf << "Chamber in error:  " << myDDU->getFiber(iFiber)->getName() 
+									 << ", crate " << crateNumber << " slot " << myDDU->slot() << " fiber " << iFiber
+									 << ", total number of errors from this chamber = " << locdata->errorHistoryChamber[myDDU->getFiber(iFiber)->getName()] 
+									 << endl;  
 							std::ostringstream tag;
 							tag << "FEDcrate " << crateNumber << " RUI " << myDDU->getRUI() << " fiber " << std::setw(2) << std::setfill('0') << iFiber << " chamber " << myDDU->getFiber(iFiber)->getName();
 							MY_RAISE_ALARM(emu::fed::exception::FMMThreadException, alarmName.str(), "ERROR", error.str(), tag.str());
@@ -978,6 +1100,10 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 						LOG4CPLUS_INFO(logger,
 							"Releasing FMMs because total errors on this endcap = " << totalErrors << " is >= threshold of " <<
 							locdata->fmmErrorThreshold << std::endl);
+						char datebuf[32];
+						time_t theTime = time(NULL);
+						strftime(datebuf, sizeof(datebuf), "%Y/%m/%d %H:%M:%S: ", localtime(&theTime));
+						(*logHardResets) << datebuf << "Requesting a hard reset" << endl;  
 						if (!myCrate->isTrackFinder()) {
 							if (hardError)
 								myCrate->getBroadcastDDU()->enableFMM();

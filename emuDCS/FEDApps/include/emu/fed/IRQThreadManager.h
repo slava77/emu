@@ -28,6 +28,7 @@ emu::base::Alarm<xcept::Exception>().revoke( NAME, __FILE__, __LINE__, __FUNCTIO
 #define MY_REVOKE_ALARM( NAME )
 #endif
 
+using namespace std;  
 
 namespace emu {
 	namespace fed {
@@ -44,9 +45,11 @@ namespace emu {
 			*
 			*	@param application The application from which this thread is run (for SOAP alarms)
 			*	@param fmmErrorThreshold The number of errors that trigger release of FMMs
+			*	@param clearBlacklistPeriod The length of time (seconds) after which all blacklists will be cleared.    
 			**/
 			IRQThreadManager(emu::fed::Communicator *application,
-				const unsigned int &fmmErrorThreshold = 0);
+					 const unsigned int &fmmErrorThreshold = 0,
+					 const int &clearBlacklistPeriod = -1);
 			
 			/** Default destructor **/
 			~IRQThreadManager();
@@ -70,6 +73,9 @@ namespace emu {
 			
 			/** Change the error threshold **/
 			inline void setFMMErrorThreshold(const unsigned int &threshold) { fmmErrorThreshold_ = threshold; }
+
+			/** Change the period with which the blacklist is cleared.  **/  
+			inline void setClearBlacklistPeriod(const int &period) { clearBlacklistPeriod_ = period; }
 		
 			/** Change the FMM wait time **/
 			inline void setWaitTimeAfterFMM(const unsigned int &watiTime) { waitTimeAfterFMM_ = watiTime; }
@@ -81,7 +87,7 @@ namespace emu {
 			inline IRQData *getData() const {
 				return new IRQData(*data_);
 			}
-		
+
 		private:
 		
 			/// The crates to monitor and their associated thread identifiers **/
@@ -98,6 +104,14 @@ namespace emu {
 			
 			/// Number of seconds thread should wait after releasing FMMs, default is 5
 			unsigned int waitTimeAfterFMM_;
+
+			// Number of seconds after which all blacklists will be cleared, 
+			// -1 means they will never be cleared.  
+			int clearBlacklistPeriod_;  
+			time_t lastClearBlacklist_; 
+
+			// a log file with just the hard reset information  
+			ofstream* logHardResets_;  
 			
 			/// The application from where to send the SOAP messages
 			emu::fed::Communicator *application_;

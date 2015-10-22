@@ -55,6 +55,7 @@ waitTimeAfterFMM_(5)
 	getApplicationInfoSpace()->fireItemAvailable("totalDCCInputRate", &totalDCCInputRate_);
 	getApplicationInfoSpace()->fireItemAvailable("totalDCCOutputRate", &totalDCCOutputRate_);
 	getApplicationInfoSpace()->fireItemAvailable("fmmErrorThreshold", &fmmErrorThreshold_);
+	getApplicationInfoSpace()->fireItemAvailable("clearBlacklistPeriod", &clearBlacklistPeriod_);
 	getApplicationInfoSpace()->fireItemAvailable("waitTimeAfterFMM", &waitTimeAfterFMM_);
 	getApplicationInfoSpace()->fireItemAvailable("ignoreListLifetime", &ignoreListLifetime_);
 	getApplicationInfoSpace()->fireItemAvailable("dduInPassthroughMode", &dduInPassthroughMode_);
@@ -106,7 +107,7 @@ waitTimeAfterFMM_(5)
 	state_ = fsm_.getStateName(fsm_.getCurrentState());
 
 	// Other initializations
-	TM_ = new IRQThreadManager(this, fmmErrorThreshold_);
+	TM_ = new IRQThreadManager(this, fmmErrorThreshold_, clearBlacklistPeriod_);
 	configMode_ = "XML";
 
 }
@@ -1144,9 +1145,10 @@ throw (toolbox::fsm::exception::Exception)
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Clearing dynamic ignore list at start of run");
 		if (TM_ != NULL)
 			delete TM_;
-		TM_ = new IRQThreadManager(this, fmmErrorThreshold_);
+		TM_ = new IRQThreadManager(this, fmmErrorThreshold_, clearBlacklistPeriod_);
 	}
 	TM_->setFMMErrorThreshold(fmmErrorThreshold_);
+	TM_->setClearBlacklistPeriod(clearBlacklistPeriod_);
 	TM_->setSystemName(systemName_);
 	TM_->setWaitTimeAfterFMM(waitTimeAfterFMM_);
 	TM_->attachCrates(crateVector_);

@@ -37,6 +37,10 @@ namespace emu {
 			runNumStr("0"),
 			fmmErrorThreshold(0),
 			waitTimeAfterFMM(5),
+			clearBlacklistPeriod(-1),
+			lastClearBlacklist(-1),
+			logHardResets(NULL),
+
 			application(myApplication)
 			{
 				pthread_mutex_init(&crateQueueMutex, NULL);
@@ -63,6 +67,9 @@ namespace emu {
 				runNumStr << other.runNumStr.str();
 				fmmErrorThreshold = other.fmmErrorThreshold;
 				waitTimeAfterFMM = other.waitTimeAfterFMM;
+				clearBlacklistPeriod = other.clearBlacklistPeriod; 
+				lastClearBlacklist = other.lastClearBlacklist; 
+				logHardResets = other.logHardResets;  
 				application = other.application;
 
 				pthread_mutex_init(&crateQueueMutex, NULL);
@@ -89,6 +96,9 @@ namespace emu {
 				runNumStr << other.runNumStr.str();
 				fmmErrorThreshold = other.fmmErrorThreshold;
 				waitTimeAfterFMM = other.waitTimeAfterFMM;
+				clearBlacklistPeriod = other.clearBlacklistPeriod; 
+				lastClearBlacklist = other.lastClearBlacklist; 
+				logHardResets = other.logHardResets;  
 				application = other.application;
 
 				pthread_mutex_init(&crateQueueMutex, NULL);
@@ -128,6 +138,10 @@ namespace emu {
 			std::map<unsigned int, unsigned int> ignErrCnt;
 			/// The names of the fibers that have had an error since reset, indexed by crate number
 			std::map<unsigned int, std::vector<std::string> > errorFiberNames;
+
+			// Count of number of errors requested by each chamber
+			std::map<std::string, unsigned int> errorHistoryChamber; // string is chamber name, e.g., "+1/1/08"; second is number of errors requested by that chamber
+
 			
 			enum errSteps {CURR_ERR, FIRST_ERR, SECOND_ERR};
 
@@ -154,6 +168,17 @@ namespace emu {
 			/// Number of seconds thread should wait after releasing FMMs, default is 5
 			unsigned int waitTimeAfterFMM;
 			
+			// Number of seconds after which all blacklists will be cleared, 
+                        // -1 means they will never be cleared. 
+                        int clearBlacklistPeriod;
+
+			// Most recent time the blacklist was cleared (initialized to -1).  
+			time_t lastClearBlacklist;
+
+			// Log file with just the hard reset information
+                        ofstream* logHardResets;
+
+
 			// "Local" variables -- each thread tries to increment only its own.
 			// The number of FMM errors since reset, indexed by crate number
 			//std::map<unsigned int, unsigned long int> errorCount;
