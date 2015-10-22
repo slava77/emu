@@ -683,21 +683,19 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 					unsigned int bitsForME11 = -1; // initialize all bits to 1  
 					
-					std::ostringstream msg;
+					std::stringstream msg;
 					msg << "Debug:  about to clear blacklist "
-					    << "at time " << time(NULL) << ", lastClearBlacklist_ = " << locdata->lastClearBlacklist
-					    << ", clearBlacklistPeriod = " << locdata->clearBlacklistPeriod  
 					    << " for crate=" << crateNumber << ", slot=" << (*iDDU)->slot()
 					    << ", fibHist[IRQData::CURR_ERR]=" << fibHist[IRQData::CURR_ERR] 
 					    << ", fibHist[IRQData::FIRST_ERR]=" << fibHist[IRQData::FIRST_ERR] 
 					    << ", fibHist[IRQData::SECOND_ERR]=" << fibHist[IRQData::SECOND_ERR] ;  
 					
-					LOG4CPLUS_DEBUG(logger, msg);  
+					LOG4CPLUS_DEBUG(logger, msg.str());  
 					
 					char datebuf[32];
 					time_t theTime = time(NULL);
 					strftime(datebuf, sizeof(datebuf), "%Y/%m/%d %H:%M:%S: ", localtime(&theTime));
-					(*logHardResets) << datebuf << msg << endl;
+					(*logHardResets) << datebuf << msg.str() << endl;
 
 					for (unsigned int iFiber = 0; iFiber < 15; ++iFiber) {
 					  
@@ -721,25 +719,23 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 					std::bitset<16> statusBits(bitsForME11);  
 					std::string statusBitString = statusBits.to_string<char, char_traits<char>, allocator<char> >();
 					
+					msg.str("");  
+					msg.clear();  
 					msg << "Debug:  finished clear of blacklist for crate=" << crateNumber << ", slot=" << (*iDDU)->slot()
 					    << ", fibHist[IRQData::CURR_ERR]=" << fibHist[IRQData::CURR_ERR] 
 					    << ", fibHist[IRQData::FIRST_ERR]=" << fibHist[IRQData::FIRST_ERR] 
 					    << ", fibHist[IRQData::SECOND_ERR]=" << fibHist[IRQData::SECOND_ERR] 
 					    << ", ME1/1 status bits=" << statusBitString  ;  
 					
-					LOG4CPLUS_DEBUG(logger, msg); 					
+					LOG4CPLUS_DEBUG(logger, msg.str()); 					
 					
-					(*logHardResets) << msg << endl;
+					(*logHardResets) << msg.str() << endl;
 					
 					
 					break; // Done, just needed the right DDU
 				      }  // end if statement
 				    } // end loop over DDU's
 				    
-				    
-// 				    fibHist[IRQData::CURR_ERR] = 0;    // This sets all chambers to be 0.  
-// 				    fibHist[IRQData::FIRST_ERR] = 0;   // This sets all chambers to be 0.  
-// 				    fibHist[IRQData::SECOND_ERR] = 0;  // This sets all chambers to be 0.  
 				  }
 				}
 			      }
