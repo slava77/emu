@@ -2677,7 +2677,9 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration(int full_check)
 	 thisChamber->GetExpectedConfigProblemCFEB2()  ||
 	 thisChamber->GetExpectedConfigProblemCFEB3()  ||
 	 thisChamber->GetExpectedConfigProblemCFEB4()  ||
-	 thisChamber->GetExpectedConfigProblemCFEB5()  ) 
+	 thisChamber->GetExpectedConfigProblemCFEB5()  ||
+	 thisChamber->GetExpectedConfigProblemCFEB6()  ||
+	 thisChamber->GetExpectedConfigProblemCFEB7()  ) 
 	  dmb_check_ok[current_crate_][chamber_index] = 2;
 
 	//
@@ -2686,7 +2688,9 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration(int full_check)
 		thisChamber->GetExpectedConfigProblemCFEB2()  ||
 		thisChamber->GetExpectedConfigProblemCFEB3()  ||
 		thisChamber->GetExpectedConfigProblemCFEB4()  ||
-		thisChamber->GetExpectedConfigProblemCFEB5()) ) {
+		thisChamber->GetExpectedConfigProblemCFEB5()  ||
+		thisChamber->GetExpectedConfigProblemCFEB6()  ||
+		thisChamber->GetExpectedConfigProblemCFEB7()) ) {
       dmb_check_ok[current_crate_][chamber_index] = 3;
     } else {
       dmb_check_ok[current_crate_][chamber_index] = 0;

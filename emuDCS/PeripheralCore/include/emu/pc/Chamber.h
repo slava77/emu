@@ -71,6 +71,12 @@ public:
   ///From the problem_mask, we expect to see a configuration problem from the DMB
   inline int GetExpectedConfigProblemDMB()   { return expected_config_problem_dmb_  ; }
   //
+  ///From the problem_mask, we expect to see a configuration problem from the CFEB6
+  inline int GetExpectedConfigProblemCFEB6() { return expected_config_problem_cfeb6_; }
+  //
+  ///From the problem_mask, we expect to see a configuration problem from the CFEB6
+  inline int GetExpectedConfigProblemCFEB7() { return expected_config_problem_cfeb7_; }
+  //
   //
   inline void SetTotalCfebs(int total)   { TotalCfebs_=total; }
   inline int GetTotalCfebs()   { return TotalCfebs_; }
@@ -96,6 +102,8 @@ private:
   int expected_config_problem_cfeb4_;
   int expected_config_problem_cfeb5_;
   int expected_config_problem_dmb_  ;
+  int expected_config_problem_cfeb6_;
+  int expected_config_problem_cfeb7_;
   //
   // std::vector <TMB> tmbs_;
   // std::vector <CFEB> cfebs_;

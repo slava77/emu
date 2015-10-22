@@ -109,6 +109,8 @@ Chamber::Chamber(Crate * csc):
   expected_config_problem_cfeb4_ = 0;
   expected_config_problem_cfeb5_ = 0;
   expected_config_problem_dmb_   = 0;
+  expected_config_problem_cfeb6_ = 0;
+  expected_config_problem_cfeb7_ = 0;
   //
   csc->AddChamber(this);
   thisTMB=NULL;
@@ -136,6 +138,8 @@ Chamber::~Chamber(){
       expected_config_problem_cfeb4_ = (problem_mask >> 5) & 0x01;
       expected_config_problem_cfeb5_ = (problem_mask >> 6) & 0x01;
       expected_config_problem_dmb_   = (problem_mask >> 7) & 0x01;
+      expected_config_problem_cfeb6_ = (problem_mask >> 8) & 0x01;
+      expected_config_problem_cfeb7_ = (problem_mask >> 9) & 0x01;
       //
       return;
     }
