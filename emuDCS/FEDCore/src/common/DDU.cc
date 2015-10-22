@@ -2065,7 +2065,7 @@ throw (emu::fed::exception::DDUException)
 		throw e2;
 	}
 	try {
-		commandCycle(dev, DDUFPGA_RST);
+	  readRegister(dev, 1, 16);
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Exception communicating with DDU";
