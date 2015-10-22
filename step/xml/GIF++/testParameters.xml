@@ -19,7 +19,7 @@
   <!--       <test>                  13      </test> -->
   <!--       <events_per_threshold>  100     </events_per_threshold> -->
   <!--       <thresholds_per_tpamp>  70      </thresholds_per_tpamp> -->
-  <!--       <threshold_first>           1   </threshold_first> -->
+  <!--       <threshold_first>          10   </threshold_first> -->
   <!--       <threshold_step>            0   </threshold_step> -->
   <!--       <tpamps_per_run>            2   </tpamps_per_run> -->
   <!--       <tpamp_first>           14      </tpamp_first> -->
@@ -43,16 +43,16 @@
   
   <test_config>
         <test>                  11        </test>
-        <durationInSec>         30        </durationInSec>
+        <durationInSec>         72        </durationInSec>
         <!-- <durationInSec>         300        </durationInSec> -->
-        <description>AFEB Counting Noise (HV on)</description>
+        <description>AFEB Counting Noise (HV on) 72s</description>
   </test_config>
 
   <test_config>
         <test>                  11c        </test>
-        <durationInSec>         30        </durationInSec>
+        <durationInSec>         72        </durationInSec>
         <!-- <durationInSec>         300        </durationInSec> -->
-        <description>CFEB Counting Noise (HV on) EXPERIMENTAL</description>
+        <description>CFEB Counting Noise (HV on) EXPERIMENTAL 72s</description>
   </test_config>
 
   <test_config>
@@ -204,22 +204,34 @@
         <description>ALCT Trigger (HV on)</description>
   </test_config>
 
+  <!-- <test_config> -->
+  <!--       <test>                  27        </test> -->
+  <!--      <events_total>         500000 </events_total> -->
+  <!--       <description>High-Statistics Cosmics (HV on)</description> -->
+  <!-- </test_config> -->
+
   <test_config>
         <test>                  27        </test>
-       <events_total>         500000 </events_total>
-        <description>High-Statistics Cosmics (HV on)</description>
+        <events_total>         40000 </events_total>
+        <description>High-Statistics Cosmics 40k (HV on)</description>
   </test_config>
 
   <!-- <test_config> -->
-  <!--       <test>                  27        </test> -->
-  <!--       <events_total>         10000 </events_total> -->
-  <!--       <description>High-Statistics Cosmics (10k only)</description> -->
+  <!--       <test>                  27s       </test> -->
+  <!--      <events_total>         500000 </events_total> -->
+  <!--       <description>High-Statistics Cosmics in Single-Layer Mode (HV on) EXPERIMENTAL</description> -->
   <!-- </test_config> -->
+
+  <test_config>
+        <test>                  27s       </test>
+       <events_total>         200000 </events_total>
+        <description>High-Statistics Cosmics in Single-Layer Mode 100k (HV on) EXPERIMENTAL</description>
+  </test_config>
 
   <test_config>
         <test>                  40        </test>
        <events_total>         25000 </events_total>
-        <description>Scintillator Trigger (HV on) EXPERIMENTAL</description>
+        <description>Scintillator Trigger (HV on)</description>
   </test_config>
 
 </STEP_tests>

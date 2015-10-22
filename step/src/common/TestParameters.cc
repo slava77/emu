@@ -94,6 +94,9 @@ void emu::step::TestParameters::calculateNEvents(){
   else if ( id_ == "27" ){
     nEvents_ = parameters_["events_total"];
   }
+  else if ( id_ == "27s" ){
+    nEvents_ = parameters_["events_total"];
+  }
   else if ( id_ == "40" ){
     nEvents_ = parameters_["events_total"];
   }

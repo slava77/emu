@@ -91,6 +91,7 @@ void ( emu::step::Test::* emu::step::Test::getProcedure( const string& testId, S
   if ( testId == "21"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_21   : &emu::step::Test::enable_21   );
   if ( testId == "25"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_25   : &emu::step::Test::enable_25   );
   if ( testId == "27"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_27   : &emu::step::Test::enable_27   );
+  if ( testId == "27s" ) return ( state == forConfigure_ ? &emu::step::Test::configure_27   : &emu::step::Test::enable_27   );
   if ( testId == "30"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_30   : &emu::step::Test::enable_30   );
   if ( testId == "40"  ) return ( state == forConfigure_ ? &emu::step::Test::configure_40   : &emu::step::Test::enable_40   );
   return NULL;
@@ -217,7 +218,7 @@ void emu::step::Test::configureCrates(){
       // For the time being, skip hard reset for crates with ODMBs as they unset the LVMB on/off switch.
       if ( (*crate)->daqmbs().size() && (*crate)->daqmbs().at( 0 )->GetHardwareVersion() < 2 ){ // TODO: remove this condition once ODMB is fixed.
 	// It's only necessary for tests 19 and 21 and 27. In fact, it upsets test 13...
-	if ( id_ == "19" || id_ == "21" || id_ == "27" ){
+	if ( id_ == "19" || id_ == "21" || id_ == "27" || id_ == "27s" ){
 	  ::sleep( 1 );
 	  (*crate)->ccb()->HardReset_crate();
 	  // Need to wait a bit for hard reset to finish, otherwise IsAlive() will be FALSE.
@@ -225,7 +226,7 @@ void emu::step::Test::configureCrates(){
 	}
 
 	// Reconfigure ALCTs as it is missing from the events in test 27 if a crate hard reset is issued (see above)...
-	if ( id_ == "27" ){
+	if ( id_ == "27" || id_ == "27s" ){
 	  vector<emu::pc::TMB*> tmbs = (*crate)->tmbs();
 	  for ( vector<emu::pc::TMB*>::iterator tmb = tmbs.begin(); tmb != tmbs.end(); ++tmb ){
 	    (*tmb)->alctController()->configure();
