@@ -19,7 +19,8 @@ var TREE_ITEMS = [
            ['EMU Test16 - CSCs AFEBs Raw Hits Timing','EMU_Test16_AFEB_RawHits_Timing.png'],
 	   ['EMU Test17 - CSCs CFEBs Comparators Hits Timing','EMU_Test17_Comparators_Hits_Timing.png'],
 	   ['EMU Test18 - CSCs CFEBs SCA Cell Peak Timing','EMU_Test18_CFEB_SCA_Cell_Peak_Timing.png'],
-	   ['EMU Test19 - CSCs ALCT-CLCT Match Timing','EMU_Test19_ALCT_CLCT_Match_Timing.png']
+	   ['EMU Test19 - CSCs ALCT-CLCT Match Timing','EMU_Test19_ALCT_CLCT_Match_Timing.png'],
+	   ['EMU Test20 - CSCs TMB Sync Errors','EMU_Test20_TMB_Sync.png']
 	   
 	],
 	['DDU', ' ',

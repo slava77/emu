@@ -581,6 +581,17 @@
                 <Pad4>CSC_Minus_endcap_ALCT_CLCT_Match_Time</Pad4>
         </Canvas>
 
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test20_TMB_Sync</Name>
+                <Title>EMU Test20 - CSCs TMB Sync Errors</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>CSC_TMB_Sync_Error</Pad1>
+        </Canvas>
+
+
 
 <!-- ========================================================================================
 # DDU Level histograms
@@ -1198,6 +1209,7 @@
                 <Pad8>ALCT_DMB_BXN_diff</Pad8>
                 <Pad9>CLCT_DMB_BXN_diff</Pad9>
                 <Pad10>DMB_DDU_BXN_diff</Pad10>
+                <Pad10>TMB_Sync_Error</Pad10>
                 <Folder>SYNC</Folder>
         </Canvas>
 

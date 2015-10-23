@@ -1017,6 +1017,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
               LOG4CPLUS_DEBUG(logger_, "TMB Trailer Word Count = "
                               << dec << (int)tmbTrailer->wordCount());
 
+              // -- Check TMB BC0 Sync Error status flag
+              if (isMEvalid(cscME, "TMB_Sync_Error", mo)) mo->Fill((int)(tmbHeader->syncError()));
+              if (isMEvalid(nodeME, "CSC_TMB_Sync_Error", mo) && tmbHeader->syncError()==1) mo->Fill(CSCposition, CSCtype);
 
               EmuMonitoringObject*  mo_CSC_Plus_endcap_CLCT0_dTime = 0;
               isMEvalid(nodeME, "CSC_Plus_endcap_CLCT0_dTime", mo_CSC_Plus_endcap_CLCT0_dTime);
