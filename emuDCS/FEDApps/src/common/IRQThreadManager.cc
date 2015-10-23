@@ -749,9 +749,13 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				break;
 
 			try {
+			  
+			  // I know this means the TF DDU will use interrupts, but we'll deal with that hurdle when we come to it.
+			  if (myCrate->getController()->waitIRQ(1000) == false) {
+			    
+			    // Wait 0.5 s in case error was from ME1/1 after a hard reset (which should be over within 0.3 s).  
+			    usleep(5e5); // sleep 0.5 s  
 
-				// I know this means the TF DDU will use interrupts, but we'll deal with that hurdle when we come to it.
-				if (myCrate->getController()->waitIRQ(1000) == false) {
 					pthread_testcancel();
 					// Prevent crash that occurs when thread canceled during logging
 					if (pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &unused) != 0)
