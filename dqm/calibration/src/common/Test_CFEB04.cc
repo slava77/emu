@@ -1,9 +1,15 @@
 #include "emu/dqm/calibration/Test_CFEB04.h"
 
+#include <stdexcept>    // std::out_of_range
+#include <numeric>      // std::accumulate
+#include <cmath>        // fabs
+#include <limits>       // std::numeric_limits
+
 using namespace XERCES_CPP_NAMESPACE;
 
 using namespace emu::dqm::utils;
 
+using namespace std;
 /**
  * @brief Constructor for Test CFEB04: Amplifier Gain
  * @param dfile Events Data file name
@@ -319,7 +325,7 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
             {
 
               int nTimeSamples= cfebData->nTimeSamples();
-              double Qmax=gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max;
+              double Qmax=gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES].max;
 
               if (!cfebData->timeSlice(0)->checkCRC() || !cfebData->timeSlice(1)->checkCRC())
                 {
@@ -356,7 +362,7 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
 
                       if (curr_dac==DAC_STEPS-1) r04.content[layer-1][icfeb*16+curr_strip-1] = Qi; // Saturation
 
-                      gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max=Qmax;
+                      gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES].max=Qmax;
                     }
 
 
@@ -385,42 +391,17 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
                     }
                 }
 
-              // == Stan's modifications for test pulse peaking analysis
-              if (curr_dac==5)
-                {
-                  double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip,cfebData->isDCFEB())->adcCounts
-                              + (cfebData->timeSlice(1))->timeSample(layer,curr_strip,cfebData->isDCFEB())->adcCounts)/2.;
-
-                  double Qmax=-99.;
-                  int imax = -1;
-                  for (int itime=0; itime<nTimeSamples; itime++)   // loop over time samples (8 or 16)
-                    {
-                      CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip,cfebData->isDCFEB());
-                      int Qi = (int) ((timeSample->adcCounts)&0xFFF);
-                      if (Qi-Q12>Qmax)
-                        {
-                          imax=itime;
-                          Qmax=Qi-Q12;
-                        }
-                    }
-                  if(imax>2&&imax<6)
-                    {
-                      double adc[4];
-                      for (int itime=imax-1; itime<imax+3; itime++)
-                        {
-                          CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip,cfebData->isDCFEB());
-                          int Qi = (int) ((timeSample->adcCounts)&0xFFF);
-                          adc[itime-imax+1]=Qi-Q12;
-                        }
-                      double tguess=0.0;
-                      double tpeak=fivePoleFitTime(imax,adc,tguess);
-                      tpeakdata.content[layer-1][icfeb].cnt++;
-                      tpeakdata.content[layer-1][icfeb].mv += tpeak;
-                      tpeakdata.content[layer-1][icfeb].rms += pow(tpeak,2);
-                    }
-
-                }
-
+	      if (curr_dac==5){
+		vector<double> adcCounts( nTimeSamples, 0. );
+		for (int itime=0; itime<nTimeSamples; itime++){
+		  adcCounts[itime] = (double) ( ( (cfebData->timeSlice( itime ))->timeSample( layer, curr_strip, cfebData->isDCFEB() )->adcCounts)&0xFFF );
+		}
+		Test_CFEB04::extremum_t peak = correctedPulsePeak( adcCounts );
+		tpeakdata.content[layer-1][icfeb].cnt++;
+		tpeakdata.content[layer-1][icfeb].mv  += peak.x_corr;
+		tpeakdata.content[layer-1][icfeb].rms += pow(peak.x_corr,2);
+		//LOG4CPLUS_DEBUG(logger, "layer=" << layer << " CFEB=" << icfeb << " T_peak=" << peakTime << " count=" << tpeakdata.content[layer-1][icfeb].cnt );
+	      }
 
             } // layers loop end
         } // cfebs loop end
@@ -428,6 +409,143 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
 
     } // CFEB data available
 
+}
+
+Test_CFEB04::extremum_t Test_CFEB04::findMaximum( vector<double>& v ) const {
+  // Find the index of the maximum, and then fit a parabola to the three points (max and its neighbors) to refine the position.
+  // If the maximum is the first or the last element, return its value.
+
+  Test_CFEB04::extremum_t m;
+  
+  // The index of the maximum:
+  vector<double>::const_iterator iMax = max_element( v.begin(), v.end() );
+  if ( v.size() < 3 ){
+    m.x      = double ( iMax - v.begin() );
+    m.y      = *iMax;
+    m.x_corr = m.x;
+    m.y_corr = m.y;
+    return m;
+  }
+  vector<double>::const_iterator iPrev = iMax;
+  vector<double>::const_iterator iNext = iMax;
+  ++iNext;
+  if ( iMax == v.begin() ){ // the max is the first element
+    if ( *iMax == *iNext ){ // the first two elements are equal
+      // Take the second element as max:
+      iPrev = iMax;
+      iMax  = iNext;
+      ++iNext;
+    }
+    else{
+      m.x      = double ( iMax - v.begin() );
+      m.y      = *iMax;
+      m.x_corr = m.x;
+      m.y_corr = m.y;
+      return m;
+    }
+  }
+  else if ( iNext == v.end() ){ // the max is the last element
+    --iPrev;
+    if ( *iPrev == *iMax ){ // the last two elements are equal
+      // Take the penultimate element as max:
+      iNext = iMax;
+      iMax = iPrev;
+      --iPrev;
+    }
+    else{
+      m.x      = double ( iMax - v.begin() );
+      m.y      = *iMax;
+      m.x_corr = m.x;
+      m.y_corr = m.y;
+      return m;
+    }
+  }
+  else{ // max is neither the first nor the last element
+    --iPrev;
+  }
+
+  m.x      = double( iMax - v.begin() );
+  m.y      = *iMax;
+  m.x_corr = m.x;
+  m.y_corr = m.y;
+
+  // Refine the position of the maximum by fitting a parabola.
+
+  // Sum_(i=0..2) p_i x^i = y_i
+  // V * p = y   ==>  p = V^-1 * y
+  // Maximum of parabola at p_1 / p_2 / 2
+  vector<double> x( 3 );
+  vector<double> y( 3 );
+  vector< vector<double> > V( 3, vector<double>( 3, 0. ) ); // Vandermonde matrix
+  x[0] = m.x-1.; y[0] = *iPrev ;
+  x[1] = m.x   ; y[1] = *iMax ;
+  x[2] = m.x+1.; y[2] = *iNext;
+  for ( size_t i=0; i<3; ++i ){
+    V[i][0] =        1.;
+    V[i][1] =      x[i];
+    V[i][2] = x[i]*x[i];
+  }
+  vector<double> p( invert3x3Matrix( V ) * y );
+  if ( fabs( p[2] ) > std::numeric_limits<double>::epsilon() ){
+    m.x_corr = - p[1]/(2*p[2]);
+    m.y_corr = p[0] + p[1]*m.x_corr + p[2]*m.x_corr*m.x_corr;
+  }
+  //   cout << "x     " << m.x     <<  endl;
+  //   cout << "y     " << m.y     <<  endl;
+  //   cout << "x_corr " << m.x_corr <<  endl;
+  //   cout << "y_corr " << m.y_corr <<  endl;
+  return m;
+}
+
+Test_CFEB04::extremum_t Test_CFEB04::correctedPulsePeak(vector<double>& points) const
+{
+  // Correct for the asymmetric, non-parabolic peak of the pulse.
+  
+  Test_CFEB04::extremum_t m = findMaximum( points );
+
+  const double timeSamplePitch = 50.; // ns
+
+  double x0 =   m.x_corr         * timeSamplePitch;
+  double dX = ( m.x_corr - m.x ) * timeSamplePitch;
+  double  A =   m.y_corr;
+  
+  double kp[4] = {1.022, -0.027, 7.6, 63.};
+  double taup[4] = {-1.5, -2.5, -5, 50};
+
+  double k = kp[0] + kp[1]*cos(2*M_PI*((dX-kp[2])/kp[3]));
+  double tau = taup[0] + taup[1]*cos(2*M_PI*((dX-taup[2])/taup[3]));
+
+  Test_CFEB04::extremum_t m_corr; // the corrected maximum
+  m_corr.x      = m.x_corr * timeSamplePitch;
+  m_corr.y      = m.y_corr;
+  m_corr.x_corr = x0+tau;
+  m_corr.y_corr = A*k;
+
+  //   cout << "x0     " << x0 <<  endl;
+  //   cout << "A      " << A <<  endl;
+  //   cout << "dX     " << dX <<  endl;
+  //   cout << "x0+tau " << x0+tau <<  endl;
+  //   cout << "A*k    " << A*k <<  endl;
+
+  return m_corr;
+}
+
+vector< vector<double> > Test_CFEB04::invert3x3Matrix( const vector< vector<double> >& m ) const {
+  vector< vector<double> > inverse( 3, vector<double>( 3, 0. ) );
+  double det = 
+    + m[0][0] * ( m[1][1]*m[2][2] - m[1][2]*m[2][1] )
+    + m[0][1] * ( m[1][2]*m[2][0] - m[1][0]*m[2][2] )
+    + m[0][2] * ( m[1][0]*m[2][1] - m[1][1]*m[2][0] );
+
+  if ( fabs( det ) < std::numeric_limits<double>::epsilon() ) return inverse;
+
+  inverse[0][0] = m[1][1]*m[2][2] - m[1][2]*m[2][1]; inverse[0][1] = m[0][2]*m[2][1] - m[0][1]*m[2][2]; inverse[0][2] = m[0][1]*m[1][2] - m[0][2]*m[1][1];
+  inverse[1][0] = m[1][2]*m[2][0] - m[1][0]*m[2][2]; inverse[1][1] = m[0][0]*m[2][2] - m[0][2]*m[2][0]; inverse[1][2] = m[0][2]*m[1][0] - m[0][0]*m[1][2];
+  inverse[2][0] = m[1][0]*m[2][1] - m[1][1]*m[2][0]; inverse[2][1] = m[0][1]*m[2][0] - m[0][0]*m[2][1]; inverse[2][2] = m[0][0]*m[1][1] - m[0][1]*m[1][0];
+
+  for ( int i=0; i<3; ++i ) for ( int j=0; j<3; ++j ) inverse[i][j] /= det;
+
+  return inverse;
 }
 
 /**
@@ -492,7 +610,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
               for (int icfeb=0; icfeb<nCFEBs; icfeb++)   // loop over cfebs in a given chamber
                 {
                   {
-
+		    
                     {
                       double tpeak_avg=0;
                       int tpeak_cnt=0;
@@ -508,6 +626,10 @@ void Test_CFEB04::finishCSC(std::string cscID)
                           tpeak_avg=val.mv/val.cnt;
                           tpeak_cnt=val.cnt;
                           tpeak_rms=sqrt((val.rms/val.cnt)-pow(val.mv,2));
+			  // LOG4CPLUS_DEBUG(logger, "layer=" << layer 
+			  // 		  << " CFEB=" << icfeb 
+			  // 		  << " <T_peak>=" << tpeak_avg
+			  // 		  << " count=" << tpeak_cnt );
                         }
                       r06.content[layer-1][icfeb]=tpeak_avg;
                     }
@@ -523,14 +645,14 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
                             bool fValidDAC=true;
 
-                            dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
+                            dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES];
 
                             double max=0;
                             double max_rms=0;
                             int cnt=0;
                             int peak_time=0;
 
-                            for (int itime=0; itime < NSAMPLES-1; itime++)
+                            for (int itime=0; itime < NSAMPLES; itime++)
                               {
 
                                 dac_step& cval = gaindata.content[dac][layer-1][icfeb*16+strip-1][itime];
@@ -592,7 +714,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
                                     fit.left.value = 0;
                                   }
 
-                                if (peak_time<NSAMPLES-1)
+                                if (peak_time<NSAMPLES)
                                   {
                                     dac_step& cval = gaindata.content[dac][layer-1][icfeb*16+strip-1][peak_time+1];
                                     fit.right.tbin = peak_time+1;
@@ -632,7 +754,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
                             for (int dac=0; dac<dac_steps; dac++)
                               {
-                                dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
+                                dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES];
 
                                 x=11.2 +(28.0*dac);
                                 xdac[dac] = x;
@@ -644,12 +766,32 @@ void Test_CFEB04::finishCSC(std::string cscID)
                                     break;
                                   }
 
-                                time_sample pulse_fit = CalculateCorrectedPulseAmplitude(gaindata.fit[dac][layer-1][icfeb*16+strip-1]);
+//                                 time_sample pulse_fit = CalculateCorrectedPulseAmplitude(gaindata.fit[dac][layer-1][icfeb*16+strip-1]);
+//                                 if ((v06) && (dac==5))
+//                                   {
+//                                     v06->Fill(pulse_fit.tbin);
+//                                   }
+//                                 y = pulse_fit.value;
+
+				pulse_fit pf = gaindata.fit[dac][layer-1][icfeb*16+strip-1];
+				Test_CFEB04::extremum_t peak;
+				peak.x_corr = pf.max.tbin;  // uncorrected default
+				peak.y_corr = pf.max.value; // uncorrected default
+				vector<double> adcCounts( NSAMPLES, 0. );
+				if ( pf.left .tbin >= 0        &&
+				     pf.right.tbin <  NSAMPLES    ){
+				  adcCounts[pf.left .tbin] = (double) pf.left .value;
+				  adcCounts[pf.max  .tbin] = (double) pf.max  .value;
+				  adcCounts[pf.right.tbin] = (double) pf.right.value;
+				  peak = correctedPulsePeak( adcCounts );
+				}
                                 if ((v06) && (dac==5))
                                   {
-                                    v06->Fill(pulse_fit.tbin);
+                                    v06->Fill( peak.x_corr );
                                   }
-                                y = pulse_fit.value;
+                                y = peak.y_corr;
+
+
                                 ydac[dac] = y;
 
                                 X+=x/s;

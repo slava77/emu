@@ -119,7 +119,7 @@ typedef std::map<std::string, CFEBSCAData> cscCFEBSCAData;
 
 #define DAC_STEPS 20
 #define TIME_STEPS 10
-#define NSAMPLES 9
+#define NSAMPLES 8
 
 // == CFEB SCA cell sample pair (value, count)
 typedef struct test_step

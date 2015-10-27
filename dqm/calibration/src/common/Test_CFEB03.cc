@@ -323,7 +323,7 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
             {
 
               int nTimeSamples= cfebData->nTimeSamples(); // Get number of time samples
-              //  double Qmax=xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max;
+              //  double Qmax=xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES].max;
 
               // Do CRC check of first two timesamples for pedestal calculation
               if (!cfebData->timeSlice(0)->checkCRC() || !cfebData->timeSlice(1)->checkCRC())
@@ -352,7 +352,7 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
                       if (Qi-Q12>Qmax) {
                       Qmax=Qi-Q12;
                       if (curr_dac==TIME_STEPS-1) r04.content[layer-1][icfeb*16+curr_strip-1] = Qi;
-                      xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max=Qmax;
+                      xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES].max=Qmax;
                       }
                       */
 
@@ -602,13 +602,13 @@ void Test_CFEB03::finishCSC(std::string cscID)
                       double peak_time=0;
                       double max_left=0;
                       double max_right=0;
-                      //      time_step& val= xtalkdata.content[0][layer-1][icfeb*16+strip-1][NSAMPLES-1];
+                      //      time_step& val= xtalkdata.content[0][layer-1][icfeb*16+strip-1][NSAMPLES];
                       int cnt=0;
                       bool fValid=true;
 
                       for (int dac=0; dac<TIME_STEPS; dac++)
                         {
-                          for (int itime=0; itime < NSAMPLES-1; itime++)
+                          for (int itime=0; itime < NSAMPLES; itime++)
                             {
 
                               time_step& cval = xtalkdata.content[dac][layer-1][icfeb*16+strip-1][itime];
@@ -676,7 +676,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
                           double fwhm_left_time=0;
                           double fwhm_right_time=400;;
                           double fwhm=0;
-                          for (int itime=0; itime < NSAMPLES-1; itime++)
+                          for (int itime=0; itime < NSAMPLES; itime++)
                             {
                               for (int step=0; step<8; step++)
                                 {
@@ -714,7 +714,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
                           /*
                                    res_out.open((cscID+"_chan_dump.txt").c_str(),std::ios::out | std::ios::app);
                                    res_out << std::dec << layer << ":" << (icfeb*16+strip) << " ";
-                                   for (int itime=0; itime < NSAMPLES-1; itime++) {
+                                   for (int itime=0; itime < NSAMPLES; itime++) {
                                    for (int dac=0; dac<8; dac++) {
                                    time_step& cval = xtalkdata.content[7-dac][layer-1][icfeb*16+strip-1][itime];
                                    res_out << std::fixed << std::setprecision(1) << cval.mv << " ";
