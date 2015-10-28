@@ -586,9 +586,12 @@
                 <Prefix>EMU</Prefix>
                 <Name>EMU_Test20_TMB_Sync</Name>
                 <Title>EMU Test20 - CSCs TMB Sync Errors</Title>
-                <NumPadsX>1</NumPadsX>
-                <NumPadsY>1</NumPadsY>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>2</NumPadsY>
                 <Pad1>CSC_TMB_Sync_Error</Pad1>
+                <Pad2>CSC_TMB_CLCT_Sync_Error</Pad2>
+                <Pad3>CSC_TMB_MPC0_Sync_Error</Pad3>
+                <Pad4>CSC_TMB_MPC0_Sync_Error</Pad4>
         </Canvas>
 
 

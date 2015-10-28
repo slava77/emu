@@ -685,6 +685,77 @@
                 <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
                 <DrawType>ChamberMap</DrawType>
         </Histogram>
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_TMB_CLCT_Sync_Error</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>CSCs with TMB CLCT Sync Error status</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_TMB_MPC0_Sync_Error</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>CSCs with TMB MPC0 Sync Error status</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_TMB_MPC1_Sync_Error</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>CSCs with TMB MPC1 Sync Error status</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+                <DrawType>ChamberMap</DrawType>
+        </Histogram>
+
+
 
         <Histogram>
                 <Type>h2</Type>
@@ -7436,13 +7507,13 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <Type>h1</Type>
                 <Prefix>CSC</Prefix>
                 <Name>TMB_Sync_Error</Name>
-                <SetOption>hist</SetOption>
+                <SetOption>texthist</SetOption>
                 <XMin>0</XMin>
-                <XMax>2</XMax>
-                <XBins>2</XBins>
+                <XMax>5</XMax>
+                <XBins>5</XBins>
                 <Title>TMB Sync Error Status</Title>
                 <YTitle>Number of events</YTitle>
-		<SetXLabels>1='No Error'|2='Sync Error'|</SetXLabels>
+		<SetXLabels>1='No TMB Error'|2='TMB Sync Error'|3='CLCT Sync Error'|4='MPC0 Sync Error'|5='MPC1 Sync Error'|</SetXLabels>
                 <SetOptStat>e</SetOptStat>
                 <Folder>TMB</Folder>
         </Histogram>

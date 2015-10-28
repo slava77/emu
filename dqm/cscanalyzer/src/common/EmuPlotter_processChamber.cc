@@ -1018,8 +1018,18 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
                               << dec << (int)tmbTrailer->wordCount());
 
               // -- Check TMB BC0 Sync Error status flag
-              if (isMEvalid(cscME, "TMB_Sync_Error", mo)) mo->Fill((int)(tmbHeader->syncError()));
+              if (isMEvalid(cscME, "TMB_Sync_Error", mo))
+                {
+                  mo->Fill((int)(tmbHeader->syncError()));
+                  if (tmbHeader->syncErrorCLCT()) mo->Fill(2);
+                  if (tmbHeader->syncErrorMPC0()) mo->Fill(3);
+                  if (tmbHeader->syncErrorMPC1()) mo->Fill(4);
+                }
               if (isMEvalid(nodeME, "CSC_TMB_Sync_Error", mo) && tmbHeader->syncError()==1) mo->Fill(CSCposition, CSCtype);
+              if (isMEvalid(nodeME, "CSC_TMB_CLCT_Sync_Error", mo) && tmbHeader->syncErrorCLCT()==1) mo->Fill(CSCposition, CSCtype);
+              if (isMEvalid(nodeME, "CSC_TMB_MPC0_Sync_Error", mo) && tmbHeader->syncErrorMPC0()==1) mo->Fill(CSCposition, CSCtype);
+              if (isMEvalid(nodeME, "CSC_TMB_MPC1_Sync_Error", mo) && tmbHeader->syncErrorMPC1()==1) mo->Fill(CSCposition, CSCtype);
+
 
               EmuMonitoringObject*  mo_CSC_Plus_endcap_CLCT0_dTime = 0;
               isMEvalid(nodeME, "CSC_Plus_endcap_CLCT0_dTime", mo_CSC_Plus_endcap_CLCT0_dTime);
