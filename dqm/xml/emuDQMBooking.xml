@@ -675,7 +675,7 @@
                 <YMax>18</YMax>
                 <YBins>18</YBins>
                 <SetOptStat>e</SetOptStat>
-                <Title>CSCs with TMB Sync Error status</Title>
+                <Title>CSCs with TMB BX0 Sync Error status</Title>
                 <SetNdivisionsX>36</SetNdivisionsX>
                 <SetLabelSizeX>0.02</SetLabelSizeX>
                 <SetStats>0</SetStats>
@@ -7513,7 +7513,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XBins>5</XBins>
                 <Title>TMB Sync Error Status</Title>
                 <YTitle>Number of events</YTitle>
-		<SetXLabels>1='No TMB Error'|2='TMB Sync Error'|3='CLCT Sync Error'|4='MPC0 Sync Error'|5='MPC1 Sync Error'|</SetXLabels>
+		<SetXLabels>1='No TMB Sync Error'|2='TMB Sync Error'|3='CLCT Sync Error'|4='MPC0 Sync Error'|5='MPC1 Sync Error'|</SetXLabels>
                 <SetOptStat>e</SetOptStat>
                 <Folder>TMB</Folder>
         </Histogram>

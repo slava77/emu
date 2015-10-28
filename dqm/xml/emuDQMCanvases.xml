@@ -591,7 +591,7 @@
                 <Pad1>CSC_TMB_Sync_Error</Pad1>
                 <Pad2>CSC_TMB_CLCT_Sync_Error</Pad2>
                 <Pad3>CSC_TMB_MPC0_Sync_Error</Pad3>
-                <Pad4>CSC_TMB_MPC0_Sync_Error</Pad4>
+                <Pad4>CSC_TMB_MPC1_Sync_Error</Pad4>
         </Canvas>
 
 
