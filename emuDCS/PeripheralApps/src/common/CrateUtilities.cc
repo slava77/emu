@@ -91,7 +91,7 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
       //  myCrate_->ccb()->FireCCBMpcInjector();
       myCrate_->ccb()->injectTMBPattern();
       //
-      ::usleep(50);
+      ::usleep(150);
       myCrate_->mpc()->read_fifos();
       //
       if (((myCrate_->mpc())->GetFIFOBLct0()).size() == 0 ) {

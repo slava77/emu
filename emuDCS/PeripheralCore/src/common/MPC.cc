@@ -457,6 +457,7 @@ void MPC::SoftReset() {
   // reset FPGA logic----write to address 0x4 for firmware 2006 and newer
   //
   do_vme(VME_WRITE, addr, data, NULL, NOW);
+  udelay(500000);
 }
 
 void MPC::read_status() {
@@ -951,8 +952,10 @@ void MPC::setTransparentMode(){
 void MPC::setDelay(int delay)
 {
       int value = ReadRegister(CSR2);
+      udelay(10000);
       value = (value & 0x00ff) | ((delay<<8)&0xff00);
       WriteRegister(CSR2,value);
+      udelay(50000);
 }
 
 void MPC::start() {
