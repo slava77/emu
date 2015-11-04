@@ -9,7 +9,7 @@
 
 namespace EmuFEDApps {
 	const std::string package     = "EmuFEDApps";
-	const std::string versions    = "12.06.03";
+	const std::string versions    = "12.07.00";
 	const std::string description = "Emu (CSC) FED XDAQ Applications";
 
 	const std::string summary     = "Applications to control and monitor the Front End Device (FED) crates for the CMS Emu (CSC) subdetector";
