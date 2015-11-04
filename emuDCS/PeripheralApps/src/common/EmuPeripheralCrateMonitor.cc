@@ -3141,6 +3141,16 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(-1));
         if(i_value<-1) i_value=-1;
         *out << i_value;
+        *out << "\" rejected=\"";
+//        *out << myVector[j]->GetCounter(52);
+        o_value = (*otmbdata)[j*MAX_TMB_COUNTERS+52+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+52+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
+        // counter error, set it to -1:
+        i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(-1));
+        if(i_value<-1) i_value=-1;
+        *out << i_value;
         *out << "\"/>" << std::endl;
      }
   }
@@ -3183,6 +3193,12 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
         n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+54+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        // counter error, set it to -1 here:
+        if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
+        *out << n_value;
+        *out << "\" rejected=\"";
+//        *out << myVector[j]->GetCounter(52);
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+52+((myVector[j]->GetHardwareVersion()==2)?2:0)];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
