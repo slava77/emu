@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <iomanip>
 #include <time.h>
+#include "emu/pc/TMB_constants.h"
 #include "emu/pc/EmuEndcap.h"
 #include "emu/utils/System.h"
 
@@ -315,8 +316,14 @@ void EmuPeripheralCrateBroadcast::DefineBroadcastCrate() {
       else if(mytmbs[i] && mytmbs[i]->GetHardwareVersion()==2 && mytmbs[i]->slot()>21)     
          broadcastOTMB = mytmbs[i];
     }
-    if( broadcastTMB ) broadcastALCT = broadcastTMB->alctController();
-    if( broadcastTMB ) broadcastRAT  = broadcastTMB->getRAT();
+    if( broadcastTMB ){ 
+      broadcastALCT = broadcastTMB->alctController();
+      broadcastRAT  = broadcastTMB->getRAT();
+    }
+    if( broadcastOTMB ){ 
+      broadcastALCT = broadcastOTMB->alctController();
+      broadcastRAT  = broadcastOTMB->getRAT();
+    }
     broadcastMPC  = broadcastCrate->mpc();
     broadcastCCB  = broadcastCrate->ccb();
   }
@@ -894,9 +901,16 @@ void EmuPeripheralCrateBroadcast::LoadRATFirmware(xgi::Input * in, xgi::Output *
   int debugMode(0);
   int jch(7);
   //
-  broadcastTMB->disableAllClocks();
-  broadcastRAT->SVFLoad(&jch,RATFirmwareFile_.c_str(),debugMode);
-  broadcastTMB->enableAllClocks();
+  if ( broadcastTMB ){
+    broadcastTMB->disableAllClocks();
+    broadcastRAT->SVFLoad(&jch,RATFirmwareFile_.c_str(),debugMode);
+    broadcastTMB->enableAllClocks();
+  }
+  if ( broadcastOTMB ){
+    broadcastOTMB->disableAllClocks();
+    broadcastRAT->SVFLoad(&jch,RATFirmwareFile_.c_str(),debugMode);
+    broadcastOTMB->enableAllClocks();
+  }
   //
   in=NULL;
   this->LoadDMBCFEBFPGAFirmware(in, out);
@@ -1065,6 +1079,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalALCTConnectivity 
 //
 xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBComparator (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
+  // TODO: make it work for DCFEB, too
   //
   float dac, threshold;
   int nsleep = 100, highthreshold;  
@@ -1076,22 +1091,48 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBComparator (x
   calsetup++;
   //
   //implement the comparator setup process:
-  std::cout << "DMB setup for CFEB Comparator, calsetup= " <<calsetup<< std::endl;
+  LOG4CPLUS_INFO( getApplicationLogger(), "DMB setup for CFEB Comparator, calsetup= " << calsetup );
   //
   //Start the setup process:
   //
   if (calsetup==1) {
-    broadcastTMB->SetTmbAllowClct(1);
-    broadcastTMB->SetTmbAllowMatch(0);
-    broadcastTMB->WriteRegister(0x86,broadcastTMB->FillTMBRegister(0x86));
-    broadcastTMB->SetAlctMatchWindowSize(7);
-    broadcastTMB->WriteRegister(0xb2,broadcastTMB->FillTMBRegister(0xb2));
-    broadcastTMB->SetL1aDelay(154);
-    broadcastTMB->SetL1aWindowSize(7);
-    broadcastTMB->WriteRegister(0x74,broadcastTMB->FillTMBRegister(0x74));
-    //
-    broadcastTMB->EnableCLCTInputs(0x7f); //enable TMB's CLCT inputs
-    if(broadcastDMB) broadcastDMB->settrgsrc(0); //disable the DMB internal LCT & L1A
+
+    if ( broadcastTMB ){
+      broadcastTMB->SetTmbAllowClct(1);
+      broadcastTMB->SetTmbAllowMatch(0);
+      broadcastTMB->WriteRegister(emu::pc::tmb_trig_adr,broadcastTMB->FillTMBRegister(emu::pc::tmb_trig_adr));
+      
+      broadcastTMB->SetAlctMatchWindowSize(7);
+      broadcastTMB->WriteRegister(emu::pc::tmbtim_adr,broadcastTMB->FillTMBRegister(emu::pc::tmbtim_adr));
+      
+      broadcastTMB->SetL1aDelay(154);
+      broadcastTMB->SetL1aWindowSize(7);
+      broadcastTMB->WriteRegister(emu::pc::seq_l1a_adr,broadcastTMB->FillTMBRegister(emu::pc::seq_l1a_adr));
+      
+      broadcastTMB->EnableCLCTInputs(0x7f); //enable TMB's CLCT inputs
+    }
+
+    if ( broadcastOTMB ){
+      broadcastOTMB->SetTmbAllowClct(1);
+      broadcastOTMB->SetTmbAllowMatch(0);
+      broadcastOTMB->WriteRegister(emu::pc::tmb_trig_adr,broadcastOTMB->FillTMBRegister(emu::pc::tmb_trig_adr));
+      
+      broadcastOTMB->SetAlctMatchWindowSize(7);
+      broadcastOTMB->WriteRegister(emu::pc::tmbtim_adr,broadcastOTMB->FillTMBRegister(emu::pc::tmbtim_adr));
+      
+      broadcastOTMB->SetL1aDelay(154);
+      broadcastOTMB->SetL1aWindowSize(7);
+      broadcastOTMB->WriteRegister(emu::pc::seq_l1a_adr,broadcastOTMB->FillTMBRegister(emu::pc::seq_l1a_adr));
+      
+      broadcastOTMB->EnableCLCTInputs(0x7f); //enable TMB's CLCT inputs
+    }
+
+    if(broadcastDMB ) broadcastDMB ->settrgsrc(0); //disable the DMB internal LCT & L1A
+    if(broadcastODMB) broadcastODMB->settrgsrc(0); //disable the DMB internal LCT & L1A
+
+    std::cout <<" Prepared for pulses; waiting 5 sec..." << std::endl;
+    ::sleep( 5 );
+
   }
 
   if(broadcastDMB) {
@@ -1106,23 +1147,45 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBComparator (x
     }
     threshold=0.003*thresholdsetting+0.01+ (0.19+0.007*thresholdsetting)*highthreshold;
     broadcastDMB->set_comp_thresh_bc(threshold);
-    std::cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<std::endl;
+    std::cout <<" The strip was set to: "<<nstrip<<" DMB DAC was set to: "<<dac <<std::endl;
   }
   if(broadcastODMB) {
-    int thresholdsetting =((calsetup-1)%20);   //35 Comparator threshold setting for each channel
-    int nstrip=(calsetup-1)/20;           //16 channels, total loop: 32*35=1120
-    highthreshold=nstrip/16;
-    dac=0.02+0.18*highthreshold;
-    nstrip=nstrip%16;
-    if (!thresholdsetting) {
-       broadcastODMB->buck_shift_comp_bc(nstrip);
-       if (!nstrip) broadcastODMB->set_cal_dac(dac,dac);
+    xdata::Boolean isInCalibrationTimingMode_( false ); // TODO: export this parameter
+    if ( bool( isInCalibrationTimingMode_ ) ){
+      dac=0.2; // for timing scan, use big pulse to ensure a pass
+      threshold=0.1;  // for timing scan, use low threshold to ensure a pass
+      const int nstrip=0;
+      if ( calsetup == 1 ){
+	broadcastODMB->buck_shift_comp_bc(nstrip);
+	broadcastODMB->set_cal_dac(dac,dac);
+	broadcastODMB->set_comp_thresh_bc(threshold);
+	std::cout <<" The strip was set to: " << nstrip
+		  <<" ODMB DAC was set to: "  << dac       << "V (" << int(dac*4095./5.0)              << ")" 
+		  <<" Threshold was set to: " << threshold << "V (" << int(4095*((3.5-threshold)/3.5)) << ")" << std::endl;
+      }
+      // if ( broadcastOTMB ){
+      // 	int tmb_l1a_delay = 3 * ( (calsetup-1) % 80 );
+      // 	broadcastOTMB->SetL1aDelay( tmb_l1a_delay );
+      // 	broadcastOTMB->WriteRegister(emu::pc::seq_l1a_adr,broadcastOTMB->FillTMBRegister(emu::pc::seq_l1a_adr));
+      // 	std::cout <<" Step " << calsetup << ", tmb_l1a_delay set to " << tmb_l1a_delay << std::endl;
+      // }
     }
-    threshold=0.003*thresholdsetting+0.01+ (0.19+0.007*thresholdsetting)*highthreshold;
-    broadcastODMB->set_comp_thresh_bc(threshold);
-    std::cout <<" The strip was set to: " << nstrip
-	      <<" DAC was set to: "       << dac       << "V (" << int(dac*4095./5.0)              << ")" 
-	      <<" Threshold was set to: " << threshold << "V (" << int(4095*((3.5-threshold)/3.5)) << ")\n";
+    else{
+      int thresholdsetting =((calsetup-1)%20);   //35 Comparator threshold setting for each channel
+      int nstrip=(calsetup-1)/20;           //16 channels, total loop: 32*35=1120
+      highthreshold=nstrip/16;
+      dac=0.02+0.18*highthreshold;
+      nstrip=nstrip%16;
+      if (!thresholdsetting) {
+	broadcastODMB->buck_shift_comp_bc(nstrip);
+	if (!nstrip) broadcastODMB->set_cal_dac(dac,dac);
+      }
+      threshold=0.003*thresholdsetting+0.01+ (0.19+0.007*thresholdsetting)*highthreshold;
+      broadcastODMB->set_comp_thresh_bc(threshold);
+      std::cout <<" The strip was set to: " << nstrip
+		<<" ODMB DAC was set to: "  << dac       << "V (" << int(dac*4095./5.0)              << ")" 
+		<<" Threshold was set to: " << threshold << "V (" << int(4095*((3.5-threshold)/3.5)) << ")" << std::endl;
+    }
   }
   ::usleep(nsleep);
   //    fireEvent("Enable");
@@ -1147,29 +1210,54 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBGains (xoap::
   if ( broadcastDMB ){
     std::cout << "DMB setup for CFEB Gain, calsetup= " <<calsetup<< std::endl;
     //
+    if ( calsetup == 1 ){
+      std::cout << "Setting pre_block_end for all copper DMBs to (its value taken from broadcast.xml) " << broadcastDMB->GetPreBlockEnd() << std::endl;
+      broadcastDMB->fxpreblkend( broadcastDMB->GetPreBlockEnd() );
+      ::usleep( nsleep );
+    }
     //Start the setup process:
     int gainsetting =((calsetup-1)%20);
     int nstrip=(calsetup-1)/20;
-    if (!gainsetting) broadcastDMB->buck_shift_ext_bc(nstrip);
+    if (!gainsetting){
+      broadcastDMB->buck_shift_ext_bc(nstrip);
+      ::usleep( nsleep );
+    }
     dac=0.1+0.25*gainsetting;
+    // dac=0.1+0.25*10; // always max/2
     broadcastDMB->set_cal_dac(dac,dac);
+    ::usleep( nsleep );
     std::cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<std::endl;
   }
   if ( broadcastODMB ){
     std::cout << "ODMB setup for DCFEB Gain, calsetup= " <<calsetup<< std::endl;
-    //
-    // broadcastODMB->WriteRegister(emu::pc::DAQMB::L1A_MODE, 0); // (0: normal, i.e. non pedestal)
+    if ( calsetup == 1 ){
+      // Set the pipeline depth to its value in broadcast.xml
+      std::vector<CFEB> cfebs( broadcastODMB->cfebs() );
+      for( size_t icfeb = 0; icfeb < cfebs.size(); ++icfeb ){
+	int depth = cfebs[icfeb].GetPipelineDepth();
+	std::cout << "Set DCFEB "                     << icfeb
+		  << " pipeline depth to "            << depth 
+		  << " (i.e. value in broadcast.xml)" << std::endl;
+	broadcastODMB->dcfeb_set_PipelineDepth( cfebs[icfeb],  depth );
+	::usleep(1000); // 1ms extra pause
+	broadcastODMB->Pipeline_Restart( cfebs[icfeb] );
+	::usleep(100000);
+      }
+    }
     //Start the setup process:
     int gainsetting =((calsetup-1)%20);
     int nstrip=(calsetup-1)/20;
-    if (!gainsetting) broadcastODMB->buck_shift_ext_bc(nstrip);
+    if (!gainsetting){ 
+      ::usleep(1000); // 1ms extra pause
+      broadcastODMB->buck_shift_ext_bc(nstrip);
+    }
     dac=0.1+0.25*gainsetting;
     // dac=0.1+0.25*19; // always max
+    ::usleep(1000); // 1ms extra pause
     broadcastODMB->set_cal_dac(dac,dac);
     std::cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<std::endl;
   }
   ::usleep(nsleep);
-  //    fireEvent("Enable");
   //
   In_Broadcast_ = false;
   return createReply(message);
@@ -1205,8 +1293,12 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBCrossTalk (xo
     //Start the setup process:
     int timesetting =((calsetup-1)%10);
     int nstrip=(calsetup-1)/10;
-    if (!timesetting) broadcastODMB->buck_shift_ext_bc(nstrip);
-    // Pipeline depth will be set to its value in broadcast.xml. Adjust it there as needed.
+    if (!timesetting){
+      ::usleep(1000); // 1ms extra pause
+      broadcastODMB->buck_shift_ext_bc(nstrip);
+    }
+    ::usleep(1000); // 1ms extra pause
+    // Pipeline depth will be set to its value in broadcast.xml in DAQMB::set_cal_tim_pulse. Adjust it there as needed.
     broadcastODMB->set_cal_tim_pulse(timesetting+5);
     std::cout <<" The strip was set to: "<<nstrip<<" Time was set to: "<<timesetting <<std::endl;
   }
@@ -1254,7 +1346,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
     std::cout <<" The strip was set to: -1, " <<" DAC was set to: "<<dac <<std::endl;
     ::usleep(nsleep);
     broadcastODMB->toggle_pedestal();
-    std::cout<<" Toggle DMB Pedestal switch, to disable the pulsing."<<std::endl;
+    std::cout<<" Toggle ODMB to pedestal mode (to send L1A_MATCH to DCFEB for each L1A)"<<std::endl;
   }
   ::usleep(nsleep);    
 
@@ -1282,9 +1374,16 @@ void EmuPeripheralCrateBroadcast::SetNumberOfLayersInTrigger(xgi::Input * in, xg
   std::cout << " Broadcast " << number_of_layers_pretrig_ << "/" << number_of_layers_pattern_ 
 	    << " layers in pretrig/pattern trigger..." << std::endl;
   //
-  broadcastTMB->SetHsPretrigThresh(number_of_layers_pretrig_);
-  broadcastTMB->SetMinHitsPattern(number_of_layers_pattern_);
-  broadcastTMB->WriteRegister(0x70);
+  if ( broadcastTMB ){
+    broadcastTMB->SetHsPretrigThresh(number_of_layers_pretrig_);
+    broadcastTMB->SetMinHitsPattern(number_of_layers_pattern_);
+    broadcastTMB->WriteRegister( emu::pc::seq_clct_adr );
+  }
+  if ( broadcastOTMB ){
+    broadcastOTMB->SetHsPretrigThresh(number_of_layers_pretrig_);
+    broadcastOTMB->SetMinHitsPattern(number_of_layers_pattern_);
+    broadcastOTMB->WriteRegister( emu::pc::seq_clct_adr );
+  }
   //
   broadcastALCT->SetFifoPretrig(10);
   broadcastALCT->SetDriftDelay(2);

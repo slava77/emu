@@ -3107,6 +3107,7 @@ void DAQMB::set_cal_tim_pulse(int itim)
 		   << " in XML), fine delay=" << order[tfine] 
 		   << std::endl;
          dcfeb_set_PipelineDepth(cfebs_[icfeb],  depth);
+         udelay(30000);
          Pipeline_Restart(cfebs_[icfeb]);
          udelay(100000);
      }     

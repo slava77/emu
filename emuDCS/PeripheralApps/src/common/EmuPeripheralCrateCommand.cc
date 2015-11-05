@@ -766,7 +766,7 @@ xoap::MessageReference EmuPeripheralCrateCommand::onConfigCalCFEB (xoap::Message
 
   if(!parsed) ParsingXML();
   int cfeb_clk_delay=31;
-  int pre_block_end=7;
+  int pre_block_end=8; //7;
   int feb_cable_delay=0;
   int dword= (6 | (20<<4) | (10<<9) | (15<<14) ) &0xfffff;
   float dac=1.00;
@@ -807,6 +807,8 @@ xoap::MessageReference EmuPeripheralCrateCommand::onConfigCalCFEB (xoap::Message
 
 	  dmbVector[dmb]->settrgsrc(1);
 	  dmbVector[dmb]->fxpreblkend(pre_block_end);
+          // if(dmbVector[dmb]->GetHardwareVersion()==2) dmbVector[dmb]->fxpreblkend(pre_block_end);
+	  // else                                        dmbVector[dmb]->fxpreblkend(9); // moved to EmuPeripheralCrateBroadcast::onEnableCalCFEBGains
 	  dmbVector[dmb]->SetCfebClkDelay(cfeb_clk_delay);
 	  dmbVector[dmb]->setfebdelay(dmbVector[dmb]->GetKillFlatClk());
 	  dmbVector[dmb]->load_feb_clk_delay();
@@ -824,7 +826,17 @@ xoap::MessageReference EmuPeripheralCrateCommand::onConfigCalCFEB (xoap::Message
           //     ODMB-DCFEB specific configuration for calibration
           if(dmbVector[dmb]->GetHardwareVersion()==2)
           {
-               dmbVector[dmb]->odmb_calib_mode(1);
+	    dmbVector[dmb]->odmb_calib_mode(0); // 0: do not generate own L1A (TTC/TCDS will send it)
+	    dmbVector[dmb]->toggle_pedestal(); // Toggle ODMB to pedestal mode (to send L1A_MATCH to DCFEB for each L1A)
+	    dmbVector[dmb]->odmb_mask_pulse(0);   // 0: allow EXTPLS/INJPLS, 1: no EXTPLS/INJPLS
+
+	    dmbVector[dmb]->odmb_set_kill_mask(0x0180); // kill ALCT (0x0100) and TMB (0x0080)
+	    LOG4CPLUS_INFO( getApplicationLogger(), 
+			    "Crate " << dmbVector[dmb]->crate() << " slot " << dmbVector[dmb]->slot() << " ODMB now has"
+			    << " kill mask set to 0x"    << std::hex << dmbVector[dmb]->odmb_read_kill_mask()
+			    << ", calib mode set to "    << std::dec << dmbVector[dmb]->odmb_read_calib_mode()
+			    << ", pedestal mode set to "             << dmbVector[dmb]->odmb_read_pedestal_mode()
+			    << ", mask pulse set to "                << dmbVector[dmb]->odmb_read_mask_pulse() );
           }
 	  //
 

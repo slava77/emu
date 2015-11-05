@@ -842,8 +842,11 @@ public:
   inline int odmb_read_kill_mask() { return ReadRegister(ODMB_KILL); } 
   inline void odmb_mask_l1a_match(int mask_l1a) { WriteRegister(MASK_L1A, mask_l1a); }
   inline void odmb_mask_pulse(int mask_pls) { WriteRegister(MASK_PLS, mask_pls); }
-  inline int odmb_firmware_version() { return ReadRegister(read_FW_VERSION); }
+  inline int  odmb_read_mask_pulse() { return ReadRegister(MASK_PLS); }
+  inline int  odmb_firmware_version() { return ReadRegister(read_FW_VERSION); }
   inline void odmb_calib_mode(int mode) { WriteRegister(ODMB_MODE, mode); }
+  inline int  odmb_read_calib_mode() { return ReadRegister(ODMB_MODE); }
+  inline int  odmb_read_pedestal_mode() { return ReadRegister(L1A_MODE); }
 
   //DCFEB FIFO operations
   inline void odmb_rst_dcfeb_fifo(const unsigned fifo_select){WriteRegister(ODMB_RST_FIFO, fifo_select & 0x7F);}
