@@ -354,6 +354,7 @@
 			<option value="alct" title="Anode Local Charged Track (TMB counter 0)">ALCT</option>
 			<option value="clct" title="Cathode Local Charged Track pretrigger (TMB counter 13)">CLCT</option>
 			<option value="lct" title="CLCT*ALCT matched (TMB counter 30)" selected="selected">CLCT*ALCT matched</option>
+			<option value="rejected" title="MPC rejected both LCTs (TMB counter 52)">Both LCTs rejected</option>
 			<option value="l1a" title="TMB in Level-1 Accept window (TMB counter 54)">TMB in L1A window</option>
 		      </select>
 		    </td>
