@@ -1015,7 +1015,7 @@ int EmuPlotter::generateOnlineReport(std::string runname)
             }
 
           //* Try to detect lowered ME11 HV segment
-          if (ME11 && isBeam)
+          if (ME11 && isBeam && (csc_stats[cscName] > 50*16*7))
             {
               avgSCAlayer/=6;
               for (unsigned int i=0; i < layerSCAsums.size(); i++)

@@ -1061,13 +1061,14 @@ void Test_CFEB02::finishCSC(std::string cscID)
           tests.push_back("R15");
           tests.push_back("R16");
           tests.push_back("R17");
+/*
           tests.push_back("R18");
           tests.push_back("R19");
           tests.push_back("R20");
           tests.push_back("R21");
           tests.push_back("R22");
           tests.push_back("R23");
-
+*/
           for (int i=0; i<NLAYERS; i++)
             {
               if ( emu::dqm::utils::isME11(cscID) && (theFormatVersion >= 2013)) // Handle post-LS1 ME11s with 7 DCFEBs
