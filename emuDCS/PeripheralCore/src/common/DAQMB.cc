@@ -7756,8 +7756,11 @@ std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
         udelay(100);
         adc = (ibrd>>6)&0x3FF;
         if(i<6 && i!=3)
+        {
           // currents in (A) not (mA) !
           readf=adc*2./1024.0;
+          if(i==1) readf *= 2.5;  // extra adjustment for DV3P_2_CUR according to Ben
+        }
         else
         {
           // voltages in (V)
