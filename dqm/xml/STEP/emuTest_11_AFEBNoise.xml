@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Booking xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-		<Config>
-			<duration_ms>30000</duration_ms>
+	<Config>
+		<duration_ms>30000</duration_ms>
         </Config>
 
 
@@ -24,7 +24,6 @@
 		<Low0Limit>0</Low0Limit>
 		<High0Limit>40</High0Limit>
         <High1Limit>100</High1Limit>
-
         <High0Limit_ME11>30</High0Limit_ME11>
         <High1Limit_ME11>30</High1Limit_ME11>
         </TestResult> 
@@ -127,5 +126,28 @@
                 <SetLabelSizeY>0.03</SetLabelSizeY>
                 <SetOption>colz</SetOption>
 		<XScale>wires</XScale>
+        </TestResult>
+	<TestResult>
+                <Test>11_AFEBNoise</Test>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>E00</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>E00 - Summary CSCs with Format Errors</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
         </TestResult>
 </Booking>
