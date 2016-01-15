@@ -265,7 +265,6 @@ void Test_AFEB06::analyzeCSC(const CSCEventData& data)
       initCSC(cscID);
       addCSCtoMap(cscID, dmbHeader->crateID(), dmbHeader->dmbID());
     }
-  nCSCEvents[cscID]++;
 
   // std::cout << nCSCEvents[cscID] << " " << cscID << std::endl;
   // == Define aliases to access chamber specific data
@@ -279,6 +278,10 @@ void Test_AFEB06::analyzeCSC(const CSCEventData& data)
   int curr_thresh =  DDUstats[dduID].thresh;
   int curr_pass = DDUstats[dduID].pass;
 
+  // Skip processing of events if test pass > NMAXSCAN (2) to prevent crashing
+  if (curr_pass >= NMAXSCAN) return;
+
+  nCSCEvents[cscID]++;
   tstep.evt_cnt++;
 
   TH2F* v01 = reinterpret_cast<TH2F*>(cschistos["V01"]);
