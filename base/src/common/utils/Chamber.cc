@@ -41,10 +41,13 @@ emu::utils::Chamber::Chamber( const string& name )
   vector<string> matches;
   if ( toolbox::regx_match( name, regex, matches ) && matches.size() == 5 ){
     // cout << matches << endl;
+    // Note that converting from string to int is rather permissive, for example, utils::stringTo<int>( "07F+" ) = 7, 
+    // so here we must also check for non-digit characters.
+    const string digits( "0123456789" );
     endcap_  = endcapNumber( matches[1].c_str()[0] );
-    station_ = utils::stringTo<int>( matches[2] );
-    ring_    = utils::stringTo<int>( matches[3] );
-    chamber_ = utils::stringTo<int>( matches[4] );
+    station_ = ( matches[2].find_first_not_of( digits ) == string::npos ? utils::stringTo<int>( matches[2] ) : -1 );
+    ring_    = ( matches[3].find_first_not_of( digits ) == string::npos ? utils::stringTo<int>( matches[3] ) : -1 );
+    chamber_ = ( matches[4].find_first_not_of( digits ) == string::npos ? utils::stringTo<int>( matches[4] ) : -1 );
   }
   if ( isValid() ) name_ = canonicalName();
   else             name_ = name;
