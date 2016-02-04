@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" user="cscdev" path="levelOne/tryTCDS">
+		<FunctionManager name="template" hostname="cmsrc-cscdev.cms" port="32000" qualifiedResourceType="rcms.fm.resource.qualifiedresource.FunctionManager" sourceURL="http://cmsrc-cscdev.cms:32000/functionmanagers/cscL1FM.jar" className="rcms.fm.app.cscL1FM.MyFunctionManager">
+		</FunctionManager>
+</Configuration>
