@@ -8942,7 +8942,7 @@ std::vector<float> DAQMB::odmb_fpga_adc()
   return readout;
 }
 
-int DAQMB::DCSread2(char *data, bool read_dcfeb)
+int DAQMB::DCSread2(char *data, int read_dcfeb)
 {
 
 // add DCFEB monitoring info here
@@ -8951,7 +8951,9 @@ int DAQMB::DCSread2(char *data, bool read_dcfeb)
 //          2. DCFEB ADC
 //          3. DCFEB SEU
 //     }
-
+// read_dcfeb flag: bit 0 (1)--read SYSMON
+//                  bit 1 (2)--read ADC
+//                  bit 2 (4)--read SEU
   int retn=0;
   short *data2= (short *)data;
   int TOTAL_SYSMON=19;
@@ -8966,10 +8968,10 @@ int DAQMB::DCSread2(char *data, bool read_dcfeb)
 
   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)
   {
-    if(read_dcfeb)
+    int febnum=cfebs_[lfeb].number();
+    if(read_dcfeb&1)
     {
       std::vector<float> fsysmon=dcfeb_fpga_monitor(cfebs_[lfeb]);
-      int febnum=cfebs_[lfeb].number();
       for(unsigned i=0; i<fsysmon.size(); i++)
       {
          if(i==10)
@@ -8980,11 +8982,17 @@ int DAQMB::DCSread2(char *data, bool read_dcfeb)
             data2[febnum*TOTAL_DCFEB+i]=int(fsysmon[i]*100);
       }
       fsysmon.clear();
+    }
+    if(read_dcfeb&2)
+    {
       std::vector<float> dadc=dcfeb_adc(cfebs_[lfeb]);
       for(unsigned i=0; i<dadc.size(); i++)
       {
-         data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+i]=int(dadc[i]*100);
+        data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+i]=int(dadc[i]*100);
       }
+    }
+    if(read_dcfeb&4)
+    {
       data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+TOTAL_ADC]=0x3FF & SEM_read_status(cfebs_[lfeb]);
       data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+TOTAL_ADC+1]=SEM_read_errcnt(cfebs_[lfeb]);
       data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+TOTAL_ADC+2]=0;

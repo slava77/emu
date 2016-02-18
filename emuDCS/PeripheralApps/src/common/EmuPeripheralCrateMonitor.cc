@@ -129,7 +129,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   slow_on = true;
   extra_on = true;
   reload_vcc = true;
-  read_dcfeb = true;
+  read_dcfeb = 7; // read all DCFEB data (SYSMON, ADC, SEU)
   fast_count = 0;
   slow_count = 0;
   extra_count = 0;
@@ -4025,9 +4025,27 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
   }
   else if (command_name=="DCFEB")
   {
-     if (command_argu=="ON" || command_argu=="on") read_dcfeb = true;
-     else if (command_argu=="OFF" || command_argu=="off") read_dcfeb = false;
+     if (command_argu=="ON" || command_argu=="on") read_dcfeb = 7;
+     else if (command_argu=="OFF" || command_argu=="off") read_dcfeb = 0;
      std::cout << "SwitchBoard: DCFEB Read " << command_argu << " at " << getLocalDateTime() << std::endl;
+  }
+  else if (command_name=="DCFEBSYS")
+  {
+     if (command_argu=="ON" || command_argu=="on") read_dcfeb |= 1;
+     else if (command_argu=="OFF" || command_argu=="off") read_dcfeb &= 0xFFFE;
+     std::cout << "SwitchBoard: DCFEB-SYSMON Read " << command_argu << " at " << getLocalDateTime() << std::endl;
+  }
+  else if (command_name=="DCFEBADC")
+  {
+     if (command_argu=="ON" || command_argu=="on") read_dcfeb |= 2;
+     else if (command_argu=="OFF" || command_argu=="off") read_dcfeb &= 0xFFFD;
+     std::cout << "SwitchBoard: DCFEB-ADC Read " << command_argu << " at " << getLocalDateTime() << std::endl;
+  }
+  else if (command_name=="DCFEBSEU")
+  {
+     if (command_argu=="ON" || command_argu=="on") read_dcfeb |= 4;
+     else if (command_argu=="OFF" || command_argu=="off") read_dcfeb &= 0xFFFB;
+     std::cout << "SwitchBoard: DCFEB-SEU Read " << command_argu << " at " << getLocalDateTime() << std::endl;
   }
   else if (command_name=="DEBUGON")
   {

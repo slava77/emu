@@ -897,7 +897,7 @@ void Crate::MonitorDCS(int cycle, char * buf, unsigned mask)
   return;
 }
 
-void Crate::MonitorDCS2(int cycle, char * buf, unsigned mask, bool read_dcfeb) 
+void Crate::MonitorDCS2(int cycle, char * buf, unsigned mask, int read_dcfeb) 
 {
   // flag  bits 13-10:  if !=0, bad TMB/DMB # (1-9)
   // flag  bit pattern 8-0:  for each TMB/DMB
