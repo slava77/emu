@@ -1025,10 +1025,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
                   if (tmbHeader->syncErrorMPC0()) mo->Fill(3);
                   if (tmbHeader->syncErrorMPC1()) mo->Fill(4);
                 }
-              if (isMEvalid(nodeME, "CSC_TMB_Sync_Error", mo) && tmbHeader->syncError()==1) mo->Fill(CSCposition, CSCtype);
-              if (isMEvalid(nodeME, "CSC_TMB_CLCT_Sync_Error", mo) && tmbHeader->syncErrorCLCT()==1) mo->Fill(CSCposition, CSCtype);
-              if (isMEvalid(nodeME, "CSC_TMB_MPC0_Sync_Error", mo) && tmbHeader->syncErrorMPC0()==1) mo->Fill(CSCposition, CSCtype);
-              if (isMEvalid(nodeME, "CSC_TMB_MPC1_Sync_Error", mo) && tmbHeader->syncErrorMPC1()==1) mo->Fill(CSCposition, CSCtype);
+              if (isMEvalid(nodeME, "CSC_TMB_Sync_Error", mo) && (tmbHeader->syncError()==1)) mo->Fill(CSCposition, CSCtype);
+              if (isMEvalid(nodeME, "CSC_TMB_CLCT_Sync_Error", mo) && (tmbHeader->syncErrorCLCT()==1)) mo->Fill(CSCposition, CSCtype);
+              if (isMEvalid(nodeME, "CSC_TMB_MPC0_Sync_Error", mo) && (tmbHeader->syncErrorMPC0()==1)) mo->Fill(CSCposition, CSCtype);
+              if (isMEvalid(nodeME, "CSC_TMB_MPC1_Sync_Error", mo) && (tmbHeader->syncErrorMPC1()==1)) mo->Fill(CSCposition, CSCtype);
 
 
               EmuMonitoringObject*  mo_CSC_Plus_endcap_CLCT0_dTime = 0;
@@ -1536,77 +1536,81 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
               for (int nSample = 0; nSample < NmbTimeSamples; ++nSample)
                 {
-                  if (timeSlice(data, nCFEB, nSample) == 0)
+                  if (nLayer == 1)
                     {
-                      if (debug) LOG4CPLUS_WARN(logger_, "CFEB" << nCFEB << " nSample: " << nSample << " - B-Word");
-                      continue;
-                    }
-                  /* else
-                    {
-                            std::cout << "CFEB" << nCFEB << " nSample: " << nSample
-                              << " CRC: " << timeSlice[nCFEB][nSample]->get_crc()
-                              << " calcCRC: " << timeSlice[nCFEB][nSample]->calcCRC() << std::endl;
+                      if (timeSlice(data, nCFEB, nSample) == 0)
+                        {
+                          if (debug) LOG4CPLUS_WARN(logger_, "CFEB" << nCFEB << " nSample: " << nSample << " - B-Word");
+                          continue;
+                        }
+                      /* else
+                        {
+                                std::cout << "CFEB" << nCFEB << " nSample: " << nSample
+                                  << " CRC: " << timeSlice[nCFEB][nSample]->get_crc()
+                                  << " calcCRC: " << timeSlice[nCFEB][nSample]->calcCRC() << std::endl;
 
-                    } */
+                        } */
 
 //////
-                  if (mo_CFEB_DMB_L1A_diff && !fCloseL1As )
-                    {
-                      // int cfeb_dmb_l1a_diff = (int)((timeSlice(data, nCFEB, nSample)->get_L1A_number())-dmbHeader->l1a()%64);
-                      int cfeb_dmb_l1a_diff = (int)((timeSlice(data, nCFEB, nSample)->get_L1A_number())-dmbHeader->l1a24()%64);
-
-                      // std::cout << "DMB: " << dmbHeader->l1a24() << " CFEB" << nCFEB << ": " << (timeSlice(data, nCFEB, nSample)->get_L1A_number()) << std::endl;
-                      if (cfeb_dmb_l1a_diff != 0)
+                      if (mo_CFEB_DMB_L1A_diff && !fCloseL1As )
                         {
-                          L1A_out_of_sync = true;
+                          // int cfeb_dmb_l1a_diff = (int)((timeSlice(data, nCFEB, nSample)->get_L1A_number())-dmbHeader->l1a()%64);
+                          int cfeb_dmb_l1a_diff = (int)((timeSlice(data, nCFEB, nSample)->get_L1A_number())-dmbHeader->l1a24()%64);
+
+                          // std::cout << "DMB: " << dmbHeader->l1a24() << " CFEB" << nCFEB << ": " << (timeSlice(data, nCFEB, nSample)->get_L1A_number()) << std::endl;
+                          if (cfeb_dmb_l1a_diff != 0)
+                            {
+                              L1A_out_of_sync = true;
+                              std::cout << "DMB: " << dmbHeader->l1a24()%64 << " CFEB" << nCFEB << ": " << (timeSlice(data, nCFEB, nSample)->get_L1A_number()) << std::endl;
+                            }
+                          if (cfeb_dmb_l1a_diff < -32) mo_CFEB_DMB_L1A_diff->Fill(cfeb_dmb_l1a_diff + 64);
+                          else
+                            {
+                              if (cfeb_dmb_l1a_diff >= 32) mo_CFEB_DMB_L1A_diff->Fill(cfeb_dmb_l1a_diff - 64);
+                              else mo_CFEB_DMB_L1A_diff->Fill(cfeb_dmb_l1a_diff);
+                            }
+                          mo_CFEB_DMB_L1A_diff->SetAxisRange(0.1, 1.1*(1.0
+                                                             + mo_CFEB_DMB_L1A_diff->GetBinContent(mo_CFEB_DMB_L1A_diff->getObject()->GetMaximumBin())), "Y");
                         }
-                      if (cfeb_dmb_l1a_diff < -32) mo_CFEB_DMB_L1A_diff->Fill(cfeb_dmb_l1a_diff + 64);
-                      else
+
+                      TrigTime = (int)(timeSlice(data, nCFEB, nSample)->scaControllerWord(nLayer).trig_time);
+
+                      FreeCells = timeSlice(data, nCFEB, nSample)->get_n_free_sca_blocks();
+                      LCT_Pipe_Empty = timeSlice(data, nCFEB, nSample)->get_lctpipe_empty();
+                      LCT_Pipe_Full = timeSlice(data, nCFEB, nSample)->get_lctpipe_full();
+                      LCT_Pipe_Count = timeSlice(data, nCFEB, nSample)->get_lctpipe_count();
+                      L1_Pipe_Empty = timeSlice(data, nCFEB, nSample)->get_l1pipe_empty();
+                      L1_Pipe_Full = timeSlice(data, nCFEB, nSample)->get_l1pipe_full();
+                      Buffer_Count = timeSlice(data, nCFEB, nSample)->get_buffer_count();
+
+                      SCA_BLK  = (int)(timeSlice(data, nCFEB, nSample)->scaControllerWord(nLayer).sca_blk);
+
+
+                      // SCA Block Occupancy Histograms
+                      if (mo_CFEB_SCA_Block_Occupancy) mo_CFEB_SCA_Block_Occupancy->Fill(SCA_BLK);
+
+                      // Free SCA Cells
+                      if (mo_CFEB_Free_SCA_Cells)
                         {
-                          if (cfeb_dmb_l1a_diff >= 32) mo_CFEB_DMB_L1A_diff->Fill(cfeb_dmb_l1a_diff - 64);
-                          else mo_CFEB_DMB_L1A_diff->Fill(cfeb_dmb_l1a_diff);
+                          if (timeSlice(data, nCFEB, nSample)->scaControllerWord(nLayer).sca_full == 1) mo_CFEB_Free_SCA_Cells->Fill(-1);
+                          mo_CFEB_Free_SCA_Cells->Fill(FreeCells);
                         }
-                      mo_CFEB_DMB_L1A_diff->SetAxisRange(0.1, 1.1*(1.0
-                                                         + mo_CFEB_DMB_L1A_diff->GetBinContent(mo_CFEB_DMB_L1A_diff->getObject()->GetMaximumBin())), "Y");
-                    }
 
-                  TrigTime = (int)(timeSlice(data, nCFEB, nSample)->scaControllerWord(nLayer).trig_time);
+                      // Number of SCA Blocks Locked by LCTs
+                      if (mo_CFEB_SCA_Blocks_Locked_by_LCTs)
+                        {
+                          if (LCT_Pipe_Empty == 1) mo_CFEB_SCA_Blocks_Locked_by_LCTs->Fill(-0.5);
+                          if (LCT_Pipe_Full == 1) mo_CFEB_SCA_Blocks_Locked_by_LCTs->Fill(16.5);
+                          mo_CFEB_SCA_Blocks_Locked_by_LCTs->Fill(LCT_Pipe_Count);
+                        }
 
-                  FreeCells = timeSlice(data, nCFEB, nSample)->get_n_free_sca_blocks();
-                  LCT_Pipe_Empty = timeSlice(data, nCFEB, nSample)->get_lctpipe_empty();
-                  LCT_Pipe_Full = timeSlice(data, nCFEB, nSample)->get_lctpipe_full();
-                  LCT_Pipe_Count = timeSlice(data, nCFEB, nSample)->get_lctpipe_count();
-                  L1_Pipe_Empty = timeSlice(data, nCFEB, nSample)->get_l1pipe_empty();
-                  L1_Pipe_Full = timeSlice(data, nCFEB, nSample)->get_l1pipe_full();
-                  Buffer_Count = timeSlice(data, nCFEB, nSample)->get_buffer_count();
-
-                  SCA_BLK  = (int)(timeSlice(data, nCFEB, nSample)->scaControllerWord(nLayer).sca_blk);
-
-
-                  // SCA Block Occupancy Histograms
-                  if (mo_CFEB_SCA_Block_Occupancy) mo_CFEB_SCA_Block_Occupancy->Fill(SCA_BLK);
-
-                  // Free SCA Cells
-                  if (mo_CFEB_Free_SCA_Cells)
-                    {
-                      if (timeSlice(data, nCFEB, nSample)->scaControllerWord(nLayer).sca_full == 1) mo_CFEB_Free_SCA_Cells->Fill(-1);
-                      mo_CFEB_Free_SCA_Cells->Fill(FreeCells);
-                    }
-
-                  // Number of SCA Blocks Locked by LCTs
-                  if (mo_CFEB_SCA_Blocks_Locked_by_LCTs)
-                    {
-                      if (LCT_Pipe_Empty == 1) mo_CFEB_SCA_Blocks_Locked_by_LCTs->Fill(-0.5);
-                      if (LCT_Pipe_Full == 1) mo_CFEB_SCA_Blocks_Locked_by_LCTs->Fill(16.5);
-                      mo_CFEB_SCA_Blocks_Locked_by_LCTs->Fill(LCT_Pipe_Count);
-                    }
-
-                  // Number of SCA Blocks Locked by LCTxL1
-                  if (mo_CFEB_SCA_Blocks_Locked_by_LCTxL1)
-                    {
-                      if (L1_Pipe_Empty == 1) mo_CFEB_SCA_Blocks_Locked_by_LCTxL1->Fill(-0.5);
-                      if (L1_Pipe_Full == 1) mo_CFEB_SCA_Blocks_Locked_by_LCTxL1->Fill(31.5);
-                      mo_CFEB_SCA_Blocks_Locked_by_LCTxL1->Fill(Buffer_Count);
+                      // Number of SCA Blocks Locked by LCTxL1
+                      if (mo_CFEB_SCA_Blocks_Locked_by_LCTxL1)
+                        {
+                          if (L1_Pipe_Empty == 1) mo_CFEB_SCA_Blocks_Locked_by_LCTxL1->Fill(-0.5);
+                          if (L1_Pipe_Full == 1) mo_CFEB_SCA_Blocks_Locked_by_LCTxL1->Fill(31.5);
+                          mo_CFEB_SCA_Blocks_Locked_by_LCTxL1->Fill(Buffer_Count);
+                        }
                     }
 
                   if (nSample == 0 && nLayer == 1)

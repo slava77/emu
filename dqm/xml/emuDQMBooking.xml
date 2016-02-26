@@ -3641,7 +3641,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMax>32</XMax>
                 <XBins>64</XBins>
                 <XTitle>CFEB1 L1A - DMB L1A</XTitle>
-                <YTitle>Number of events</YTitle>
+                <YTitle>Number of CFEB Time Samples</YTitle>
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB1 L1A numbers</Title>
                 <Folder>CFEB</Folder>
@@ -3657,7 +3657,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMax>32</XMax>
                 <XBins>64</XBins>
                 <XTitle>CFEB2 L1A - DMB L1A</XTitle>
-                <YTitle>Number of events</YTitle>
+                <YTitle>Number of CFEB Time Samples</YTitle>
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB2 L1A numbers</Title>
                 <Folder>CFEB</Folder>
@@ -3673,7 +3673,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMax>32</XMax>
                 <XBins>64</XBins>
                 <XTitle>CFEB3 L1A - DMB L1A</XTitle>
-                <YTitle>Number of events</YTitle>
+                <YTitle>Number of CFEB Time Samples</YTitle>
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB3 L1A numbers</Title>
                 <Folder>CFEB</Folder>
@@ -3689,7 +3689,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMax>32</XMax>
                 <XBins>64</XBins>
                 <XTitle>CFEB4 L1A - DMB L1A</XTitle>
-                <YTitle>Number of events</YTitle>
+                <YTitle>Number of CFEB Time Samples</YTitle>
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB4 L1A numbers</Title>
                 <Folder>CFEB</Folder>
@@ -3705,7 +3705,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMax>32</XMax>
                 <XBins>64</XBins>
                 <XTitle>CFEB5 L1A - DMB L1A</XTitle>
-                <YTitle>Number of events</YTitle>
+                <YTitle>Number of CFEB Time Samples</YTitle>
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB5 L1A numbers</Title>
                 <Folder>CFEB</Folder>
@@ -3721,7 +3721,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMax>32</XMax>
                 <XBins>64</XBins>
                 <XTitle>CFEB6 L1A - DMB L1A</XTitle>
-                <YTitle>Number of events</YTitle>
+                <YTitle>Number of CFEB Time Samples</YTitle>
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB6 L1A numbers</Title>
                 <Folder>CFEB</Folder>
@@ -3737,7 +3737,7 @@ E+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17
                 <XMax>32</XMax>
                 <XBins>64</XBins>
                 <XTitle>CFEB7 L1A - DMB L1A</XTitle>
-                <YTitle>Number of events</YTitle>
+                <YTitle>Number of CFEB Time Samples</YTitle>
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB7 L1A numbers</Title>
                 <Folder>CFEB</Folder>
