@@ -1561,7 +1561,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
                           if (cfeb_dmb_l1a_diff != 0)
                             {
                               L1A_out_of_sync = true;
-                              std::cout << "DMB: " << dmbHeader->l1a24()%64 << " CFEB" << nCFEB << ": " << (timeSlice(data, nCFEB, nSample)->get_L1A_number()) << std::endl;
+                              // std::cout << "DMB: " << dmbHeader->l1a24()%64 << " CFEB" << nCFEB << ": " << (timeSlice(data, nCFEB, nSample)->get_L1A_number()) << std::endl;
                             }
                           if (cfeb_dmb_l1a_diff < -32) mo_CFEB_DMB_L1A_diff->Fill(cfeb_dmb_l1a_diff + 64);
                           else
