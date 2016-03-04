@@ -7712,7 +7712,7 @@ void DAQMB::dcfeb_fpga_call(int inst, unsigned data, char *outbuf)
   udelay(10);
 }
 
-std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
+std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb, bool inDCS)
 {
   // only read out first 3 channels
   
@@ -7769,7 +7769,9 @@ std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
         }
         readout.push_back(readf);
      }
-// read out the Flag and Control registers
+   if(!inDCS)
+   {
+     // read out the Flag and Control registers
      data=0x43F0000;
      cfeb_do(10, &comd, 32, &data, rcvbuf, NOW|READ_YES);
      udelay(100);
@@ -7786,6 +7788,7 @@ std::vector<float> DAQMB::dcfeb_fpga_monitor(CFEB & cfeb)
           readout[15]=adc;  // Control register #1 stored at readout[15] which was undefined
         }
      }
+   }
      comd=VTX6_BYPASS;
      cfeb_do(10, &comd, 0, &data, rcvbuf, NOW);
      udelay(10);
@@ -8971,7 +8974,7 @@ int DAQMB::DCSread2(char *data, int read_dcfeb)
     int febnum=cfebs_[lfeb].number();
     if(read_dcfeb&1)
     {
-      std::vector<float> fsysmon=dcfeb_fpga_monitor(cfebs_[lfeb]);
+      std::vector<float> fsysmon=dcfeb_fpga_monitor(cfebs_[lfeb], true);
       for(unsigned i=0; i<fsysmon.size(); i++)
       {
          if(i==10)

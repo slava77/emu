@@ -740,7 +740,7 @@ public:
   void cfeb_do(int ncmd,void *cmd,int nbuf, void *inbuf,char *outbuf,int irdsnd); 
   void dcfeb_core(int jfunc, int nbit, void *inbuf, char *outbuf, int option);
   void dcfeb_fpga_call(int inst, unsigned data, char *outbuf);
-  std::vector<float> dcfeb_fpga_monitor(CFEB & cfeb);
+  std::vector<float> dcfeb_fpga_monitor(CFEB & cfeb, bool inDCS=false);
   void dcfeb_hub(CFEB & cfeb, int jfunc, int nbit, void *inbuf, char *outbuf, int option);
   void dcfeb_sys_reset(CFEB & cfeb);
   void dcfeb_comp_clock_phase_reset();
