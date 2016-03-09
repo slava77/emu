@@ -4548,6 +4548,12 @@ void TMB::DiStripHCMask(int DiStrip) {
 }
 //
 //
+void TMB::disableALCTClock(){
+  sndbuf[0]= 0x1b;
+  sndbuf[1]= 0xe0;
+  tmb_vme(VME_WRITE, vme_step_adr, sndbuf,rcvbuf,NOW);
+}
+//
 void TMB::disableAllClocks(){
   /// Disable all clocks to cfeb and alct. Should be used when updating the ALCT firmware
   //

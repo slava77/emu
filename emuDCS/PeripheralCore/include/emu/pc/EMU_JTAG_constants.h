@@ -153,7 +153,7 @@ const int ChainAlctSlowMezz       = 0x1;
 const int NumberChipsAlctSlowMezz =   1;
 //
 const int ChipLocationAlctSlowMezzProm       =   0;
-const int OpcodeSizeAlctSlowMezzProm         =   8;
+const int OpcodeSizeAlctSlowMezzProm         =   11;
 //
 //
 const int RegSizeAlctSlowMezzFpga_PROMidCode =   32;

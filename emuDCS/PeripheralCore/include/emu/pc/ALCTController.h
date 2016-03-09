@@ -289,6 +289,7 @@ class ALCTController : public EmuLogger
   ///////////////////////
   //SLOW CONTROL ID
   ///////////////////////
+  int  GetSlowControlPROMID();                         // get Read values
   int  GetSlowControlChipId();                         // get Read values
   int  GetSlowControlVersionId();                      // get Read values
   int  GetSlowControlYear();                           // get Read values

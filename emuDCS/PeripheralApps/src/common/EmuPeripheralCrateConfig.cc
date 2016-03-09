@@ -30,7 +30,9 @@ const std::string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
 const std::string       DMBVME_VERIFY_FILENAME   = "dmb/dmb_vprom_verify.svf";
 const std::string       DMBVME_COMPARE_FILENAME  = "dmb/eprom_dmb_vprom.cmp";
 
-const std::string	ALCT_SLOW_FIRMWARE_FILENAME = "alct/slow/slow_control3_verify_noabstime.svf";
+const std::string	ALCT_SLOW_FIRMWARE_FILENAME_XC18V04 = "alct/slow/slow_control_xc18v04.svf";
+const std::string	ALCT_SLOW_FIRMWARE_FILENAME_XC18V01 = "alct/slow/slow_control_xc18v01.svf";
+
  //
 //In order to load firmware automatically from the firmware values in the xml files, 
 //the firmware needs to reside in directories in the form:
@@ -9969,7 +9971,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   if (alct) {
     *out << "ALCT Slow Control: " << cgicc::br() << std::endl;
-    *out << "firmware version = " << FirmwareDir_ + ALCT_SLOW_FIRMWARE_FILENAME << cgicc::br() << std::endl;
+    *out << "firmware version = " << FirmwareDir_ + ALCT_SLOW_FIRMWARE_FILENAME_XC18V01 << cgicc::br() << std::endl;
     //
     *out << "Step 1)  Disable DCS monitoring to crates" << cgicc::br() << std::endl;
     //
@@ -11001,21 +11003,20 @@ void EmuPeripheralCrateConfig::LoadALCTSlowFirmware(xgi::Input * in, xgi::Output
   if(thisTMB)
   {
     std::string chambername = thisCrate->GetChamber(thisTMB)->GetLabel();
-    std::string svffile = FirmwareDir_ + ALCT_SLOW_FIRMWARE_FILENAME;
     thisCCB->setCCBMode(CCB::VMEFPGA);
-      
+
     std::cout  << getLocalDateTime() << " Download ALCT Slow Control firmware to " << chambername << std::endl;
-      
-    //disable TMB clocks
-    std::cout << "Disable All TMB Clocks" << std::endl; 
-    thisTMB->disableAllClocks(); //anp
-    ::sleep(10);
+
+    //disable ALCT clock
+    std::cout << "Disable TMB ALCT Clock" << std::endl;
+    thisTMB->disableALCTClock();
+    ::sleep(1);
 
     //power cycle ALCT
     DAQMB * thisDMB = dmbVector[tmb];  // TMB and DMB in a pair should have the the same number
 
     std::cout << "DMB Turn Off and then On ALCT: DMB " << tmb << std::endl;
-    if (thisDMB) 
+    if (thisDMB)
     {
         int D_hversion=thisDMB->GetHardwareVersion();
         int alct_on=((D_hversion<=1)?0x20:0x80);
@@ -11028,34 +11029,45 @@ void EmuPeripheralCrateConfig::LoadALCTSlowFirmware(xgi::Input * in, xgi::Output
         thisDMB->lowv_onoff(old_powermask | alct_on);
     }
 
-    thisTMB->setup_jtag(ChainAlctSlowMezz);
-    thisTMB->svfLoad(0,svffile.c_str(), 0, 1);
+    ALCTController * thisALCT = thisTMB->alctController();
+    thisALCT->ReadSlowControlId();
+    int prom_id = thisALCT->GetSlowControlPROMID();
+    bool prom_valid = 0;
+
+    std::string svffile;
+    // look for a recognized PROM ID
+    // the most-significant 4 bits of the PROMID may be a die revision code, which can vary per-chip
+    // so we mask off those bits and just check the lower 7 hex digits
+    if      ((prom_id&0xfffffff)==0x5034093 || prom_id==0x05024093) {
+        prom_valid=1;
+        svffile = FirmwareDir_ + ALCT_SLOW_FIRMWARE_FILENAME_XC18V01;
+        std::cout  << "Found ALCT Slow Control PROM Type XC18V01" << std::endl;
+    }
+    else if ((prom_id&0xfffffff)==0x5036093 || prom_id==0x05026093) {
+        prom_valid=1;
+        svffile = FirmwareDir_ + ALCT_SLOW_FIRMWARE_FILENAME_XC18V04;
+        std::cout  << "Found ALCT Slow Control PROM Type XC18V04" << std::endl;
+    }
+    else
+        std::cout  << "ALCT Slow Control PROM IDCode=0x" << std::hex << prom_id << std::dec <<" Not Recognized" << std::endl;
+
+    if (prom_valid) {
+        thisTMB->setup_jtag(ChainAlctSlowMezz);
+        thisTMB->svfLoad(0,svffile.c_str(), 0, 1);
+    }
 
     //reenable TMB clocks
-    std::cout << "Enable All TMB Clocks" << std::endl; 
+    std::cout << "Enable All TMB Clocks" << std::endl;
     ::sleep(1);
-    thisTMB->enableAllClocks(); //anp
-    
-    //power cycle ALCT again
+    thisTMB->enableAllClocks();
 
-    std::cout << "DMB Turn Off and then On ALCT: DMB " << tmb << std::endl;
-    if (thisDMB) 
-    {
-        int D_hversion=thisDMB->GetHardwareVersion();
-        int alct_on=((D_hversion<=1)?0x20:0x80);
-        int alct_off=((D_hversion<=1)?0x1F:0x7F);
-        int old_powermask=thisDMB->lowv_rdpwrreg();
-        // turn off
-        thisDMB->lowv_onoff(old_powermask & alct_off);
-        ::sleep(2);
-        //turn on
-        thisDMB->lowv_onoff(old_powermask | alct_on);
-    }
+    // hard reset to reload the alct
+    thisCCB->hardReset();
 
     // Put CCB back into DLOG mode to listen to TTC commands...
     thisCCB->setCCBMode(CCB::DLOG);
   }
-  
+
   this->TMBUtils(in,out);
 }
 //

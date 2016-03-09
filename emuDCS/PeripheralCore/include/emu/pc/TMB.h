@@ -666,6 +666,7 @@ public:
   //
   void enableAllClocks();
   void disableAllClocks();
+  void disableALCTClock();
   //
   // Public OTMB BPI-->EPROM access rountines
   // Functions to access VME registers defined for BPI

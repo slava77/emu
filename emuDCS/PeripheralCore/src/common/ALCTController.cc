@@ -1077,7 +1077,7 @@ void ALCTController::ReadSlowControlId() {
   tmb_->setup_jtag(ChainAlctSlowMezz);
   //
   tmb_->ShfIR_ShfDR(ChipLocationAlctSlowMezzProm,
-		    PROMidCode,
+		    0x7FE,
 		    RegSizeAlctSlowMezzFpga_PROMidCode);
   //
   alct_slow_prom_idcode_ = tmb_->bits_to_int(tmb_->GetDRtdo(),tmb_->GetRegLength(),0);
@@ -1099,6 +1099,10 @@ void ALCTController::PrintSlowControlId() {
   //  (*MyOutput_) << " PROM ID code = 0x" << std::hex << alct_slow_prom_idcode_ << std::endl;
   //
   return;
+}
+//
+int ALCTController::GetSlowControlPROMID() {
+  return (alct_slow_prom_idcode_);
 }
 //
 int ALCTController::GetSlowControlChipId() { 
