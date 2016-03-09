@@ -9750,6 +9750,11 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::br();
   //
+  bool print_it=false;
+  std::string CCBHardResetFromTMBPage = toolbox::toString("/%s/CCBHardResetFromTMBPage",getApplicationDescriptor()->getURN().c_str());
+
+  if (thisTMB->GetHardwareVersion()<=1)
+  {
   *out << "TMB: " << cgicc::br() << std::endl;
   *out << "firmware version = " << TMBFirmware_[tmb].toString() << ".xsvf" << cgicc::br() << std::endl;
   //
@@ -9799,7 +9804,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::table();
   //
-  bool print_it = false;
+  print_it = false;
   for (int j=0;j<9;j++) 
     if (number_of_tmb_firmware_errors[j] >= 0) 
       print_it = true;
@@ -9818,7 +9823,6 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     }
   }
   //
-  std::string CCBHardResetFromTMBPage = toolbox::toString("/%s/CCBHardResetFromTMBPage",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CCBHardResetFromTMBPage) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Step 4) CCB hard reset") << std::endl ;
   *out << cgicc::form() << std::endl ;
@@ -9844,13 +9848,72 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form().set("method","GET").set("action",ClearTMBBootReg) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Step 6) Enable VME Access to TMB FPGA") << std::endl ;
   *out << cgicc::form() << std::endl ;
+  }  // end of TMB
+  else
+  {  // start OTMB
+    *out << "OTMB: " << cgicc::br() << std::endl;
+    std::string svffile=TMBFirmware_[tmb].toString()+".svf";
+    *out << "firmware = " << svffile << cgicc::br() << std::endl;
+    //
+    *out << "Step 1)  Disable DCS monitoring to crates, and TURN OFF ALCTs" << cgicc::br() << std::endl;
+    //
+    std::string LoadVirtex6TMBFirmware = toolbox::toString("/%s/LoadVirtex6TMBFirmware",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",LoadVirtex6TMBFirmware) << std::endl ;
+    sprintf(buf,"Step 2)  Load OTMB Firmware to EPROM in slot %d",tmbVector[tmb]->slot());
+    *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::form().set("method","GET").set("action",CCBHardResetFromTMBPage) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Step 3) CCB hard reset") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string CheckTMBFirmware = toolbox::toString("/%s/CheckTMBFirmware",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CheckTMBFirmware) ;
+    if ( tmb_vme_ready == 1 ) {
+      //
+      *out << cgicc::input().set("type","submit").set("value","Step 4) Check TMB VME Ready").set("style","color:green");
+      //
+    } else if ( tmb_vme_ready == 0 ) {
+      //
+      *out << cgicc::input().set("type","submit").set("value","Step 4) Check TMB VME Ready").set("style","color:red");
+      //
+    } else {
+      //
+      *out << cgicc::input().set("type","submit").set("value","Step 4) Check TMB VME Ready").set("style","color:blue");
+      //
+    }
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string ClearTMBBootReg = toolbox::toString("/%s/ClearTMBBootReg",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",ClearTMBBootReg) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Step 5) Enable VME Access to TMB FPGA") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+
+    *out << cgicc::br() << std::endl;
+    *out << "OTMB FPGA: " << cgicc::br() << std::endl;
+    std::string mcsfile=TMBFirmware_[tmb].toString()+".mcs";
+    *out << "firmware = " << mcsfile << cgicc::br() << std::endl;
+
+    std::string LoadVirtex6TMBFpga = toolbox::toString("/%s/LoadVirtex6TMBFPGA",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",LoadVirtex6TMBFpga) << std::endl ;
+    sprintf(buf,"Program OTMB Virtex 6 FPGA in slot %d",tmbVector[tmb]->slot());
+    *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+  }  // end of OTMB
+  //
   //
   *out << cgicc::br() << std::endl;
   *out << cgicc::br() << std::endl;
   //
   if (alct) {
     *out << "ALCT: " << cgicc::br() << std::endl;
-    *out << "firmware version = " << ALCTFirmware_[tmb].toString() << ".xsvf" << cgicc::br() << std::endl;
+  if (alct->GetHardwareVersion()<=1)
+  {
+     *out << "firmware version = " << ALCTFirmware_[tmb].toString() << ".xsvf" << cgicc::br() << std::endl;
     //
     *out << "Step 1)  Disable DCS monitoring to crates" << cgicc::br() << std::endl;
     //
@@ -9925,10 +9988,28 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     *out << cgicc::form().set("method","GET").set("action",CCBHardResetFromTMBPage) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Step 4) CCB hard reset") << std::endl ;
     *out << cgicc::form() << std::endl ;
-  }
+  }  // end of old ALCT
+  else
+  {  // begin new ALCT
+    *out << "firmware version = " << ALCTFirmware_[tmb].toString() << ".svf" << cgicc::br() << std::endl;
+    *out << "Step 1)  Disable DCS monitoring to crates" << cgicc::br() << std::endl;
+    //
+    std::string LoadSpartan6ALCTFirmware = toolbox::toString("/%s/LoadSpartan6ALCTFirmware",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",LoadSpartan6ALCTFirmware) << std::endl ;
+    sprintf(buf,"Step 2) Load ALCT Spartan 6 Firmware in slot %d",tmbVector[tmb]->slot());
+    *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::form().set("method","GET").set("action",CCBHardResetFromTMBPage) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Step 3) CCB hard reset") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+  }  // end of new ALCT
   //
   *out << cgicc::br() << std::endl;
   *out << cgicc::br() << std::endl;
+  }  // end of ALCT
   //
   if (rat) {
     *out << "RAT: " << cgicc::br() << std::endl;
@@ -9985,47 +10066,6 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     *out << cgicc::form() << std::endl ;
     *out << cgicc::form().set("method","GET").set("action",CCBHardResetFromTMBPage) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Step 3) CCB hard reset") << std::endl ;
-    *out << cgicc::form() << std::endl ;
-  }
-  //
-  if (thisTMB->GetHardwareVersion()==2) {
-    *out << cgicc::br() << std::endl;
-    *out << cgicc::br() << std::endl;
-    std::string svffile=TMBFirmware_[tmb].toString()+".svf";
-    *out << "new OTMB firmware = " << svffile << cgicc::br() << std::endl;
-
-    std::string LoadVirtex6TMBFirmware = toolbox::toString("/%s/LoadVirtex6TMBFirmware",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",LoadVirtex6TMBFirmware) << std::endl ;
-    sprintf(buf,"Load OTMB Virtex 6 Firmware in slot %d",tmbVector[tmb]->slot());
-    *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-
-    *out << cgicc::br() << std::endl;
-    *out << cgicc::br() << std::endl;
-    std::string mcsfile=TMBFirmware_[tmb].toString()+".mcs";
-    *out << "new OTMB firmware = " << mcsfile << cgicc::br() << std::endl;
-
-    std::string LoadVirtex6TMBFpga = toolbox::toString("/%s/LoadVirtex6TMBFPGA",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",LoadVirtex6TMBFpga) << std::endl ;
-    sprintf(buf,"Program OTMB Virtex 6 FPGA in slot %d",tmbVector[tmb]->slot());
-    *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-  }
-
-  if (alct->GetHardwareVersion()==2) {
-    *out << cgicc::br() << std::endl;
-    *out << cgicc::br() << std::endl;
-    *out << "new ALCT firmware version = " << ALCTFirmware_[tmb].toString() << ".svf" << cgicc::br() << std::endl;
-    std::string LoadSpartan6ALCTFirmware = toolbox::toString("/%s/LoadSpartan6ALCTFirmware",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",LoadSpartan6ALCTFirmware) << std::endl ;
-    sprintf(buf,"Load ALCT Spartan 6 Firmware in slot %d",tmbVector[tmb]->slot());
-    *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
   }
   //
