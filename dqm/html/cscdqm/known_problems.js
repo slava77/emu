@@ -27,9 +27,13 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
   {"testID": "CSC_CFEB_COMPARATORS_DEAD_CHANNEL", "scope": "CSC", "descr": "CFEB Dead Comparator channel: CFEB6 Layer3 Ch#32 HStrip192", "severity": "1", "obj": "CFEB6 Layer3 Ch#32"}
   ]
 },
+{"objID": "ME+1/1/21", "name": "ME+1/1/21", "list": [
+        {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB7 DAV 0.000%", "severity": "3", "obj": "CFEB7"}
+]},
 {"objID": "ME+1/1/33", "name": "ME+1/1/33", "list": [
         {"testID": "CSC_LOWERED_HV_SEGMENT", "scope": "CSC", "descr": "Lowered HV Segment: Layer1 (SCA efficiency < average)", "severity": "1", "obj": "Layer1"},
-        {"testID": "CSC_LOWERED_HV_SEGMENT", "scope": "CSC", "descr": "Lowered HV Segment: Layer3 (SCA efficiency < average)", "severity": "1", "obj": "Layer3"}
+        {"testID": "CSC_LOWERED_HV_SEGMENT", "scope": "CSC", "descr": "Lowered HV Segment: Layer3 (SCA efficiency < average)", "severity": "1", "obj": "Layer3"},
+	{"testID": "CSC_NO_HV_SEGMENT", "scope": "CSC", "descr": "No HV at Segment1 Layer3", "severity": "3", "obj": "Layer3"}
 ]},
 {
 "objID": "ME+1/2/03", "name": "ME+1/2/03", "list": [
@@ -447,7 +451,8 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
   ]
 },
 {"objID": "ME-1/1/25", "name": "ME-1/1/25", "list": [
-        {"testID": "CSC_LOWERED_HV_SEGMENT", "scope": "CSC", "descr": "Lowered HV Segment: Layer6 (SCA efficiency < average)", "severity": "1", "obj": "Layer6"}
+        {"testID": "CSC_LOWERED_HV_SEGMENT", "scope": "CSC", "descr": "Lowered HV Segment: Layer6 (SCA efficiency < average)", "severity": "1", "obj": "Layer6"},
+	{"testID": "CSC_NO_HV_SEGMENT", "scope": "CSC", "descr": "No HV at Segment1 Layer4", "severity": "3", "obj": "Layer4"}
 ]},
 
 {
@@ -555,6 +560,11 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
   {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB1 DAV 0.000%", "severity": "3", "obj": "CFEB1"}
   ]
 },
+{"objID": "ME-2/1/09", "name": "ME-2/1/09", "list": [
+	{"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB4 DAV (Missing 6V)", "severity": "3", "obj": "CFEB4"},
+        {"testID": "CSC_CFEB_NO_SCA_DATA", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB4 (Missing 6V)", "severity": "3", "obj": "CFEB4"},
+        {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB4 (Missing 6V)", "severity": "3", "obj": "CFEB4"}
+]},
 {
 "objID": "ME-2/1/17", "name": "ME-2/1/17", "list": [
   {"testID": "CSC_CFEB_SCA_DEAD_CHANNEL", "scope": "CSC", "descr": "Dead SCA channel: CFEB3 Layer2 Ch#1", "severity": "1", "obj": "CFEB3 Layer2 Ch#1"},
@@ -566,6 +576,9 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
   ]
 },
 {"objID": "ME-2/1/18", "name": "ME-2/1/18", "list": [
+        {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB4 DAV 0.000%", "severity": "3", "obj": "CFEB4"}
+]},
+{"objID": "ME-2/2/01", "name": "ME-2/2/01", "list": [
         {"testID": "CSC_WITH_LOW_CFEB_DAV_EFF", "scope": "CSC", "descr": "CFEB Dead: CFEB4 DAV 0.000%", "severity": "3", "obj": "CFEB4"}
 ]},
 {
@@ -847,8 +860,9 @@ var KNOWN_PROBLEMS = { "run": "csc_00124357_Monitor"
   ]
 },
 {"objID": "ME-4/2/08", "name": "ME-4/2/08", "list": [
-	{"testID": "CSC_CFEB_NO_SCA_DATA", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB2 (6V line reads 3V", "severity": "3", "obj": "CFEB2"},
+	{"testID": "CSC_CFEB_NO_SCA_DATA", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB2 (6V line reads 3V)", "severity": "3", "obj": "CFEB2"},
         {"testID": "CSC_CFEB_SCA_LOW_EFF", "scope": "CSC", "descr": "CFEB No SCA Data: CFEB2 (6V line reads 3V)", "severity": "3", "obj": "CFEB2"},
+        {"testID": "CSC_CFEB_NO_COMPARATORS_DATA", "scope": "CSC", "descr": "CFEB No Comparators Data: CFEB2 (6V line reads 3V)", "severity": "2", "obj": "CFEB2"},
         {"testID": "CSC_CFEB_COMPARATORS_LOW_EFF", "scope": "CSC", "descr": "CFEB Low Comparators Efficiency: CFEB2 (6V line reads 3V)", "severity": "2", "obj": "CFEB2"}
 ]},
 {
