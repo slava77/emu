@@ -36,7 +36,9 @@ ifeq (,$(BUILD_KERNEL))
 BUILD_KERNEL=$(shell uname -r)
 endif
 
-DRIVER_NAME = e1000e
+DRIVER_NAME = e1000e_emu
+
+WD=$(shell pwd)
 
 ###########################################################################
 # Environment tests
@@ -243,6 +245,8 @@ obj-m += $(DRIVER_NAME).o
 $(DRIVER_NAME)-objs := $(CFILES:.c=.o)
 else
 default:
+	$(shell cat $(WD)/../../eth_hook_2_daq/ddu/Module.symvers $(WD)/../../eth_hook_3_daq/ddu/Module.symvers $(WD)/../../eth_hook_4_daq/ddu/Module.symvers $(WD)/../../eth_hook_5_daq/ddu/Module.symvers > Module.symvers)
+#       See https://www.kernel.org/doc/Documentation/kbuild/modules.txt
 ifeq ($(KOBJ),$(KSRC))
 	$(MAKE) -C $(KSRC) SUBDIRS=$(shell pwd) modules
 else
