@@ -4,7 +4,7 @@
 
 Summary: CMS Emu local DAQ Gbit and peripheral crate VME drivers for kernel %{kernel_version} based on the e1000e module for the Intel dual port NIC model PRO/1000 PF
 Name: emu-e1000e_emu
-Version: 1.1.2
+Version: 1.2.11
 Release: 1.slc6
 License: none
 Group: none
@@ -35,7 +35,7 @@ cp %{workingDir}/e1000e_emu/eth_hook_2_vme/eth_hook_2_vme.ko $RPM_BUILD_ROOT/usr
 cp %{workingDir}/e1000e_emu/eth_hook_3_vme/eth_hook_3_vme.ko $RPM_BUILD_ROOT/usr/local/bin/e1000e_emu
 cp %{workingDir}/e1000e_emu/eth_hook_4_vme/eth_hook_4_vme.ko $RPM_BUILD_ROOT/usr/local/bin/e1000e_emu
 cp %{workingDir}/e1000e_emu/eth_hook_5_vme/eth_hook_5_vme.ko $RPM_BUILD_ROOT/usr/local/bin/e1000e_emu
-cp %{workingDir}/e1000e_emu/e1000e-3.1.0.2/src/e1000e_emu.ko $RPM_BUILD_ROOT/usr/local/bin/e1000e_emu
+cp %{workingDir}/e1000e_emu/e1000e-3.2.4.2/src/e1000e_emu.ko $RPM_BUILD_ROOT/usr/local/bin/e1000e_emu
 cp %{workingDir}/script/load_e1000e_emu.sh                   $RPM_BUILD_ROOT/usr/local/bin/e1000e_emu
 touch %{_topdir}/BUILD/ChangeLog
 touch %{_topdir}/BUILD/README
