@@ -243,20 +243,14 @@ unsigned short int missing_mask;
 unsigned short int eevent_mask;
 unsigned short int end1,end2,end3,end4;
 unsigned long flags;
- 
+
+long int delta_jiffies;
+
   spin_lock_irqsave(&eth_lock,flags);
   
-/* // write data to buffer memory */
-/*   icnt=(skb->len+SKB_EXTRA)>>2; */
-/* #ifdef DEBUG_PRINT */
-/*   printk(KERN_INFO "ETH3 icnt %d len %d \n",icnt,skb->len); */
-/* #endif */
-/*   for(i=0;i<icnt;i++){ */
-/*     *(unsigned long int *)(buf_pnt_3+i*4)=*(unsigned long int *)(skb->data+i*4+SKB_OFFSET); */
-/*   } */
-
 // write data to buffer memory
   icnt=(skb->len+SKB_EXTRA)>>3; // Divide by 2^3 as sizeof( unsigned long int ) = 8 on 64-bit systems
+  if ( skb->len+SKB_EXTRA > icnt*8 ) icnt++;
 #ifdef DEBUG_PRINT
   printk(KERN_INFO "-------------------------------------------------------------\n");
   printk(KERN_INFO "ETH3 icnt %d len %d \n",icnt,skb->len);
@@ -274,8 +268,8 @@ unsigned long flags;
 /*     *(unsigned int *)(buf_pnt_3+i*4)=*(unsigned int *)(skb->data+i*4+SKB_OFFSET); */
 /*   } */
 
-// calculate count and bytes for proc 
-   proc_rpackets_3=proc_rpackets_3+1;  
+// calculate count and bytes for proc
+   proc_rpackets_3=proc_rpackets_3+1;
    proc_rbytesL_3=proc_rbytesL_3+skb->len+SKB_EXTRA;
    if(proc_rbytesL_3>1000000000){
       proc_rbytesL_3=proc_rbytesL_3-1000000000;
@@ -289,11 +283,11 @@ unsigned long flags;
        proc_rfirst_3=1;
      }
      else{
-       long int delta_jiffies = get_jiffies_64() - proc_previousjiffies_3;
+       delta_jiffies = get_jiffies_64() - proc_previousjiffies_3;
        if ( delta_jiffies > HZ ){ // Update ~every second
-	 proc_rate_3 = (double)( HZ * proc_rsum_3<<3 ) / delta_jiffies;
-	 proc_previousjiffies_3 = get_jiffies_64();
-	 proc_rsum_3 = 0;
+   	 proc_rate_3 = ( HZ * proc_rsum_3<<3 ) / delta_jiffies; // bit/s (proc_rsum_3 counts bytes; HZ=jiffies/s)
+   	 proc_previousjiffies_3 = get_jiffies_64();
+   	 proc_rsum_3 = 0;
        }
      }
    }
@@ -418,8 +412,8 @@ unsigned long flags;
    *(unsigned short int *)(ring_start_3+ring_pnt_3*RING_ENTRY_LENGTH+4)=skb->len+SKB_EXTRA;
 
 // increment ring and buf pointers
-   ring_pnt_3=ring_pnt_3+1;  
-   buf_pnt_3=buf_pnt_3+skb->len+SKB_EXTRA; 
+   ring_pnt_3=ring_pnt_3+1;
+   buf_pnt_3=buf_pnt_3+skb->len+SKB_EXTRA;
 
  //update ring and buf pointers
  // if((buf_pnt_3 > buf_end_3)||(ring_pnt_3>=ring_size_3)){
@@ -531,7 +525,7 @@ static int schar_read_proc_3(struct ctl_table *ctl, int write,
 	len += sprintf(schar_proc_string_3+len, "  recieve\t\t%ld packets\n",proc_rpackets_3);
       len += sprintf(schar_proc_string_3+len, "  receive    \t\t\t%04d%09ld bytes\n",proc_rbytesH_3,proc_rbytesL_3); 
       len += sprintf(schar_proc_string_3+len, "  memory  \t\t\t%09ld bytes\n",(BIGPHYS_PAGES_3*PAGE_SIZE));
-      len += sprintf(schar_proc_string_3+len, "  rate  \t\t\t%6ld kbits/s \n",proc_rate_3/1000);
+      len += sprintf(schar_proc_string_3+len, "  rate  \t\t\t%6ld KiB/s (%10ld bit/s)\n",proc_rate_3>>13,proc_rate_3);
       len += sprintf(schar_proc_string_3+len, "  loop %d count %ld\n\n",ring_loop_3,ring_pnt_3);
 	len += sprintf(schar_proc_string_3+len, " TRANSMIT: \n");
       len += sprintf(schar_proc_string_3+len, "  transmit\t\t%d packets \n",proc_tpackets_3);
@@ -779,6 +773,7 @@ static int schar_mmap_3(struct file *filp, struct vm_area_struct *vma)
            vmalloc_area_ptr += PAGE_SIZE;
            length -= PAGE_SIZE;
   }
+  vma->vm_flags |= VM_RESERVED;   /* avoid to swap out this VMA */
   unlock_kernel();
   return 0;
 }
@@ -815,7 +810,7 @@ static void rvnail(int *mem,unsigned long size)
   printk(KERN_INFO " before vrnail %ld \n",size);      
   if (mem) 
     {
-      // memset(mem, 0, size);  
+      memset(mem, 0, size);  
       /* reserve the pages */			    
       for (i = 0; i < size; i+= PAGE_SIZE) {
 	SetPageReserved(vmalloc_to_page((void *)(((unsigned long)mem) + i)));
