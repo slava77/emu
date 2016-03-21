@@ -34,6 +34,14 @@ function load_e1000e_emu(){
 	echo "/sbin/modprobe -r e1000e"
 	/sbin/modprobe -r e1000e
     fi
+    if [[ $(/sbin/lsmod | grep -c 'e1000_emu ') -gt 0 ]]; then
+	echo "/sbin/modprobe -r e1000_emu"
+	/sbin/modprobe -r e1000_emu
+    fi
+    if [[ $(/sbin/lsmod | grep -c 'e1000 ') -gt 0 ]]; then
+	echo "/sbin/modprobe -r e1000"
+	/sbin/modprobe -r e1000
+    fi
     echo "lsmod | grep e1000e"
     /sbin/lsmod | grep e1000e
     /sbin/lspci -k | grep -A 3 Ethernet
@@ -64,18 +72,18 @@ function load_e1000e_emu(){
 	[[ -f /etc/modprobe.conf ]] && (( NPORTS+=$(grep -c '^alias eth[01] e1000e' /etc/modprobe.conf) ))
     elif [[ $SLC_MAJOR -eq 6 ]]; then
 	echo "Updating /etc/modprobe.d"
-	sed -i.bak -e 's:^\(alias p[12]p[12] [^ ]\+\)$:# \1 # commented out by '${0}':g' -e 's:^alias \(e[12]\) \(e1000e[^ ]*\)$:# alias \1 \2 # commented out by '${0}'\nalias \1 e1000e_emu:g' /etc/modprobe.d/*.conf
+	sed -i.bak -e 's:^\(alias p[12]p[12] [^ ]\+\)$:# \1 # commented out by '${0}':g' -e 's:^alias \(em[1-9]\) \(e1000e[^ ]*\)$:# alias \1 \2 # commented out by '${0}'\nalias \1 e1000e_emu:g' /etc/modprobe.d/*.conf
 	rm -f /etc/modprobe.d/net-e1000e_emu.conf
 	for N in 2 3 4 5; do
 	    print "alias ${IF_NAME[$N]} e1000e_emu" >> /etc/modprobe.d/net-e1000e_emu.conf
 	done
         # Count the number of on-board ports to be served by e1000e_emu
-	(( NPORTS+=$( grep -c "^alias em[12] e1000e" =(cat /etc/modprobe.d/*.conf) ) ))
+	(( NPORTS+=$( grep -c "^alias em[1-9] e1000e" =(cat /etc/modprobe.d/*.conf) ) ))
     fi
 	
     # Update module dependencies
     echo "Updating module dependencies"
-    /sbin/depmod
+    /sbin/depmod -a
 
     # Load new modules
     echo "Loading e1000e_emu"
@@ -118,10 +126,6 @@ function load_e1000e_emu(){
 	# Set MTU at the same time otherwise the driver will already have configured itself for the default 1500
 	print "/sbin/ifconfig ${IF_NAME[$N]} promisc mtu 8192 192.168.1.${N}"
 	/sbin/ifconfig ${IF_NAME[$N]} promisc mtu 8192 192.168.1.${N}
-#	print "ethtool -K ${IF_NAME[$N]} sg off"
-#	ethtool -K ${IF_NAME[$N]} sg off
-#	print "ethtool -K ${IF_NAME[$N]} rx off"
-#	ethtool -K ${IF_NAME[$N]} rx off
 	print "ethtool -k ${IF_NAME[$N]}"
 	ethtool -k ${IF_NAME[$N]}
     done
@@ -163,7 +167,7 @@ fi
 print "Seems to be SLC${SLC_MAJOR}. Assuming interface names ${IF_NAME}."
 
 # Only load the drivers on hosts in this list of aliases:
-for ALIAS in vmepc-e1x07-26-01 emuslice06 emuslice12 emu42fastprod01 emu-me11-step{1,2,3,4} emuupgrade1 csc-c2d08-19-01; do
+for ALIAS in vmepc-e1x07-26-01 srv-c2d08-25-01 csc-daq{01..10}; do
     if [[ $(host $ALIAS | grep -i -c $(hostname -s)) -ge 1 ]]; then
 	load_e1000e_emu eth_hook_2_ddu eth_hook_3_ddu eth_hook_4_ddu eth_hook_5_ddu
 	exit 0
