@@ -570,17 +570,21 @@ static void e1000_receive_skb(struct e1000_adapter *adapter,
 	else
 #endif /* NETIF_F_HW_VLAN_TX */
 	  if      (strcmp(adapter->netdev->name,"p1p1")==0){
-	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
-	    netif_rx_hook_2(skb);
+	    /* Data may be stored fragmented in skb. Make it contiguous for our hook: */
+	    if( skb_is_nonlinear(skb) && skb_linearize(skb) != 0 ) kfree_skb(skb);
+	    else                                                   netif_rx_hook_2(skb);
 	  }else if(strcmp(adapter->netdev->name,"p1p2")==0){
-	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
-	    netif_rx_hook_3(skb);
+	    /* Data may be stored fragmented in skb. Make it contiguous for our hook: */
+	    if( skb_is_nonlinear(skb) && skb_linearize(skb) != 0 ) kfree_skb(skb);
+	    else                                                   netif_rx_hook_3(skb);
 	  }else if(strcmp(adapter->netdev->name,"p2p1")==0){
-	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
-	    netif_rx_hook_4(skb);
+	    /* Data may be stored fragmented in skb. Make it contiguous for our hook: */
+	    if( skb_is_nonlinear(skb) && skb_linearize(skb) != 0 ) kfree_skb(skb);
+	    else                                                   netif_rx_hook_4(skb);
 	  }else if(strcmp(adapter->netdev->name,"p2p2")==0){
-	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
-	    netif_rx_hook_5(skb);
+	    /* Data may be stored fragmented in skb. Make it contiguous for our hook: */
+	    if( skb_is_nonlinear(skb) && skb_linearize(skb) != 0 ) kfree_skb(skb);
+	    else                                                   netif_rx_hook_5(skb);
 	  }else{
 		napi_gro_receive(&adapter->napi, skb);
 	  }
@@ -599,17 +603,21 @@ static void e1000_receive_skb(struct e1000_adapter *adapter,
 #endif
 
 	  if      (strcmp(adapter->netdev->name,"p1p1")==0){
-	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
-	    netif_rx_hook_2(skb);
+	    /* Data may be stored fragmented in skb. Make it contiguous for our hook: */
+	    if( skb_is_nonlinear(skb) && skb_linearize(skb) != 0 ) kfree_skb(skb);
+	    else                                                   netif_rx_hook_2(skb);
 	  }else if(strcmp(adapter->netdev->name,"p1p2")==0){
-	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
-	    netif_rx_hook_3(skb);
+	    /* Data may be stored fragmented in skb. Make it contiguous for our hook: */
+	    if( skb_is_nonlinear(skb) && skb_linearize(skb) != 0 ) kfree_skb(skb);
+	    else                                                   netif_rx_hook_3(skb);
 	  }else if(strcmp(adapter->netdev->name,"p2p1")==0){
-	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
-	    netif_rx_hook_4(skb);
+	    /* Data may be stored fragmented in skb. Make it contiguous for our hook: */
+	    if( skb_is_nonlinear(skb) && skb_linearize(skb) != 0 ) kfree_skb(skb);
+	    else                                                   netif_rx_hook_4(skb);
 	  }else if(strcmp(adapter->netdev->name,"p2p2")==0){
-	    skb_linearize( skb ); /* Data stored fragmented in skb. Make it contiguous for our hook. */
-	    netif_rx_hook_5(skb);
+	    /* Data may be stored fragmented in skb. Make it contiguous for our hook: */
+	    if( skb_is_nonlinear(skb) && skb_linearize(skb) != 0 ) kfree_skb(skb);
+	    else                                                   netif_rx_hook_5(skb);
 	  }else{
 		ret = netif_rx(skb);
 	  }
