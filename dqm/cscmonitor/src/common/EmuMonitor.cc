@@ -354,7 +354,7 @@ void EmuMonitor::setupPlotter()
               timeout++;
               LOG4CPLUS_WARN (logger_, "Waiting to finish saving of results... " << timeout);
             }
-          timer_->kill();
+          timer_->stop();
         }
 
 
@@ -986,7 +986,7 @@ void EmuMonitor::doStop()
             {
               timer_->setPlotter(plotter_);
               timer_->setROOTFileName(getROOTFileName("final"));
-              timer_->activate();
+              timer_->start();
             }
         }
       destroyFileWriter();
@@ -1019,7 +1019,7 @@ void EmuMonitor::doConfigure()
         {
           LOG4CPLUS_ERROR (logger_,
                            "Timeout waiting for saving of results. Killing save process." << timeout);
-          timer_->kill();
+          timer_->stop();
         }
     }
 
@@ -1744,7 +1744,7 @@ void EmuMonitor::resetMonitor()
             {
               LOG4CPLUS_ERROR (logger_,
                                "Timeout waiting for saving of results. Killing save process." << timeout);
-              timer_->kill();
+              timer_->stop();
             }
         }
 

@@ -101,6 +101,20 @@ public:
     return 0;
   }
 
+  bool start()
+  {
+    fActive = true;
+    activate();
+    return fActive;
+  }
+
+  bool stop()
+  {
+    if (fActive) kill();
+    fActive = false;
+    return fActive;
+  }
+  
 private:
 
   bool 		fActive;
