@@ -119,6 +119,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   step_counter_(0),
   error_message_(""), keep_refresh_(false), hide_tts_control_(true),
   controlTFCellOp_(false), // Default MUST be false, i.e., hands off the TF Cell.
+  forceTFCellConf_(false),
   localDAQWriteBadEventsOnly_(false),
   runInfo_(NULL),
   runDbBookingCommand_( "java -jar runnumberbooker.jar" ),
@@ -154,6 +155,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   i->fireItemAvailable("ttsBits", &tts_bits_);
 
   i->fireItemAvailable("controlTFCellOp", &controlTFCellOp_);
+  i->fireItemAvailable("forceTFCellConf", &forceTFCellConf_);
 
   i->fireItemAvailable("localDAQWriteBadEventsOnly", &localDAQWriteBadEventsOnly_);
 
@@ -1166,8 +1168,9 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     //
     // Clean up leftover ops and halt apps
     //
-    
-    if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
+
+    bool skipTFCellConfig( skipTFCellConfiguration() );
+    if ( tf_descr_ != NULL && controlTFCellOp_.value_ && !skipTFCellConfig ){
       TFCellOpState_ = OpGetStateCell();
       if ( TFCellOpState_.toString() != "UNKNOWN" ){
 	// Reset csctf-cell operation
@@ -1329,7 +1332,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     m.resetResponseTimeout(); // Reset response timeout to default value.
        
     // Configure TF Cell operation
-    if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
+    if ( tf_descr_ != NULL && controlTFCellOp_.value_ && !skipTFCellConfig ){
       if ( waitForTFCellOpToReach("halted",60) ){
 	sendCommandCell("configure");
 	// Allow more time for 'configure' after key change. With a new key, it may take a couple of minutes.
@@ -1637,8 +1640,16 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
 
     // Reset TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
-      OpResetCell();
-      cout << "    reset TFCellOp: " << sw.read() << endl;
+      if ( bool(forceTFCellConf_) ){
+	OpResetCell();
+	cout << "    reset TFCellOp: " << sw.read() << endl;
+      }
+      else{
+	 LOG4CPLUS_WARN( getApplicationLogger(), "\"forceTFCellConf\" is set to FALSE, therefore the TF Cell will not be 'reset' (to 'halted' state). Instead, it will be 'stopped' (to 'configured' state) so that it can be ready to start without being (re)configured if the correct key is already active." );
+	sendCommandCell("stop");
+	waitForTFCellOpToReach("configured",60);
+	cout << "    stop TFCellOp: " << sw.read() << endl;
+      }
     }
 
     if ( ! isUsingTCDS_ ){
@@ -1726,6 +1737,7 @@ void emu::supervisor::Application::resetAction() throw (toolbox::fsm::exception:
   LOG4CPLUS_DEBUG(getApplicationLogger(), "reset(begin)");
   
   fsm_.reset();
+  reasonForFailure_ = "";
   state_ = fsm_.getStateName(fsm_.getCurrentState());
   
   LOG4CPLUS_DEBUG(getApplicationLogger(), "reset(end)");
@@ -1941,6 +1953,54 @@ void emu::supervisor::Application::OpResetCell(){
 }
 
 //////////////////////////////////////////////////////////////////////
+
+bool emu::supervisor::Application::skipTFCellConfiguration(){
+  // Find out if the TF Cell is already configured with the current TF configuration key, and we can skip
+  // (re)configuring it.
+
+  LOG4CPLUS_INFO( getApplicationLogger(), "Checking whether or not we have to configure the TF Cell." );
+
+  // If TF Cell is unknown and/or we're not to control it (because we're in a global or calibration run),
+  // we can forget about it:
+  if ( tf_descr_ == NULL || ! bool( controlTFCellOp_ ) ){
+    LOG4CPLUS_WARN( getApplicationLogger(), "TF Cell is unknown and/or we're not to control it." );
+    return true;
+  }
+
+  // We may not skip the configuration of the TF Cell if we're explicitly told to configure it unconditionally:
+  if ( bool(forceTFCellConf_) ){
+    LOG4CPLUS_WARN( getApplicationLogger(), "\"forceTFCellConf\" is set to TRUE, therefore the TF Cell will be (re)configured unconditionally." );
+    return false;
+  }
+
+  xdata::String keyInTF;
+  try{
+    emu::soap::Messenger( this ).getParameters( tf_descr_, emu::soap::Parameters().add( "key", &keyInTF ) );
+  } catch( xcept::Exception& e ){
+    LOG4CPLUS_WARN( getApplicationLogger(), "Failed to get the active configuration key from TF Cell." << xcept::stdformat_exception_history(e) );
+    // Maybe the running version of the TF Cell doesn't export the 'key' yet? Anyway, we cannot tell how it's configured then.
+    return false;
+  }
+  // Check if the current key is active in the Cell.
+  if ( keyInTF == tf_key_ ){
+    // Check if TF Cell is actually configured.
+    std::string cellState( OpGetStateCell() );
+    if ( cellState == "configured" || cellState == "running" || cellState == "paused" ){
+      // Looks like it's configured with the right key.
+      LOG4CPLUS_WARN( getApplicationLogger(), "The TF Cell appears to be configured with key " << keyInTF.toString() << " already. (Re)configuring it with key " << tf_key_.toString() << " will therefore be skipped. If this is not the intended behavior, set \"forceTFCellConf\" to TRUE." );
+      return true; 
+    }
+    else{
+      LOG4CPLUS_WARN( getApplicationLogger(), "The TF Cell appears not to be configured yet." );
+      return false;
+    }
+  }
+  else{
+    // It doesn't have the right key.
+    LOG4CPLUS_WARN( getApplicationLogger(), "The TF Cell has key '" << keyInTF.toString() << "' whereas it will need to be configured with key '" <<  tf_key_.toString() << "'" );
+    return false;
+  }
+}
 
 
 bool emu::supervisor::Application::waitForTFCellOpToReach( const string targetState, const unsigned int seconds ){

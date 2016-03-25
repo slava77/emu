@@ -208,6 +208,8 @@ private: // XDAQ parameters
 
   //////////////////////////////////////////////////////////////
 
+  bool skipTFCellConfiguration();
+
   bool waitForTFCellOpToReach( const string targetState, const unsigned int seconds );
 
   bool waitForAppsToReach( const string targetState, bool includingSupervisor, const int seconds=-1 );
@@ -245,6 +247,7 @@ private: // XDAQ parameters
 	bool hide_tts_control_;
 
         xdata::Boolean controlTFCellOp_;
+        xdata::Boolean forceTFCellConf_; ///< If TRUE, the TF Cell will be (re)configured even if it is already configured with the current key.
 
         xdata::Boolean localDAQWriteBadEventsOnly_;
 
