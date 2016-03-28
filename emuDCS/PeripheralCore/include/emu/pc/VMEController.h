@@ -353,6 +353,7 @@ public:
   int eth_read();
   int eth_write();
   int eth_read_timeout(int rd_tmo);
+  int clear_packets();
   int LeftToRead();
   int NoWriteToEther;
    //

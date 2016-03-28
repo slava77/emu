@@ -1163,6 +1163,9 @@ bool VMEController::SelfTest()
 { 
    init();
 
+// To remove any exist eth packets before running the self-test
+   clear_packets();
+
 // To read back controller serial number
    int n=vcc_read_command(0x1E, 2, NULL);
    if(n==2)
@@ -1173,6 +1176,7 @@ bool VMEController::SelfTest()
    }
    else 
    {  SetLife(false);
+      std::cout << "VME Controller Self-Test return: " << n << std::endl; 
       return  false;
    }
 }
@@ -1719,6 +1723,12 @@ void VMEController::write_BusGrantTimeOut_CR(unsigned short int val)
   vcc_write_command(0x14, 1, &tvalue);
   std::cout << "Write_BusGrantTimeOut_CR to " << std::hex << val << std::dec << std::endl;
   return;
+}
+                                                                                
+int VMEController::clear_packets()
+{
+ std::cout << "Try to clear ETH buffer!" << std::endl;
+ return eth_reset(theSocket);
 }
                                                                                 
 int VMEController::LeftToRead()
