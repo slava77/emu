@@ -2636,6 +2636,8 @@ public:
   //std::string version_;
   //
   void SetTMBRegisterDefaults();               //set the software write values for TMB registers to default values
+
+  void clear_mpc_tx_delay();   // clear the mpc_tx_delay field in register ADR_TMBTIM; used by TMB-MPC test
   //
 protected:
   void new_clk_delays(unsigned short int time, int cfeb_id);

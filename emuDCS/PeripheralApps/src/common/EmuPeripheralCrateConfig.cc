@@ -1395,7 +1395,7 @@ void EmuPeripheralCrateConfig::CrateTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::legend("Crate Tests").set("style","color:blue") ;
   //
   *out << cgicc::pre();
-  *out << "Use MPC_Utilities to mask out unwanted TMBs (Hard Reset will clear the masks)" << std::endl;
+  *out << "Use MPC_Utilities to mask out unwanted TMBs (Hard Reset will NOT clear the masks)" << std::endl;
   *out << cgicc::pre();
   //
   std::string TmbMPCTest = toolbox::toString("/%s/TmbMPCTest",getApplicationDescriptor()->getURN().c_str());
@@ -5116,7 +5116,12 @@ void EmuPeripheralCrateConfig::TmbMPCTest(xgi::Input * in, xgi::Output * out )
   //
   myCrateTest.RedirectOutput(&CrateTestsOutput);
   int number_of_loops = 1000;
-  myCrateTest.MpcTMBTest(number_of_loops);
+  CrateTestsOutput << "Test All TMBs" << std::endl << "========>";
+  int rs1=myCrateTest.MpcTMBTest(number_of_loops);
+  if(!rs1)
+  {  int rs2=myCrateTest.MpcTMBLoopTest(number_of_loops);
+     std::cout << "Loop Test found " << rs2 << " bad TMB(s)." << std::endl;
+  }
   myCrateTest.RedirectOutput(&std::cout);
   //
   this->CrateTests(in,out);
@@ -5133,7 +5138,7 @@ void EmuPeripheralCrateConfig::MPCSafeWindowScan(xgi::Input * in, xgi::Output * 
   myCrateTest.SetCrate(thisCrate);
   //
   myCrateTest.RedirectOutput(&CrateTestsOutput);
-  int number_of_loops = 10;
+  int number_of_loops = 20;
   int min_value       = 15;
   int max_value       = 75;
   myCrateTest.MpcTMBTest(number_of_loops,min_value,max_value);

@@ -22,8 +22,9 @@ public:
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   //
-  void MpcTMBTest(int number_of_events, int minimum_delay_value, int maximum_delay_value); //"safe window" scan
-  void MpcTMBTest(int number_of_events);                                                   //not the "safe window" scan
+  int MpcTMBLoopTest(int Nloop);  // loop through each TMB
+  int MpcTMBTest(int number_of_events, int minimum_delay_value, int maximum_delay_value); //"safe window" scan
+  int MpcTMBTest(int number_of_events);                                                   //not the "safe window" scan
   inline int  GetMpcTMBTestResult() { return MpcTMBTestResult; }             //result of the non-"safe window" scan
   inline void SetMpcTMBTestResult(int result) { MpcTMBTestResult = result; }
   //

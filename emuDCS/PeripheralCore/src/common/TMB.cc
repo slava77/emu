@@ -11658,5 +11658,12 @@ bool TMB::otmb_program_eprom_poll(const char *mcsfile) {
   return true;
 }
 
+  void TMB::clear_mpc_tx_delay()
+  {
+     int data_w=ReadRegister(tmbtim_adr);
+     InsertValueIntoDataWord(0, mpc_tx_delay_bithi, mpc_tx_delay_bitlo, &data_w);
+     WriteRegister(tmbtim_adr, data_w);
+  }
+  
 } // namespace emu::pc
 } // namespace emu

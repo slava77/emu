@@ -34,12 +34,39 @@ CrateUtilities::~CrateUtilities(){
   //
 }
 //
-void CrateUtilities::MpcTMBTest(int Nloop) {
-  MpcTMBTest(Nloop, 0, 0);  //default is no scan for "safe window"
-  return;
+int CrateUtilities::MpcTMBLoopTest(int Nloop) 
+{
+    int total_bad_tmb=0;
+    int tmbmask = myCrate_->mpc()->ReadMask();
+    std::vector <TMB*> myTmbs = myCrate_->tmbs();
+
+    for (unsigned i=0; i<myTmbs.size(); i++) 
+    {
+	 int TMBslot = myTmbs[i]->slot();
+         int tmb_num = TMBslot/2;
+         if(tmb_num>5) tmb_num--;
+         int tmbmaskbit = tmbmask & (1<<(9-tmb_num));
+         int newmask=0x1FF & (~(1<<(9-tmb_num)));  // MPC mask with only this TMB enabled
+         if(tmbmaskbit==0)
+	 { 
+	    myCrate_->mpc()->WriteMask(newmask);
+            std::cout << "Test TMB #" << tmb_num << " at slot #" << TMBslot << std::endl;
+            (*MyOutput_) << "Test TMB #" << tmb_num << " at slot #" << TMBslot << std::endl;
+            (*MyOutput_) << "========> ";
+	    int pass=MpcTMBTest(Nloop);
+            if(!pass) total_bad_tmb++;
+         }
+    }
+    //  restore original TMB mask
+    myCrate_->mpc()->WriteMask(tmbmask);
+    return total_bad_tmb;
 }
 //
-void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
+int CrateUtilities::MpcTMBTest(int Nloop) {
+  return MpcTMBTest(Nloop, 0, 0);  //default is no scan for "safe window"
+}
+//
+int CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
   //
   // Allows for scan over "safe window"
   //
@@ -48,6 +75,22 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
   if(min_delay==0 && max_delay==0) 
         myCrate_->mpc()->setDelay(0x30);  /* same as the default value in the firmware */
   int tmb_mask = myCrate_->mpc()->ReadMask();
+
+  std::vector <TMB*> myTmbs = myCrate_->tmbs();
+  // clear TMB's mpc_tx_delay during the test
+      for (unsigned i=0; i<myTmbs.size(); i++) 
+      {
+	 int TMBslot = myTmbs[i]->slot();
+         int tmb_num = TMBslot/2;
+         if(tmb_num>5) tmb_num--;
+         int tmbmaskbit = tmb_mask & (1<<(9-tmb_num));
+         if(tmbmaskbit==0)
+	 { 
+	    myTmbs[i]->clear_mpc_tx_delay();
+         }
+      }
+  //
+
   for (int delay=min_delay; delay<=max_delay; delay++)
   {
     //
@@ -60,7 +103,6 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
     //
     myCrate_->mpc()->read_fifos();   //read FIFOB to clear it
     //
-    std::vector <TMB*> myTmbs = myCrate_->tmbs();
 
     int sequential_events_with_fifob_empty=0;
     //
@@ -288,11 +330,11 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
     }
     //
     if (delay == 0 && MpcTMBTestResult == 1) {
-      (*MyOutput_) << "TMB-MPC Crate Test PASS, N_LCT = " << std::dec << NFound[delay] << std::endl;
-      std::cout << "TMB-MPC Crate Test PASS, N_LCT = " << std::dec << NFound[delay] << std::endl;
+      (*MyOutput_) << "TMB-MPC Test PASS, N_LCT = " << std::dec << NFound[delay] << std::endl;
+      std::cout << "TMB-MPC Crate PASS, N_LCT = " << std::dec << NFound[delay] << std::endl;
     } else if (delay == 0 && MpcTMBTestResult == 0) {
-      (*MyOutput_) << "TMB-MPC Crate Test FAIL " << ", nloop=" << nloop << std::endl;
-      std::cout << "TMB-MPC Crate Test FAIL " << ", nloop=" << nloop << std::endl;
+      (*MyOutput_) << "TMB-MPC Test FAIL " << ", nloop=" << nloop << std::endl;
+      std::cout << "TMB-MPC Test FAIL " << ", nloop=" << nloop << std::endl;
     }
     //
     //    std::cout << "Broke out, try next delay..." << std::endl;
@@ -304,8 +346,11 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
       (*MyOutput_) << "N_LCT[ " << delay << "] = " << NFound[delay] << std::endl;
     }
   }
-  //
-  return;
+
+  //  after everything is done, restore TMB's mpc_tx_delay setting by CCB Hard-Reset
+  myCrate_->ccb()->hardReset();
+  
+  return MpcTMBTestResult;
 }
 
   } // namespace emu::pc
