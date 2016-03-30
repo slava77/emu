@@ -35,7 +35,7 @@
 
   <xsl:param name="DAQ_ENVIRONMENTSTRING">HOME=/nfshome0/cscdaq LD_LIBRARY_PATH=/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/tmp BUILD_HOME=/nfshome0/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86_64_slc6 XDAQ_OS=linux XDAQ_ZONE=emu XDAQ_PROFILE=/opt/xdaq/share/emu/profile/default.profile PATH=/bin:/usr/bin</xsl:param>
 
-  <xsl:param name="DQM_ENVIRONMENTSTRING">HOME=/nfshome0/cscdqm LD_LIBRARY_PATH=/opt/cern/root_v5.34.25/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/tmp BUILD_HOME=/nfshome0/cscdqm/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86_64_slc6 XDAQ_OS=linux XDAQ_ZONE=emu XDAQ_PROFILE=/opt/xdaq/share/emu/profile/default.profile ROOTSYS=/opt/cern/root_v5.34.25</xsl:param>
+  <xsl:param name="DQM_ENVIRONMENTSTRING">HOME=/nfshome0/cscdqm LD_LIBRARY_PATH=/opt/cern/root_v5.34.26/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/tmp BUILD_HOME=/nfshome0/cscdqm/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86_64_slc6 XDAQ_OS=linux XDAQ_ZONE=emu XDAQ_PROFILE=/opt/xdaq/share/emu/profile/default.profile ROOTSYS=/opt/cern/root_v5.34.26</xsl:param>
 
   <xsl:output method="xml" indent="yes"/>
 
