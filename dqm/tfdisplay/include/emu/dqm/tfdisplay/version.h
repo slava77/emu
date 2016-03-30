@@ -20,7 +20,7 @@
 namespace EmuTFDisplayClient 
 {
     const std::string package  =  "emudqmtfdisplay";
-    const std::string versions =  "12.05.00";
+    const std::string versions =  "12.08.00";
     const std::string description = "CSC TF DQM Display Client";
     const std::string link = "http://www.phys.ufl.edu/cms/emu/dqm";
     const std::string authors = "Victor Barashko <barvic@ufl.edu>";
