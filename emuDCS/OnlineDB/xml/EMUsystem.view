@@ -1247,7 +1247,7 @@ where rownum=1]]>
       <tstore:column name="emu_config_id" type="unsigned int 64"/>
       <tstore:column name="label" type="string"/>
       <tstore:column name="known_problem" type="string"/>
-      <tstore:column name="problem_mask" type="unsigned short"/>
+      <tstore:column name="problem_mask" type="unsigned int 64"/>
       <tstore:column name="periph_config_id" type="unsigned int 64"/>
       <tstore:foreignkey references="EMU_PeripheralCrate">
         <tstore:keycolumn column="periph_config_id" references="periph_config_id"/>

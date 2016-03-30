@@ -57,6 +57,7 @@ private:
 
   std::string getString(emu::db::ConfigRow *conf, std::string columnName) throw (emu::exception::ConfigurationException);
   int getInt(emu::db::ConfigRow *conf, std::string columnName) throw (emu::exception::ConfigurationException);
+  unsigned long int getLongInt(emu::db::ConfigRow *conf, std::string columnName) throw (emu::exception::ConfigurationException);
   float getFloat(emu::db::ConfigRow *conf, std::string columnName) throw (emu::exception::ConfigurationException);
   int getHexStringAsInt(emu::db::ConfigRow *conf, std::string columnName) throw (emu::exception::ConfigurationException);
   long int getStringAsLongInt(emu::db::ConfigRow *conf, std::string columnName) throw (emu::exception::ConfigurationException);
