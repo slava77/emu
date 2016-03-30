@@ -42,7 +42,7 @@
       <xsl:call-template name="EmuDisplayClient"/>
       <xsl:call-template name="EmuTFMonitor"/>
       <xsl:call-template name="EmuMonitors"/>
-      <xsl:call-template name="TTCciControl"/>
+      <!-- <xsl:call-template name="TTCciControl"/> -->
 
     </xc:Partition>
   </xsl:template>
@@ -146,7 +146,7 @@
       <xc:Application instance="50" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
 	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP">
 	  <autoSize xsi:type="xsd:boolean">true</autoSize>
-	  <maxPacketSize xsi:type="xsd:unsignedInt">196608</maxPacketSize>
+	  <maxPacketSize xsi:type="xsd:unsignedInt">0xc0000</maxPacketSize>
 	  <connectAtFirstSend xsi:type="xsd:boolean">true</connectAtFirstSend>
 	</properties>
       </xc:Application>
@@ -187,7 +187,7 @@
 	<xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
 	  <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP">
 	    <autoSize xsi:type="xsd:boolean">true</autoSize>
-	    <maxPacketSize xsi:type="xsd:unsignedInt">196608</maxPacketSize>
+	    <maxPacketSize xsi:type="xsd:unsignedInt">0xc0000</maxPacketSize>
 	    <connectAtFirstSend xsi:type="xsd:boolean">true</connectAtFirstSend>
 	  </properties>
 	</xc:Application>
@@ -214,7 +214,7 @@
 	    <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
 	    <pathToRUIDataOutFile xsi:type="xsd:string">/data</pathToRUIDataOutFile>
 	    <!-- 	  <pathToRUIDataOutFile xsi:type="xsd:string">/tmp</pathToRUIDataOutFile> -->
-	    <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">500</xsl:if></ruiFileSizeInMegaBytes>
+	    <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">2000</xsl:if></ruiFileSizeInMegaBytes>
 	    <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 	      <item xsi:type="xsd:string" soapenc:position="[0]">EmuTFMonitor</item>
 	    </clientsClassName>
@@ -259,7 +259,7 @@
 	  <xc:Application instance="{@instance}" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
 	    <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP">
 	      <autoSize xsi:type="xsd:boolean">true</autoSize>
-	      <maxPacketSize xsi:type="xsd:unsignedInt">196608</maxPacketSize>
+	      <maxPacketSize xsi:type="xsd:unsignedInt">0xc0000</maxPacketSize>
 	      <connectAtFirstSend xsi:type="xsd:boolean">true</connectAtFirstSend>
 	    </properties>
 	  </xc:Application>
@@ -281,7 +281,7 @@
 	    <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::daq::fu::Application">
 	      <buInstNb xsi:type="xsd:unsignedLong"><xsl:value-of select="@instance"/></buInstNb>
 	      <pathToDataOutFile xsi:type="xsd:string">/data</pathToDataOutFile>
-	      <fileSizeInMegaBytes xsi:type="xsd:unsignedLong">500</fileSizeInMegaBytes>
+	      <fileSizeInMegaBytes xsi:type="xsd:unsignedLong">2000</fileSizeInMegaBytes>
 	      <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]"></clientsClassName>
 	    </properties>
 	  </xc:Application>
@@ -297,7 +297,7 @@
 	      <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
 	      <pathToRUIDataOutFile xsi:type="xsd:string">/data</pathToRUIDataOutFile>
 	      <!-- 	      <pathToRUIDataOutFile xsi:type="xsd:string">/tmp</pathToRUIDataOutFile> -->
-	      <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">500</xsl:if></ruiFileSizeInMegaBytes>
+	      <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">2000</xsl:if></ruiFileSizeInMegaBytes>
 	      <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 		<item xsi:type="xsd:string" soapenc:position="[0]">EmuMonitor</item>
 	      </clientsClassName>
@@ -381,7 +381,7 @@
       <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
 	<properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
 	  <autoSize xsi:type="xsd:boolean">true</autoSize>
-	  <maxPacketSize xsi:type="xsd:unsignedInt">196608</maxPacketSize>
+	  <maxPacketSize xsi:type="xsd:unsignedInt">0xc0000</maxPacketSize>
 	  <connectAtFirstSend xsi:type="xsd:boolean">true</connectAtFirstSend>
 	</properties>
       </xc:Application>
@@ -436,7 +436,7 @@
 	  <xc:Application instance="{@instance}" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
 	    <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
 	      <autoSize xsi:type="xsd:boolean">true</autoSize>
-	      <maxPacketSize xsi:type="xsd:unsignedInt">196608</maxPacketSize>
+	      <maxPacketSize xsi:type="xsd:unsignedInt">0xc0000</maxPacketSize>
 	      <connectAtFirstSend xsi:type="xsd:boolean">true</connectAtFirstSend>
 	    </properties>
 	  </xc:Application>
