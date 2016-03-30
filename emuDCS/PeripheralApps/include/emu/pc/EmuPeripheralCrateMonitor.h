@@ -123,7 +123,7 @@ protected:
   xdata::UnsignedShort fastloop, slowloop, extraloop;
   toolbox::task::Timer * timer_;
   //
-  std::vector<int> vcc_reset, dcs_mask, tcs_mask, tmb_mask, dmb_mask;
+  std::vector<int> vcc_reset, dcs_mask, tcs_mask, tmb_mask, dmb_mask, feb_mask;
   std::vector<bool> crate_off;
   //
   std::vector< std::string> TCounterName;

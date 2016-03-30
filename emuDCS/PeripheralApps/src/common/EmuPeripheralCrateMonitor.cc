@@ -159,6 +159,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   tcs_mask.clear();
   tmb_mask.clear();
   dmb_mask.clear();
+  feb_mask.clear();
   vcc_reset.clear();
   crate_off.clear();
   for(unsigned i=0; i<60; i++) 
@@ -599,7 +600,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                 {
                   /* DCFEB monitorables */
                   bzero(buf, 8000);
-                  now_crate-> MonitorDCS2(cycle, buf, dcs_mask[i], read_dcfeb);
+                  now_crate-> MonitorDCS2(cycle, buf, dcs_mask[i]|feb_mask[i], read_dcfeb);
                   if(buf2[0])
                   {
                      // std::cout << "Crate " << i << " DCFEB counters " << buf2[0] << std::endl;
@@ -2074,7 +2075,7 @@ void EmuPeripheralCrateMonitor::DCSCrateTMB(xgi::Input * in, xgi::Output * out )
         tcs_mask.push_back(0);
         tmb_mask.push_back(0);
         dmb_mask.push_back(0);
-
+        feb_mask.push_back(0);
         // for VCC
         vcc_reset.push_back(0);
         crate_off.push_back(false);
@@ -4103,6 +4104,8 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
   else if (command_name=="LISTMASK")
   {
      if(!parsed) return;
+     //
+     *out << "DCFEB reading setting: " << read_dcfeb << std::endl; 
      // std::cout << "List of all masks:" << std::endl;
      for ( unsigned int i = 0; i < crateVector.size(); i++ )
      {
@@ -4114,6 +4117,8 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
           *out << "TMB Mask: " << crateVector[i]->GetLabel() << " 0x" << std::hex << tmb_mask[i] << std::dec << std::endl;
         if(dmb_mask[i]) 
           *out << "DMB Mask: " << crateVector[i]->GetLabel() << " 0x" << std::hex << dmb_mask[i] << std::dec << std::endl;
+        if(feb_mask[i]) 
+          *out << "DCFEB Mask: " << crateVector[i]->GetLabel() << " 0x" << std::hex << feb_mask[i] << std::dec << std::endl;
      }
   }
   else if (command_name=="MASKON" || command_name=="MASKOFF")
@@ -4164,6 +4169,14 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
                   dmb_mask[i] |= (1<<(maskid-1));
                else
                   dmb_mask[i] &= ~(1<<(maskid-1));
+            }
+            else if (board=="FEB" || board=="feb")
+            {
+               goodmask=true;
+               if(command_name=="MASKON")
+                  feb_mask[i] |= (1<<(maskid-1));
+               else
+                  feb_mask[i] &= ~(1<<(maskid-1));
             }
         }
      }
