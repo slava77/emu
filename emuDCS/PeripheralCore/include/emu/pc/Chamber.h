@@ -43,9 +43,9 @@ public:
   inline std::string GetProblemDescription(){return problem_description_;}
   //
   /// define the following bitmask for expected configuration problems for this chamber:
-  ///  HEX digit[0,1,...9] = ALCT, TMB, DMB, CFEB1, CFEB2, CFEB3, CFEB4, CFEB5, CFEB6, CFEB7
-  void SetProblemMask(unsigned long int problem_mask);
-  inline unsigned long int GetProblemMask(){return problem_mask_;}
+  ///  bit[0,1,...7] = ALCT, TMB, CFEB1, CFEB2, CFEB3, CFEB4, CFEB5, DMB
+  void SetProblemMask(int problem_mask);
+  inline int GetProblemMask(){return problem_mask_;}
   //
   ///From the problem_mask, we expect to see a configuration problem from the ALCT
   inline int GetExpectedConfigProblemALCT()  { return expected_config_problem_alct_ ; }
@@ -93,15 +93,15 @@ private:
   int TotalCfebs_;  // total number of CFEBs on chamber 
   std::string label_;
   std::string problem_description_;
-  unsigned long int problem_mask_;
+  int problem_mask_;
   int expected_config_problem_alct_ ;
   int expected_config_problem_tmb_  ;
-  int expected_config_problem_dmb_  ;
   int expected_config_problem_cfeb1_;
   int expected_config_problem_cfeb2_;
   int expected_config_problem_cfeb3_;
   int expected_config_problem_cfeb4_;
   int expected_config_problem_cfeb5_;
+  int expected_config_problem_dmb_  ;
   int expected_config_problem_cfeb6_;
   int expected_config_problem_cfeb7_;
   //

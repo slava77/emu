@@ -22,15 +22,15 @@ throw (emu::exception::ConfigurationException)
   if (itr == xml2db_.end()) return;
   if (attr_name == "problem_location_mask")
   {
-    long int val;
-    int err = sscanf(attr_value.c_str(), "%lx", &val);
+    unsigned int val;
+    int err = sscanf(attr_value.c_str(), "%x", &val);
     if (err==0)
     {
       std::ostringstream error;
       error << "ERROR kludging: conversion to hex of " << attr_name << "="<<attr_value<<" failed!!! errcode=" << err << std::endl;
       XCEPT_RAISE(emu::exception::ConfigurationException, error.str());
     }
-    attr_value = toolbox::toString("%ld", val);
+    attr_value = toolbox::toString("%d", val);
   }
   attr_name = (*itr).second;
 }
@@ -43,15 +43,15 @@ throw (emu::exception::ConfigurationException)
   if (itr == db2xml_.end()) return;
   if (field_name == "problem_mask")
   {
-    long int val;
-    int err = sscanf(field_value.c_str(), "%ld", &val);
+    unsigned int val;
+    int err = sscanf(field_value.c_str(), "%d", &val);
     if (err==0)
     {
       std::ostringstream error;
       error << "ERROR kludging: conversion to int of " << field_name << "="<<field_value<<" failed!!! errcode=" << err << std::endl;
       XCEPT_RAISE(emu::exception::ConfigurationException, error.str());
     }
-    field_value = toolbox::toString("%lx", val);
+    field_value = toolbox::toString("%02x", val);
   }
   field_name = (*itr).second;
 }

@@ -21,7 +21,6 @@
 #include "xdata/UnsignedLong.h"
 #include "xdata/UnsignedInteger.h"
 #include "xdata/UnsignedInteger32.h"
-#include "xdata/UnsignedInteger64.h"
 #include "xdata/SimpleType.h"
 #include "xoap/domutils.h"
 
@@ -1649,7 +1648,7 @@ void EmuPCrateConfigTStore::copyCSCToTable(xdata::Table &newRows, Chamber * cham
 
   xdata::String _label;
   xdata::String _known_problem;
-  xdata::UnsignedInteger64 _problem_mask;
+  xdata::UnsignedShort _problem_mask;
 
   _label         = chamber->GetLabel();
   _known_problem = chamber->GetProblemDescription();
@@ -2998,7 +2997,7 @@ void EmuPCrateConfigTStore::readCSC(
 
   xdata::Serializable * value;
   std::string StrgValue;
-  unsigned long int IntValue = 0;
+  int IntValue = 0;
 
   std::string csc_config_id;
 
@@ -3015,9 +3014,9 @@ void EmuPCrateConfigTStore::readCSC(
       value = results.getValueAt(rowIndex, *column);
       if (results.getColumnType(*column) == "int")
       {
-        xdata::UnsignedInteger64 * i = dynamic_cast<xdata::UnsignedInteger64 *> (value);
+        xdata::Integer * i = dynamic_cast<xdata::Integer *> (value);
         if(i->isNaN()) IntValue=0;
-        else IntValue=(unsigned long int)*i;
+        else IntValue=(int)*i;
       }
       StrgValue = value->toString();
 

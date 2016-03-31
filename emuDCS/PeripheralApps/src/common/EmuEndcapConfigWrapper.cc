@@ -164,7 +164,7 @@ throw (emu::exception::ConfigurationException)
 
   if (conf->has("LABEL"))         csc_->SetLabel( getString(conf, "LABEL"));
   if (conf->has("KNOWN_PROBLEM")) csc_->SetProblemDescription( getString(conf, "KNOWN_PROBLEM"));
-  if (conf->has("PROBLEM_MASK"))  csc_->SetProblemMask( getLongInt(conf, "PROBLEM_MASK"));
+  if (conf->has("PROBLEM_MASK"))  csc_->SetProblemMask( getInt(conf, "PROBLEM_MASK"));
 
   if(verbose_)
   {
@@ -699,19 +699,10 @@ throw (emu::exception::ConfigurationException)
 int EmuEndcapConfigWrapper::getInt(emu::db::ConfigRow *conf, std::string columnName)
 throw (emu::exception::ConfigurationException)
 {
-  // All integers in PC configuration are actually stored as unsigned shorts except problem_mask
+  // All integers in PC configuration are actually stored as unsigned shorts
   xdata::UnsignedShort i = conf->getCastValue<xdata::UnsignedShort>(columnName);
   if(i.isNaN()) return 0;
   return (int) i;
-}
-
-
-unsigned long int EmuEndcapConfigWrapper::getLongInt(emu::db::ConfigRow *conf, std::string columnName)
-throw (emu::exception::ConfigurationException)
-{
-  xdata::UnsignedInteger64 i = conf->getCastValue<xdata::UnsignedInteger64>(columnName);
-  if(i.isNaN()) return 0;
-  return (unsigned long int) i;
 }
 
 
