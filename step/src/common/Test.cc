@@ -162,6 +162,16 @@ void emu::step::Test::setUpDDU(emu::pc::Crate* crate)
   // (this is true for Track-Finder DDUs)
   // S.Z. Shalhout (April 23, 2013) sshalhou@CERN.CH
   // Joe: Shortened some long sleeps (April 30, 2013
+
+  // Get optional prescaling factor for DDU GbE spy channel
+  uint64_t log_2_of_GbE_prescaling = ( parameters_.find( "log_2_of_GbE_prescaling" ) == parameters_.end() ? 0 : parameters_[ "log_2_of_GbE_prescaling" ] );
+  const uint64_t maxLog2OfGbEPrescaling = 6;
+  if ( log_2_of_GbE_prescaling > maxLog2OfGbEPrescaling ){
+    if ( pLogger_ ){ LOG4CPLUS_WARN( *pLogger_, "Requested log_2_of_GbE_prescaling = " << log_2_of_GbE_prescaling << " is greater than the maximum allowed " << maxLog2OfGbEPrescaling << ". log_2_of_GbE_prescaling = " << maxLog2OfGbEPrescaling << " will be used instead." ); }
+    log_2_of_GbE_prescaling = maxLog2OfGbEPrescaling;
+  }
+  unsigned int GbEPrescaleWord = 8 + log_2_of_GbE_prescaling; // bit 3: ignore backpressure; bits 0-2: log_2(prescaling), i.e. 0->1, 1->2, 2->4, 3->8, 4->16, 5->32, 6->64, 7->0 (yes, that's 0, i.e. no GbE output) 
+
   if ( pLogger_ ){ 
     LOG4CPLUS_INFO( *pLogger_, ddus.size() << " DDUs" ); 
   }
@@ -184,7 +194,7 @@ void emu::step::Test::setUpDDU(emu::pc::Crate* crate)
     int dduInputFiberMask = getDDUInputFiberMask( crate->CrateID(), (*ddu)->slot() );
     (*ddu)->writeFlashKillFiber( dduInputFiberMask );
     usleep(10);
-    (*ddu)->writeGbEPrescale( 8 ); // 8: no prescaling in local run without DCC (ignore back-pressure)
+    (*ddu)->writeGbEPrescale( GbEPrescaleWord );
     usleep(10);
     (*ddu)->writeFakeL1( 0 ); // 7: passthrough // 0: normal
     usleep(10);
@@ -196,6 +206,9 @@ void emu::step::Test::setUpDDU(emu::pc::Crate* crate)
       LOG4CPLUS_INFO( *pLogger_, "Kill Fiber  is set to 0x" << hex << ( (*ddu)->readFlashKillFiber() & 0xffff ) << dec );
       LOG4CPLUS_INFO( *pLogger_, "GbEPrescale is set to 0x" << hex << ( (*ddu)->readGbEPrescale()    & 0xffff ) << dec );
       LOG4CPLUS_INFO( *pLogger_, "Fake L1A    is set to 0x" << hex << ( (*ddu)->readFakeL1()         & 0xffff ) << dec );
+      if ( (*ddu)->readFlashKillFiber() & 0x000f != GbEPrescaleWord ){
+	LOG4CPLUS_ERROR( *pLogger_, "Failed to set GbEPrescale to 0x" << hex << GbEPrescaleWord << dec );
+      }
     }
 
   }
@@ -249,6 +262,10 @@ void emu::step::Test::configureCrates(){
       // Disable all triggers 
       if ( pLogger_ ){ LOG4CPLUS_INFO( *pLogger_, "(*crate)->ccb()->DisableL1a() in " << ((*crate)->IsAlive()?"live":"dead") << " crate " << (*crate)->GetLabel() ); }
       (*crate)->ccb()->DisableL1a();
+      // Disable L1A veto (which is only implemented in special CCB fw https://padley.rice.edu/cms/ccb_gif_022516.svf):
+      const unsigned int CSRB4 = 0x26;
+      const uint64_t min_l1a_separation_bx = 0; // 0 means no veto
+      (*crate)->ccb()->WriteRegister( CSRB4, min_l1a_separation_bx );
     }
     else{
       XCEPT_RAISE( xcept::Exception, "Crate " + (*crate)->GetLabel() + " is dead or incommunicado." );
@@ -639,6 +656,14 @@ void emu::step::Test::configure_11(){
   
   progress_.setTotal( (int)parameters_["durationInSec"] );
 
+  // Get duration [bx] of moratorium on L1A
+  uint64_t min_l1a_separation_bx = ( parameters_.find( "min_l1a_separation_bx" ) == parameters_.end() ? 0 : parameters_[ "min_l1a_separation_bx" ] );
+  const uint64_t maxL1SeparationInBX = 0xffff;
+  if ( min_l1a_separation_bx > maxL1SeparationInBX ){
+    if ( pLogger_ ){ LOG4CPLUS_WARN( *pLogger_, "Requested min_l1a_separation_bx = " << min_l1a_separation_bx << " is greater than the maximum allowed " << maxL1SeparationInBX << " BX. min_l1a_separation_bx = " << maxL1SeparationInBX << " will be used instead." ); }
+    min_l1a_separation_bx = maxL1SeparationInBX;
+  }
+
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
 
@@ -657,6 +682,10 @@ void emu::step::Test::configure_11(){
     (*crate)->ccb()->l1aReset();
     usleep(1000);
     resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
+
+    // Set moratorium on L1A in units of BX (introduced in https://padley.rice.edu/cms/ccb_gif_022516.svf)
+    const unsigned int CSRB4 = 0x26;
+    (*crate)->ccb()->WriteRegister( CSRB4, min_l1a_separation_bx );
 
     if ( isToStop_ ) return;
   }
@@ -2261,6 +2290,14 @@ void emu::step::Test::configure_27(){
   
   // Test of undefined duration, progress should be monitored in local DAQ.
   
+  // Get duration [bx] of moratorium on L1A
+  uint64_t min_l1a_separation_bx = ( parameters_.find( "min_l1a_separation_bx" ) == parameters_.end() ? 0 : parameters_[ "min_l1a_separation_bx" ] );
+  const uint64_t maxL1SeparationInBX = 0xffff;
+  if ( min_l1a_separation_bx > maxL1SeparationInBX ){
+    if ( pLogger_ ){ LOG4CPLUS_WARN( *pLogger_, "Requested min_l1a_separation_bx = " << min_l1a_separation_bx << " is greater than the maximum allowed " << maxL1SeparationInBX << " BX. min_l1a_separation_bx = " << maxL1SeparationInBX << " will be used instead." ); }
+    min_l1a_separation_bx = maxL1SeparationInBX;
+  }
+
   vector<emu::pc::Crate*> crates = parser_.GetEmuEndcap()->crates();
   for ( vector<emu::pc::Crate*>::iterator crate = crates.begin(); crate != crates.end(); ++crate ){
     
@@ -2282,6 +2319,10 @@ void emu::step::Test::configure_27(){
     resyncDCFEBs( *crate ); // TODO: remove once firmware takes care of it
 
     (*crate)->ccb()->EnableL1aFromTmbL1aReq();
+
+    // Set moratorium on L1A in units of BX (introduced in https://padley.rice.edu/cms/ccb_gif_022516.svf)
+    const unsigned int CSRB4 = 0x26;
+    (*crate)->ccb()->WriteRegister( CSRB4, min_l1a_separation_bx );
 
     if ( isToStop_ ) return;
 

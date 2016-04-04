@@ -35,12 +35,12 @@
                 rat_firmware_day="28"
                 rat_firmware_year="2006"
                 clct_hit_persist="4"
-                alct_tx_clock_delay="12"
-                alct_rx_clock_delay="19"
+                alct_tx_clock_delay="11"
+                alct_rx_clock_delay="18"
                 alct_posneg="1"
                 alct_tx_posneg="0"
-                cfeb0delay="16"
-                cfeb1delay="6"
+                cfeb0delay="14"
+                cfeb1delay="4"
 		cfeb2delay="19"
                 cfeb3delay="17"
                 cfeb4delay="19"
@@ -174,49 +174,50 @@
                     alct_testpulse_invert="on"
                     alct_testpulse_direction="strips">
 		  <!-- Thresholds from Tests_results/Test_AFEB06/csc_00000001_EmuRUI01_Test_13_000_150717_135746_UTC.plots -->
+		  <!-- Thresholds from Tests_results/Test_AFEB06/csc_00000001_EmuRUI01_Test_13_000_151208_173723_UTC.plots -->
 		  <!-- Delays from Tests_results/Test_AFEB07/csc_00000001_EmuRUI01_Test_14_000_150930_130345_UTC.plots/ -->
                     <AnodeChannel afeb_number="1"       afeb_fine_delay="3"    afeb_threshold="14"> </AnodeChannel>
-                    <AnodeChannel afeb_number="2"       afeb_fine_delay="3"    afeb_threshold="12"> </AnodeChannel>
-                    <AnodeChannel afeb_number="3"       afeb_fine_delay="4"    afeb_threshold="10"> </AnodeChannel>
+                    <AnodeChannel afeb_number="2"       afeb_fine_delay="3"    afeb_threshold="11"> </AnodeChannel>
+                    <AnodeChannel afeb_number="3"       afeb_fine_delay="4"    afeb_threshold="9"> </AnodeChannel>
                     <AnodeChannel afeb_number="4"       afeb_fine_delay="2"    afeb_threshold="14"> </AnodeChannel>
-                    <AnodeChannel afeb_number="5"       afeb_fine_delay="2"    afeb_threshold="11"> </AnodeChannel>
-                    <AnodeChannel afeb_number="6"       afeb_fine_delay="2"    afeb_threshold="15"> </AnodeChannel>
+                    <AnodeChannel afeb_number="5"       afeb_fine_delay="2"    afeb_threshold="10"> </AnodeChannel>
+                    <AnodeChannel afeb_number="6"       afeb_fine_delay="2"    afeb_threshold="13"> </AnodeChannel>
                     <AnodeChannel afeb_number="7"       afeb_fine_delay="3"    afeb_threshold="20"> </AnodeChannel>
-                    <AnodeChannel afeb_number="8"       afeb_fine_delay="4"    afeb_threshold="15"> </AnodeChannel>
-                    <AnodeChannel afeb_number="9"       afeb_fine_delay="4"    afeb_threshold="12"> </AnodeChannel>
+                    <AnodeChannel afeb_number="8"       afeb_fine_delay="4"    afeb_threshold="14"> </AnodeChannel>
+                    <AnodeChannel afeb_number="9"       afeb_fine_delay="4"    afeb_threshold="11"> </AnodeChannel>
                     <AnodeChannel afeb_number="10"      afeb_fine_delay="3"    afeb_threshold="5"> </AnodeChannel>
                     <AnodeChannel afeb_number="11"      afeb_fine_delay="3"    afeb_threshold="8"> </AnodeChannel>
-                    <AnodeChannel afeb_number="12"      afeb_fine_delay="5"    afeb_threshold="13"> </AnodeChannel>
+                    <AnodeChannel afeb_number="12"      afeb_fine_delay="5"    afeb_threshold="12"> </AnodeChannel>
                     <AnodeChannel afeb_number="13"      afeb_fine_delay="7"    afeb_threshold="19"> </AnodeChannel>
                     <AnodeChannel afeb_number="14"      afeb_fine_delay="5"    afeb_threshold="14"> </AnodeChannel>
-                    <AnodeChannel afeb_number="15"      afeb_fine_delay="5"    afeb_threshold="8"> </AnodeChannel>
+                    <AnodeChannel afeb_number="15"      afeb_fine_delay="5"    afeb_threshold="7"> </AnodeChannel>
                     <AnodeChannel afeb_number="16"      afeb_fine_delay="6"    afeb_threshold="5"> </AnodeChannel>
-                    <AnodeChannel afeb_number="17"      afeb_fine_delay="5"    afeb_threshold="9"> </AnodeChannel>
+                    <AnodeChannel afeb_number="17"      afeb_fine_delay="5"    afeb_threshold="8"> </AnodeChannel>
                     <AnodeChannel afeb_number="18"      afeb_fine_delay="5"    afeb_threshold="7"> </AnodeChannel>
-                    <AnodeChannel afeb_number="19"      afeb_fine_delay="5"    afeb_threshold="13"> </AnodeChannel>
-                    <AnodeChannel afeb_number="20"      afeb_fine_delay="5"    afeb_threshold="14"> </AnodeChannel>
-                    <AnodeChannel afeb_number="21"      afeb_fine_delay="6"    afeb_threshold="14"> </AnodeChannel>
-                    <AnodeChannel afeb_number="22"      afeb_fine_delay="6"    afeb_threshold="15"> </AnodeChannel>
-                    <AnodeChannel afeb_number="23"      afeb_fine_delay="5"    afeb_threshold="11"> </AnodeChannel>
-                    <AnodeChannel afeb_number="24"      afeb_fine_delay="5"    afeb_threshold="8"> </AnodeChannel>
-                    <AnodeChannel afeb_number="25"      afeb_fine_delay="5"    afeb_threshold="18"> </AnodeChannel>
-                    <AnodeChannel afeb_number="26"      afeb_fine_delay="6"    afeb_threshold="17"> </AnodeChannel>
+                    <AnodeChannel afeb_number="19"      afeb_fine_delay="5"    afeb_threshold="10"> </AnodeChannel>
+                    <AnodeChannel afeb_number="20"      afeb_fine_delay="5"    afeb_threshold="13"> </AnodeChannel>
+                    <AnodeChannel afeb_number="21"      afeb_fine_delay="6"    afeb_threshold="12"> </AnodeChannel>
+                    <AnodeChannel afeb_number="22"      afeb_fine_delay="6"    afeb_threshold="13"> </AnodeChannel>
+                    <AnodeChannel afeb_number="23"      afeb_fine_delay="5"    afeb_threshold="10"> </AnodeChannel>
+                    <AnodeChannel afeb_number="24"      afeb_fine_delay="5"    afeb_threshold="7"> </AnodeChannel>
+                    <AnodeChannel afeb_number="25"      afeb_fine_delay="5"    afeb_threshold="19"> </AnodeChannel>
+                    <AnodeChannel afeb_number="26"      afeb_fine_delay="6"    afeb_threshold="15"> </AnodeChannel>
                     <AnodeChannel afeb_number="27"      afeb_fine_delay="5"    afeb_threshold="9"> </AnodeChannel>
-                    <AnodeChannel afeb_number="28"      afeb_fine_delay="4"    afeb_threshold="14"> </AnodeChannel>
+                    <AnodeChannel afeb_number="28"      afeb_fine_delay="4"    afeb_threshold="13"> </AnodeChannel>
                     <AnodeChannel afeb_number="29"      afeb_fine_delay="5"    afeb_threshold="14"> </AnodeChannel>
-                    <AnodeChannel afeb_number="30"      afeb_fine_delay="4"    afeb_threshold="8"> </AnodeChannel>
-                    <AnodeChannel afeb_number="31"      afeb_fine_delay="5"    afeb_threshold="12"> </AnodeChannel>
-                    <AnodeChannel afeb_number="32"      afeb_fine_delay="5"    afeb_threshold="15"> </AnodeChannel>
+                    <AnodeChannel afeb_number="30"      afeb_fine_delay="4"    afeb_threshold="7"> </AnodeChannel>
+                    <AnodeChannel afeb_number="31"      afeb_fine_delay="5"    afeb_threshold="11"> </AnodeChannel>
+                    <AnodeChannel afeb_number="32"      afeb_fine_delay="5"    afeb_threshold="13"> </AnodeChannel>
                     <AnodeChannel afeb_number="33"      afeb_fine_delay="5"    afeb_threshold="11"> </AnodeChannel>
-                    <AnodeChannel afeb_number="34"      afeb_fine_delay="5"    afeb_threshold="12"> </AnodeChannel>
-                    <AnodeChannel afeb_number="35"      afeb_fine_delay="3"    afeb_threshold="9"> </AnodeChannel>
-                    <AnodeChannel afeb_number="36"      afeb_fine_delay="4"    afeb_threshold="14"> </AnodeChannel>
-                    <AnodeChannel afeb_number="37"      afeb_fine_delay="2"    afeb_threshold="12"> </AnodeChannel>
+                    <AnodeChannel afeb_number="34"      afeb_fine_delay="5"    afeb_threshold="8"> </AnodeChannel>
+                    <AnodeChannel afeb_number="35"      afeb_fine_delay="3"    afeb_threshold="8"> </AnodeChannel>
+                    <AnodeChannel afeb_number="36"      afeb_fine_delay="4"    afeb_threshold="12"> </AnodeChannel>
+                    <AnodeChannel afeb_number="37"      afeb_fine_delay="2"    afeb_threshold="11"> </AnodeChannel>
                     <AnodeChannel afeb_number="38"      afeb_fine_delay="1"    afeb_threshold="5"> </AnodeChannel>
-                    <AnodeChannel afeb_number="39"      afeb_fine_delay="1"    afeb_threshold="11"> </AnodeChannel>
-                    <AnodeChannel afeb_number="40"      afeb_fine_delay="3"    afeb_threshold="12"> </AnodeChannel>
-                    <AnodeChannel afeb_number="41"      afeb_fine_delay="3"    afeb_threshold="10"> </AnodeChannel>
-                    <AnodeChannel afeb_number="42"      afeb_fine_delay="2"    afeb_threshold="9"> </AnodeChannel>
+                    <AnodeChannel afeb_number="39"      afeb_fine_delay="1"    afeb_threshold="10"> </AnodeChannel>
+                    <AnodeChannel afeb_number="40"      afeb_fine_delay="3"    afeb_threshold="11"> </AnodeChannel>
+                    <AnodeChannel afeb_number="41"      afeb_fine_delay="3"    afeb_threshold="9"> </AnodeChannel>
+                    <AnodeChannel afeb_number="42"      afeb_fine_delay="2"    afeb_threshold="7"> </AnodeChannel>
                  </ALCT>
             </TMB>
             <DAQMB slot="9"
@@ -291,13 +292,15 @@
 
 	<!-- Original copied from ME+1/1/2 in /nfshome0/cscdaq/config/pc/multipleYP/VME_csc-pc1_p1p1.xml -->
     <CSC known_problem="" label="ME+1/1/GIF" problem_location_mask="00">
-      <TMB adjacent_cfeb_distance="5" aff_thresh="4" alct_bx0_delay="12" alct_bx0_enable="1" alct_clear="0" alct_clock_en_use_ccb="1" alct_posneg="0" alct_pretrig_enable="0" alct_readout_without_trig="0" alct_rx_clock_delay="14" alct_tof_delay="4" alct_trig_enable="0" alct_tx_clock_delay="15" alct_tx_posneg="0" all_cfeb_active="0" cfeb0123_rxd_int_delay="1"  cfeb0123delay="19" cfeb0123posneg="0" cfeb456_rxd_int_delay="1"  cfeb456delay="19" cfeb456posneg="0" cfeb_badbits_block="1" cfeb_badbits_readout="0" cfeb_enable_source="42" cfeb_tof_delay="0" clct_blanking="0" clct_bx0_delay="0" clct_drift_delay="2" clct_ext_pretrig_enable="0" clct_fifo_pretrig="7" clct_fifo_tbins="12" clct_hit_persist="4" clct_min_separation="10" clct_nplanes_hit_pattern="3" clct_nplanes_hit_pretrig="3" clct_pid_thresh_pretrig="0" clct_pretrig_enable="1" clct_readout_without_trig="1" clct_throttle="0" clct_trig_enable="0" dmb_tx_delay="9" enableCLCTInputs_reg42="83" enableCLCTInputs_reg68="83" enable_alct_rx="1" enable_alct_tx="1" hardware_version="2" ignore_ccb_startstop="1" l1a_allow_alct_only="0" l1a_allow_match="1" l1a_allow_nol1a="0" l1a_allow_notmb="0" l1a_priority_enable="1" layer0_distrip_hot_chann_mask="ffffffffffffff" layer1_distrip_hot_chann_mask="ffffffffffffff" layer2_distrip_hot_chann_mask="ffffffffffffff" layer3_distrip_hot_chann_mask="ffffffffffffff" layer4_distrip_hot_chann_mask="ffffffffffffff" layer5_distrip_hot_chann_mask="ffffffffffffff" layer_trig_enable="0" layer_trig_thresh="2" match_pretrig_alct_delay="0" match_pretrig_enable="0" match_pretrig_window_size="3" match_readout_without_trig="1" match_trig_alct_delay="12" match_trig_enable="1" match_trig_window_size="7" miniscope_enable="0" mpc_block_me1a="0" mpc_idle_blank="0" mpc_output_enable="1" mpc_rx_delay="6" mpc_sel_ttc_bx0="0" mpc_sync_err_enable="3" mpc_tx_delay="0" rat_firmware_day="28" rat_firmware_month="8" rat_firmware_year="2006" rat_tmb_delay="9" request_l1a="0" rpc0_rat_delay="11" rpc0_raw_delay="0" rpc1_rat_delay="3" rpc1_raw_delay="0" rpc_bxn_offset="0" rpc_exists="1" rpc_fifo_decouple="0" rpc_fifo_pretrig="7" rpc_fifo_tbins="12" rpc_mask_all="1" rpc_read_enable="1" slot="4" tmb_bxn_offset="3535" tmb_fifo_mode="1" tmb_fifo_no_raw_hits="0" tmb_firmware_compile_type="c" tmb_firmware_day="9" tmb_firmware_month="6" tmb_firmware_revcode="7" tmb_firmware_type="12" tmb_firmware_version="14" tmb_firmware_year="2015" tmb_l1a_delay="118" tmb_l1a_offset="0" tmb_l1a_window_size="7" tmb_to_alct_data_delay="1" valid_clct_required="1" write_buffer_autoclear="1" write_buffer_continous_enable="0" write_buffer_required="1">
-        <ALCT alct_accel_mode="0" alct_bxn_offset="1" alct_ccb_enable="1" alct_config_in_readout="0" alct_drift_delay="2" alct_ext_trig_enable="0" alct_fifo_mode="1" alct_fifo_pretrig="10" alct_fifo_tbins="16" alct_firmware_backward_forward="f" alct_firmware_day="13" alct_firmware_month="6" alct_firmware_negat_posit="p" alct_firmware_year="2013" alct_inject_mode="0" alct_l1a_delay="150" alct_l1a_internal="0" alct_l1a_offset="1" alct_l1a_window_width="7" alct_nplanes_hit_accel_pattern="0" alct_nplanes_hit_accel_pretrig="0" alct_nplanes_hit_pattern="4" alct_nplanes_hit_pretrig="3" alct_send_empty="0" alct_sn_select="0" alct_testpulse_amplitude="255" alct_testpulse_direction="strips" alct_testpulse_invert="on" alct_trig_info_en="0" alct_trig_mode="2" alct_zero_suppress="1" chamber_type="ME11" hardware_version="2" alct_layer0_hot_chann_mask="0" alct_layer1_hot_chann_mask="0" alct_layer2_hot_chann_mask="0" alct_layer3_hot_chann_mask="0" alct_layer4_hot_chann_mask="0" alct_layer5_hot_chann_mask="1000000000">
+      <TMB adjacent_cfeb_distance="5" aff_thresh="4" alct_bx0_delay="12" alct_bx0_enable="1" alct_clear="0" alct_clock_en_use_ccb="1" alct_posneg="1" alct_pretrig_enable="0" alct_readout_without_trig="0" alct_rx_clock_delay="13" alct_tof_delay="4" alct_trig_enable="0" alct_tx_clock_delay="15" alct_tx_posneg="0" all_cfeb_active="0" cfeb0123_rxd_int_delay="1"  cfeb0123delay="19" cfeb0123posneg="0" cfeb456_rxd_int_delay="1"  cfeb456delay="19" cfeb456posneg="0" cfeb_badbits_block="1" cfeb_badbits_readout="0" cfeb_enable_source="42" cfeb_tof_delay="0" clct_blanking="0" clct_bx0_delay="0" clct_drift_delay="2" clct_ext_pretrig_enable="0" clct_fifo_pretrig="7" clct_fifo_tbins="12" clct_hit_persist="4" clct_min_separation="10" clct_nplanes_hit_pattern="3" clct_nplanes_hit_pretrig="3" clct_pid_thresh_pretrig="0" clct_pretrig_enable="1" clct_readout_without_trig="1" clct_throttle="0" clct_trig_enable="0" dmb_tx_delay="9" enableCLCTInputs_reg42="83" enableCLCTInputs_reg68="83" enable_alct_rx="1" enable_alct_tx="1" hardware_version="2" ignore_ccb_startstop="1" l1a_allow_alct_only="0" l1a_allow_match="1" l1a_allow_nol1a="0" l1a_allow_notmb="0" l1a_priority_enable="1" layer0_distrip_hot_chann_mask="ffffffffffffff" layer1_distrip_hot_chann_mask="ffffffffffffff" layer2_distrip_hot_chann_mask="ffffffffffffff" layer3_distrip_hot_chann_mask="ffffffffffffff" layer4_distrip_hot_chann_mask="ffffffffffffff" layer5_distrip_hot_chann_mask="ffffffffffffbf" layer_trig_enable="0" layer_trig_thresh="2" match_pretrig_alct_delay="0" match_pretrig_enable="0" match_pretrig_window_size="3" match_readout_without_trig="1" match_trig_alct_delay="12" match_trig_enable="1" match_trig_window_size="7" miniscope_enable="0" mpc_block_me1a="0" mpc_idle_blank="0" mpc_output_enable="1" mpc_rx_delay="6" mpc_sel_ttc_bx0="0" mpc_sync_err_enable="3" mpc_tx_delay="0" rat_firmware_day="28" rat_firmware_month="8" rat_firmware_year="2006" rat_tmb_delay="9" request_l1a="0" rpc0_rat_delay="11" rpc0_raw_delay="0" rpc1_rat_delay="3" rpc1_raw_delay="0" rpc_bxn_offset="0" rpc_exists="1" rpc_fifo_decouple="0" rpc_fifo_pretrig="7" rpc_fifo_tbins="12" rpc_mask_all="1" rpc_read_enable="1" slot="4" tmb_bxn_offset="3535" tmb_fifo_mode="1" tmb_fifo_no_raw_hits="0" tmb_firmware_compile_type="c" tmb_firmware_day="9" tmb_firmware_month="6" tmb_firmware_revcode="7" tmb_firmware_type="12" tmb_firmware_version="14" tmb_firmware_year="2015" tmb_l1a_delay="118" tmb_l1a_offset="0" tmb_l1a_window_size="7" tmb_to_alct_data_delay="1" valid_clct_required="1" write_buffer_autoclear="1" write_buffer_continous_enable="0" write_buffer_required="1">
+        <ALCT alct_accel_mode="0" alct_bxn_offset="1" alct_ccb_enable="1" alct_config_in_readout="0" alct_drift_delay="2" alct_ext_trig_enable="0" alct_fifo_mode="1" alct_fifo_pretrig="10" alct_fifo_tbins="16" alct_firmware_backward_forward="f" alct_firmware_day="13" alct_firmware_month="6" alct_firmware_negat_posit="p" alct_firmware_year="2013" alct_inject_mode="0" alct_l1a_delay="150" alct_l1a_internal="0" alct_l1a_offset="1" alct_l1a_window_width="7" alct_nplanes_hit_accel_pattern="0" alct_nplanes_hit_accel_pretrig="0" alct_nplanes_hit_pattern="4" alct_nplanes_hit_pretrig="3" alct_send_empty="0" alct_sn_select="0" alct_testpulse_amplitude="255" alct_testpulse_direction="strips" alct_testpulse_invert="on" alct_trig_info_en="0" alct_trig_mode="2" alct_zero_suppress="1" chamber_type="ME11" hardware_version="2" alct_layer0_hot_chann_mask="0" alct_layer1_hot_chann_mask="80000000000" alct_layer2_hot_chann_mask="0" alct_layer3_hot_chann_mask="0" alct_layer4_hot_chann_mask="0" alct_layer5_hot_chann_mask="1000000000">
+	  <!-- Wire groups masking removed on 2015-12-10: alct_layer0_hot_chann_mask="0" alct_layer1_hot_chann_mask="0" alct_layer2_hot_chann_mask="2" alct_layer3_hot_chann_mask="0" alct_layer4_hot_chann_mask="0" alct_layer5_hot_chann_mask="1000000000 -->
 	  <!-- Thresholds from Tests_results/Test_AFEB06/csc_00000001_EmuRUI01_Test_13_000_150917_160319_UTC.plots -->
 	  <!-- Thresholds from Tests_results/Test_AFEB06/csc_00000001_EmuRUI01_Test_13_000_151012_141930_UTC.plots/ME+1.1.GIF/ME+1.1.GIF_AFEB06_R13.results -->
+	  <!-- Thresholds from Tests_results/Test_AFEB06/csc_00000001_EmuRUI01_Test_13_000_151208_173723_UTC.plots/ME+1.1.GIF/ME+1.1.GIF_AFEB06_R13.results -->
 	  <!-- Delays from Tests_results/Test_AFEB07/csc_00000001_EmuRUI01_Test_14_000_151012_143346_UTC.plots/ME+1.1.GIF/ME+1.1.GIF_AFEB07_R04.results -->
           <AnodeChannel afeb_fine_delay="2" afeb_number="1"  afeb_threshold="20"/>
-          <AnodeChannel afeb_fine_delay="1" afeb_number="2"  afeb_threshold="15"/>
+          <AnodeChannel afeb_fine_delay="1" afeb_number="2"  afeb_threshold="14"/>
           <AnodeChannel afeb_fine_delay="2" afeb_number="3"  afeb_threshold="14"/>
           <AnodeChannel afeb_fine_delay="1" afeb_number="4"  afeb_threshold="6"/>
           <AnodeChannel afeb_fine_delay="1" afeb_number="5"  afeb_threshold="8"/>
@@ -307,12 +310,12 @@
           <AnodeChannel afeb_fine_delay="0" afeb_number="9"  afeb_threshold="15"/>
           <AnodeChannel afeb_fine_delay="1" afeb_number="10" afeb_threshold="16"/>
           <AnodeChannel afeb_fine_delay="0" afeb_number="11" afeb_threshold="13"/>
-          <AnodeChannel afeb_fine_delay="1" afeb_number="12" afeb_threshold="13"/>
-          <AnodeChannel afeb_fine_delay="1" afeb_number="13" afeb_threshold="14"/>
-          <AnodeChannel afeb_fine_delay="2" afeb_number="14" afeb_threshold="9"/>
+          <AnodeChannel afeb_fine_delay="1" afeb_number="12" afeb_threshold="14"/>
+          <AnodeChannel afeb_fine_delay="1" afeb_number="13" afeb_threshold="15"/>
+          <AnodeChannel afeb_fine_delay="2" afeb_number="14" afeb_threshold="10"/>
           <AnodeChannel afeb_fine_delay="1" afeb_number="15" afeb_threshold="12"/>
-          <AnodeChannel afeb_fine_delay="1" afeb_number="16" afeb_threshold="13"/>
-          <AnodeChannel afeb_fine_delay="1" afeb_number="17" afeb_threshold="13"/>
+          <AnodeChannel afeb_fine_delay="1" afeb_number="16" afeb_threshold="12"/>
+          <AnodeChannel afeb_fine_delay="1" afeb_number="17" afeb_threshold="12"/>
           <AnodeChannel afeb_fine_delay="1" afeb_number="18" afeb_threshold="11"/>
         </ALCT>
       </TMB>
@@ -328,7 +331,8 @@
     </CSC>
 
 
-        <CCB CCBmode="2" TTCrxCoarseDelay="4" TTCrxFineDelay="14" TTCrxID="264" ccb_firmware_day="25" ccb_firmware_month="3" ccb_firmware_year="2011" l1aDelay="98"/>
+        <!-- <CCB CCBmode="2" TTCrxCoarseDelay="4" TTCrxFineDelay="14" TTCrxID="264" ccb_firmware_day="25" ccb_firmware_month="3" ccb_firmware_year="2011" l1aDelay="98"/ --> <!-- original, standard fw -->
+        <CCB CCBmode="2" TTCrxCoarseDelay="4" TTCrxFineDelay="14" TTCrxID="264" ccb_firmware_day="25" ccb_firmware_month="2" ccb_firmware_year="2016" l1aDelay="98"/> <!-- fw with L1A veto/deadtime -->
         <MPC TransparentMode="0" mpc_firmware_day="8" mpc_firmware_month="10" mpc_firmware_year="2008" serializermode="0"/>
 
         <DDU slot="19">

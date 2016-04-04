@@ -77,14 +77,16 @@
     <!-- ME4/2 -->
     <addTo xpath="//EmuSystem/PeripheralCrate[not(CSC/DAQMB/CFEB/@hardware_version='2')]/CCB/@l1aDelay"            value="57"/>
     <addTo xpath="//EmuSystem/PeripheralCrate/CSC[not(DAQMB/CFEB/@hardware_version='2')]/TMB/ALCT/@alct_l1a_delay" value="10"/>
+    <!-- <addTo xpath="//EmuSystem/PeripheralCrate/CSC[not(DAQMB/CFEB/@hardware_version='2')]/TMB/@tmp_l1a_delay"       value="0"/> -->
+    <addTo xpath="//EmuSystem/PeripheralCrate/CSC[not(DAQMB/CFEB/@hardware_version='2')]/TMB/@tmp_l1a_delay"       value="18"/>
     <set xpath="//EmuSystem/PeripheralCrate/CSC[not(DAQMB/CFEB/@hardware_version='2')]/DAQMB/@alct_dav_cable_delay"    value="1"/>
 
     <!-- ME1/1 -->
     <addTo xpath="//EmuSystem/PeripheralCrate[CSC/DAQMB/CFEB/@hardware_version='2']/CCB/@l1aDelay"			value="60"/>
     <addTo xpath="//EmuSystem/PeripheralCrate/CSC[DAQMB/CFEB/@hardware_version='2']/TMB/ALCT/@alct_l1a_delay"		value="0"/>
     <!-- <addTo xpath="//EmuSystem/PeripheralCrate/CSC[DAQMB/CFEB/@hardware_version='2']/TMB/@tmb_l1a_delay"			value="0"/> -->
-    <!-- <addTo xpath="//EmuSystem/PeripheralCrate/CSC[DAQMB/CFEB/@hardware_version='2']/TMB/@tmb_l1a_delay"			value="22"/> -->
-    <addTo xpath="//EmuSystem/PeripheralCrate/CSC[DAQMB/CFEB/@hardware_version='2']/TMB/@tmb_l1a_delay"			value="-2"/>
+    <addTo xpath="//EmuSystem/PeripheralCrate/CSC[DAQMB/CFEB/@hardware_version='2']/TMB/@tmb_l1a_delay"			value="22"/>
+    <!-- <addTo xpath="//EmuSystem/PeripheralCrate/CSC[DAQMB/CFEB/@hardware_version='2']/TMB/@tmb_l1a_delay"			value="-2"/> -->
 
   </test>
 
@@ -326,6 +328,8 @@
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/ALCT/@alct_nplanes_hit_pattern" value="1"/>
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@clct_nplanes_hit_pattern"      value="1"/>
     <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@clct_nplanes_hit_pretrig"      value="1"/>
+
+    <!-- <set xpath="//EmuSystem/PeripheralCrate/CSC/TMB/@clct_trig_enable"              value="1"/> -->
 
     <!-- ME4/2 -->
     <addTo xpath="//EmuSystem/PeripheralCrate[not(CSC/DAQMB/CFEB/@hardware_version='2')]/CCB/@l1aDelay"                    value="10"/>
