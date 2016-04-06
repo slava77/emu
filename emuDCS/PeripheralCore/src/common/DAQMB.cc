@@ -8977,10 +8977,8 @@ int DAQMB::DCSread2(char *data, int read_dcfeb)
       std::vector<float> fsysmon=dcfeb_fpga_monitor(cfebs_[lfeb], true);
       for(unsigned i=0; i<fsysmon.size(); i++)
       {
-         if(i==10)
+         if(i==10 || i==15)
             data2[febnum*TOTAL_DCFEB+i]=int(fsysmon[i]);
-         else if(i==15)
-            data2[febnum*TOTAL_DCFEB+i]=dcfeb_qpll_lost_count(cfebs_[lfeb]);  // #15 replaced with QPLL lost counter
          else
             data2[febnum*TOTAL_DCFEB+i]=int(fsysmon[i]*100);
       }
@@ -8998,7 +8996,7 @@ int DAQMB::DCSread2(char *data, int read_dcfeb)
     {
       data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+TOTAL_ADC]=0x3FF & SEM_read_status(cfebs_[lfeb]);
       data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+TOTAL_ADC+1]=SEM_read_errcnt(cfebs_[lfeb]);
-      data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+TOTAL_ADC+2]=0;
+      data2[febnum*TOTAL_DCFEB+TOTAL_SYSMON+TOTAL_ADC+2]=dcfeb_qpll_lost_count(cfebs_[lfeb]);  // #3 replaced with QPLL lost counter
     }
   }
   retn += 7*TOTAL_DCFEB;

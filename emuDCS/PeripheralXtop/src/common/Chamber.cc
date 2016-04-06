@@ -290,7 +290,7 @@ bool Chamber::GetDimLV2(int hint, LV_2_DimBroker *dim_lv )
       if(data[80+30*i+27]>0) dim_lv->seu.status[i] = int(data[80+30*i+27]);               // #27 in DCFEB block
       if(data[80+30*i+28]>0) dim_lv->seu.error1[i] = int(data[80+30*i+28]) & 0xFF;        // #28 in DCFEB block, low-byte
       if(data[80+30*i+28]>0) dim_lv->seu.errorm[i] = (int(data[80+30*i+28])>>8) & 0xFF;   // #28 in DCFEB block, high-byte
-      if(data[80+30*i+15]>0) dim_lv->seu.other1[i] = int(data[80+30*i+15]) & 0xFF;        // #15 in DCFEB block
+      if(data[80+30*i+15]>0) dim_lv->seu.other1[i] = int(data[80+30*i+29]) & 0xFF;        // #15 in DCFEB block
    }
 
    dim_lv->A7v = data[50];
