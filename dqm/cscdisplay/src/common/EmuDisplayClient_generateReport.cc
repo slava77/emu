@@ -205,15 +205,28 @@ int EmuDisplayClient::generateSummaryReport(std::string runname, DQMReport& dqm_
       TH2D* h = reinterpret_cast<TH2D*>(me);
       for (int i=int(h->GetXaxis()->GetXmin()); i<= int(h->GetXaxis()->GetXmax()); i++)
         {
-          uint32_t cnt = uint32_t(h->GetBinContent(i,2));
-          if (cnt>0)
+          std::string dduName = Form("DDU_%02d", i);
+          uint32_t events = ddu_stats[dduName];
+          // Workaround for DDU "S-Link Not Ready" error in local runs
+          // Check for every error bit and ignore "S-Link Not Ready" 100%
+          bool fTrailerError = false;
+          for (int j=3; j<int(h->GetYaxis()->GetXmax()); j++)
+            {
+              uint32_t cnt = uint32_t(h->GetBinContent(i,j));
+              if (cnt>0)
+                {
+                  if ((j==23) && (events>0) && (cnt/events==1)) continue; // Ignore 100% S-Link Not Ready error
+                  fTrailerError = true;
+                  if (cnt > ddu_err_stats[dduName]) ddu_err_stats[dduName]=cnt;
+                }
+            }
+          if (fTrailerError)
             {
               ddu_with_errs++;
-              std::string dduName = Form("DDU_%02d", i);
-              ddu_err_stats[dduName] = cnt;
-              ddu_err_cntr+=cnt;
+              ddu_err_cntr+=ddu_err_stats[dduName];
             }
         }
+
       if (ddu_with_errs)
         {
           dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDUs with Trailer Error Status", ddu_with_errs),
