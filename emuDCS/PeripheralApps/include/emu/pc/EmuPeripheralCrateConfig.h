@@ -567,6 +567,13 @@ private:
   void CCBSignals(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void PrepareForTriggering(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CCBCheckConfig(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  //
+  void GEMreadFPGAid(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  //
+  void GEMreadFPGAsysmon(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  //
+  void GEMProgramFPGA(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  //
+  void GEMProgramEPROM(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  //
+  void GEMHardreset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  //
+  void GEMSetMUX(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  //
+  
   // DDU utils
   void DDUUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
@@ -736,6 +743,7 @@ private:
   char date_and_time_[13];
   //
   bool showBPITools_;
+  unsigned iSelectedGEM;
 };
 
   } // namespace emu::pc

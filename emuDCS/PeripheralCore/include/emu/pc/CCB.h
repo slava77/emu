@@ -363,6 +363,19 @@ public:
   int readDSN(void *data);
   int TestTTC(int testID, int n_loop);
 
+  // for GEM
+  void gem_hardreset();
+  void gem_enable_TTC_hardreset(bool v);
+  void gem_set_MUX_bit(int v);
+  void gem_scan(int reg,const char *snd,int cnt,char *rcv,int ird, int gem);   
+  void gem_RestoreIdle(int gem);
+  unsigned gem_FPGA_IDCode(int gem);
+  void gem_program_virtex6(const char *mcsfile, int gem);
+  unsigned gem_virtex6_readreg(int reg, int gem);
+  void gem_virtex6_writereg(int reg, unsigned value, int gem);
+  std::vector<float> gem_virtex6_monitor(int gem);
+  int gem_virtex6_dna(void *dna, int gem);
+
 public:
   //
   //-- Control and Status Registers for CCB2004
@@ -418,6 +431,9 @@ public:
   static const unsigned int DSNwrite0  = 0xa0;
   static const unsigned int DSNwrite1  = 0xa2;
 
+// for GEM interface, same as CSRB8
+  static const unsigned int GEM_COM = CSRB8;
+
 protected:
   int mCCBMode;  // current CCB hardware Mode
   int xmlCCBMode;  // required CCB Mode from configuration DB or XML
@@ -437,6 +453,7 @@ private:
   int TTCrxFineDelay_;
   //
   bool l1enabled_;
+  bool GEM_enable_TTC_;
   int mVersion; // CCB version number (2001,2004)
   bool mDebug;
   //

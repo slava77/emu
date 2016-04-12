@@ -326,6 +326,7 @@
 //-----------------------------------------------------------------------
 #include "emu/pc/CCB.h"
 #include "emu/pc/VMEController.h"
+#include "emu/pc/JTAG_constants.h"
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
@@ -357,6 +358,7 @@ CCB::CCB(Crate * theCrate ,int slot)
   TTCrxCoarseDelay_(0),
   TTCrxFineDelay_(0),
   l1enabled_(false),
+  GEM_enable_TTC_(false),
   mDebug(false)
 {
   MyOutput_ = &std::cout ;
@@ -1982,5 +1984,321 @@ std::string CCB::GetTTCCommandName( const int ttcCommand ) {
   return ttcCommandNames[ttcCommand];
 }
 
+// code used by GEM interface
+void CCB::gem_hardreset()
+{
+   if(hardware_version_<=1) return;
+   unsigned short regV=(ReadRegister(GEM_COM)&0x2800) + (1<<12);
+   WriteRegister(GEM_COM, regV);
+   ::sleep(1);
+}
+
+void CCB::gem_enable_TTC_hardreset(bool v)
+{
+   if(hardware_version_<=1) return;
+   GEM_enable_TTC_ = (v?1:0);
+   unsigned short regV=(ReadRegister(GEM_COM)&0x800)+(GEM_enable_TTC_<<13);
+   WriteRegister(GEM_COM, regV);
+}
+
+void CCB::gem_set_MUX_bit(int v)
+{
+   if(hardware_version_<=1) return;
+   unsigned short regV=(GEM_enable_TTC_<<13)+((v & 1)<<11)+(7<<8);;
+   WriteRegister(GEM_COM, regV);
+}
+
+void CCB::gem_scan(int reg,const char *snd,int cnt,char *rcv,int ird, int gem)
+{
+   // same interface as regular scan() except the last parameter
+   // gem = select which GEM to operate on; 
+   //       0 None
+   //       1-6 for each GEM
+   //       7 broadcast (READ only) to all
+
+   if(hardware_version_<=1) return;
+   unsigned long TDI=0, TMS=1, TCK=2, TDO=3; 
+   unsigned long regV=(GEM_enable_TTC_<<13)+((gem&0x7)<<8);
+   unsigned long handle=(TDI)+(TMS<<4)+(TCK<<8)+(TDO<<12) + (regV<<16) + ((unsigned long)GEM_COM<<32);
+   Jtag_Norm(handle, reg, snd, cnt, rcv, ((gem==7)?0:ird), NOW);
+}
+
+void CCB::gem_RestoreIdle(int gem)
+{
+   int tmp=0;
+   gem_scan(0, (char *)&tmp,-1, (char *)&tmp, 0,  gem);
+}
+
+unsigned CCB::gem_FPGA_IDCode(int gem)
+{
+     unsigned short comd;
+     unsigned ttt=0, tout=0;
+     if(hardware_version_<=1) return 0;
+   
+     //restore idle;
+     gem_RestoreIdle(gem);
+
+     comd=VTX6_IDCODE;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+     gem_scan(1, (char *)&ttt, 32, (char *)&tout, 1, gem);     
+     (*MyOutput_) << "FPGA IDCODE=" << std::hex << tout << std::dec << std::endl;
+     return tout;
+}
+
+void CCB::gem_program_virtex6(const char *mcsfile, int gem)
+{
+   if(hardware_version_<=1) return;
+   const int FIRMWARE_SIZE=5464972; // in bytes
+   char *bufin, c;
+   bufin=(char *)malloc(16*1024*1024);
+   if(bufin==NULL)  return;
+   FILE *fin=fopen(mcsfile,"r");
+   if(fin==NULL ) 
+   { 
+      free(bufin);  
+      std::cout << "ERROR: Unable to open MCS file :" << mcsfile << std::endl;
+      return; 
+   }
+   int mcssize=read_mcs(bufin, fin);
+   fclose(fin);
+   std::cout << "Read MCS size: " << std::dec << mcssize << " bytes" << std::endl;
+   if(mcssize<FIRMWARE_SIZE)
+   {
+       std::cout << "ERROR: Wrong MCS file. Quit..." << std::endl;
+       free(bufin);
+       return;
+   }
+// byte swap
+   for(int i=0; i<FIRMWARE_SIZE/2; i++)
+   {  c=bufin[i*2];
+      bufin[i*2]=bufin[i*2+1];
+      bufin[i*2+1]=c;
+   }
+
+     int blocks=FIRMWARE_SIZE/4;  // firmware size must be in units of 32-bit words
+     int p1pct=blocks/100;
+     int j=0, pcnts=0;
+     unsigned short comd, tmp;
+     unsigned long ttt=0, tout=0;
+
+//    getTheController()->Debug(2);
+     getTheController()->SetUseDelay(true);
+  
+    //restore idle;
+    gem_RestoreIdle(gem);
+
+//
+// The IEEE 1532 ISC (In-System-Configuration) procedure is used.       
+// The bitstream doesn't need to be sent in one JTAG package.
+// It is different from Xilinx's Jtag procedure which uses CFG_IN.
+//
+   
+     comd=VTX6_IDCODE;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+     gem_scan(1, (char *)&ttt, 32, (char *)&tout, 1, gem);     
+     udelay(100);
+     std::cout << "IDCODE=" << std::hex << tout << std::dec << std::endl;
+    
+     comd=VTX6_SHUTDN;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+     std::cout <<" Start sending 400 clocks... " << std::endl;
+     gem_scan(2, (char *)&comd, 400, rcvbuf, 0, gem);
+     udelay(10000);
+
+     comd=VTX6_JPROG;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+
+     comd=VTX6_ISC_NOOP; 
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+     udelay(10000);
+     comd=VTX6_ISC_ENABLE; 
+     tmp=0;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+     scan(1, (char *)&tmp, 5, rcvbuf, 0);
+     std::cout <<" Start sending 128 clocks... " << std::endl;
+     gem_scan(2, (char *)&comd, 128, rcvbuf, 0, gem);
+     udelay(500);
+
+//     udelay(100);
+     comd=VTX6_ISC_PROGRAM; 
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+    for(int i=0; i<blocks-1; i++)
+    {
+//    if(i>50) getTheController()->Debug(0);
+       gem_scan(1, bufin+4*i, 32, rcvbuf, 0, gem);
+       udelay(32);
+       j++;
+       if(j==p1pct)
+       {  pcnts++;
+          if(pcnts<100) std::cout << "Sending " << pcnts <<"%..." << std::endl;
+          j=0;
+       }   
+    }
+    std::cout << "Sending 100%..." << std::endl;
+//    getTheController()->Debug(2);
+
+    comd=VTX6_ISC_DISABLE; 
+    gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+    std::cout <<" Start sending clocks... " << std::endl;
+    gem_scan(2, (char *)&comd, 128, rcvbuf, 0, gem);
+//    scan(0, 0, (char *)&comd, -100, &tmp, rcvbuf, 0);
+    udelay(100);
+    comd=VTX6_BYPASS;
+    gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+
+    comd=VTX6_JSTART;
+    gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+    std::cout <<" Start sending clocks... " << std::endl;
+    gem_scan(2, (char *)&comd, 128, rcvbuf, 0, gem);
+    udelay(500);
+    //restore idle;
+    gem_RestoreIdle(gem);
+    comd=VTX6_BYPASS;
+    gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+    
+    std::cout << "FPGA configuration done!" << std::endl;             
+    free(bufin);
+     getTheController()->SetUseDelay(false);
+
+}
+
+unsigned CCB::gem_virtex6_readreg(int reg, int gem)
+{
+  if(hardware_version_==2)
+  {
+     //restore idle;
+     gem_RestoreIdle(gem);
+
+     unsigned short comd;
+     unsigned data[7]={0x66AA9955, 4, 0, 4, 4, 4};
+     unsigned *rt, rtv;
+     comd=VTX6_CFG_IN;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+     unsigned ins=((reg&0x1F)<<13)+(1<<27)+(1<<29)+1;
+     data[2]=shuffle32(ins);
+     gem_scan(1, (char *)data, 6*32, rcvbuf, 0, gem);     
+
+     comd=VTX6_CFG_OUT;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+     data[0]=0;
+     gem_scan(1, (char *)data, 32, rcvbuf, 1, gem);     
+     rt = (unsigned *)rcvbuf;
+     rtv=shuffle32(*rt);
+//     printf("return: %08X\n", rtv);
+     comd=VTX6_BYPASS;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+     return rtv;
+  } 
+  else return 0;
+}
+
+void CCB::gem_virtex6_writereg(int reg, unsigned value, int gem)
+{
+  if(hardware_version_==2)
+  {
+     //restore idle;
+     gem_RestoreIdle(gem);
+
+     unsigned short comd;
+     unsigned data[6]={0x66AA9955, 4, 0, 0, 4, 4};
+     comd=VTX6_CFG_IN;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+     unsigned ins=((reg&0x1F)<<13)+(2<<27)+(1<<29)+1;
+     data[2]=shuffle32(ins);
+     data[3]=shuffle32(value);
+     gem_scan(1, (char *)data, 6*32, rcvbuf, 0, gem);     
+     comd=VTX6_BYPASS;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+  }
+}
+
+std::vector<float> CCB::gem_virtex6_monitor(int gem)
+{
+  std::vector<float> readout;
+  int comd=VTX6_SYSMON;
+  unsigned data, ibrd, adc;
+  float readf;
+
+  readout.clear();
+  if(hardware_version_==2)
+  {
+     //restore idle;
+     gem_RestoreIdle(gem);
+
+     comd=VTX6_SYSMON;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+//     this can be used to change register 0x48 to enable more channels
+//     data=0x8483F00;
+//     scan(1,(char *)&data, 32, rcvbuf, 1);
+     data=0x4000000;
+     gem_scan(1, (char *)&data, 32, rcvbuf, 1, gem);     
+     udelay(50);
+     for(unsigned i=0; i<3; i++)
+     {
+        data += 0x10000;
+        gem_scan(1, (char *)&data, 32, (char *)&ibrd, 1, gem);     
+//        std::cout << "S Channel: " << i << std::hex << " readout " << ibrd << std::endl;  
+        udelay(100);
+        adc = (ibrd>>6)&0x3FF;
+        if(i==0)
+          readf=adc*503.975/1024.0-273.15;
+        else
+          readf=adc*3.0/1024.0;
+        readout.push_back(readf);
+//        std::cout << " result: " << std::dec<< readf << std::endl; 
+     }
+     comd=VTX6_BYPASS;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+     udelay(1000);
+  }
+  return readout;
+}
+
+int CCB::gem_virtex6_dna(void *dna, int gem)
+{
+     unsigned short comd;
+     unsigned char *dout, data[8];
+     int rtv;
+
+     // random bits as signature
+     data[0]=((int)time(NULL) & 0xFF);
+
+     comd=VTX6_SHUTDN;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+//     std::cout <<" Start sending 128 clocks... " << std::endl;
+     gem_scan(2, (char *)&comd, 128, rcvbuf, 0, gem);
+     udelay(10000);
+
+     dout=(unsigned char *)dna;
+     comd=VTX6_ISC_ENABLE;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+     udelay(1000);
+     comd=VTX6_ISC_DNA;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+     udelay(1000);
+     gem_scan(1, (char *)data, 64, (char *)dna, 1, gem);     
+     
+     // the last 7 bits must be the same as the signature's lowest 7 bits
+     if((dout[7]>>1)==(data[0]&0x7F))
+     {
+        shuffle57(dout);
+        rtv=0;
+     }
+     else
+     {
+        rtv=-1;
+        std::cout << "Error: DNA readback verification failed!" << std::endl;
+     }
+     comd=VTX6_BYPASS;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+
+     comd=VTX6_JSTART;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+//     std::cout <<" Start sending 128 clocks... " << std::endl;
+     gem_scan(2, (char *)&comd, 128, rcvbuf, 0, gem);
+     udelay(100000);
+     return rtv;
+}
+    
   } // namespace emu::pc
   } // namespace emu
