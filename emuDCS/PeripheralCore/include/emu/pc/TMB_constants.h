@@ -386,9 +386,9 @@ const int ECC_TRIGGER_PATH_TWO_ERRORS_COUNTER_INDEX           = 4;
 const int ECC_TRIGGER_PATH_MORE_THAN_TWO_ERRORS_COUNTER_INDEX = 5;
 const int ALCT_RAW_HITS_READOUT_COUNTER_INDEX                 = 10;
 const int CLCT_PRETRIGGER_COUNTER_INDEX                       = 13;
-const int LCT_SENT_TO_MPC_COUNTER_INDEX                       = 48; 
-const int LCT_ACCEPTED_BY_MPC_COUNTER_INDEX                   = 50; 
-const int L1A_IN_TMB_WINDOW_COUNTER_INDEX                     = 54; 
+const int LCT_SENT_TO_MPC_COUNTER_INDEX                       = 50; 
+const int LCT_ACCEPTED_BY_MPC_COUNTER_INDEX                   = 52; 
+const int L1A_IN_TMB_WINDOW_COUNTER_INDEX                     = 56; 
 //
 //
 
