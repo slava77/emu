@@ -4589,8 +4589,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.push_back( "CLCT: Pretrigger on CFEB5                               ");
     TCounterName.push_back( "CLCT: Pretrigger on CFEB6                               "); // 20
 
-    TCounterName.push_back( "CLCT: Pretrigger on ME1A CFEB 4 only                    ");
-
+    TCounterName.push_back( "CLCT: Pretrigger on ME1A CFEB 4-6 only                  ");
     TCounterName.push_back( "CLCT: Pretrigger on ME1B CFEBs 0-3 only                 "); // 22
     TCounterName.push_back( "CLCT: Discarded, no wrbuf available, buffer stalled     "); 
     TCounterName.push_back( "CLCT: Discarded, no ALCT in window                      ");
@@ -4713,8 +4712,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName2.push_back( "CLCT: Pretrigger on CFEB5                               ");
 
     TCounterName2.push_back( "CLCT: Pretrigger on CFEB6                               "); // 20
-    TCounterName2.push_back( "CLCT: Pretrigger on ME1A CFEB 4 only                    ");
-
+    TCounterName2.push_back( "CLCT: Pretrigger on ME1A CFEB 4-6 only                  ");
     TCounterName2.push_back( "CLCT: Pretrigger on ME1B CFEBs 0-3 only                 "); // 22
     TCounterName2.push_back( "CLCT: Discarded, no wrbuf available, buffer stalled     "); 
     TCounterName2.push_back( "CLCT: Discarded, no ALCT in window                      ");
@@ -4902,21 +4900,17 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
       {   IsErrCounter.push_back(0);
       }
     }
-    IsErrCounter[21]=1;
-    IsErrCounter[22]=1;
+    IsErrCounter[11]=1;
     IsErrCounter[23]=1;
     IsErrCounter[24]=1;
     IsErrCounter[25]=1;
-    IsErrCounter[31]=1;
-    IsErrCounter[32]=1;
-    IsErrCounter[35]=1;
-    IsErrCounter[39]=1;
-    IsErrCounter[40]=1;
-    IsErrCounter[52]=1;
-    IsErrCounter[55]=1;
-    IsErrCounter[75]=1;
-    IsErrCounter[76]=1;
-    for(int i=0; i<9; i++) IsErrCounter[78+i]=1;
+    IsErrCounter[26]=1;
+    IsErrCounter[27]=1;
+    IsErrCounter[62]=1;
+    IsErrCounter[64]=1;
+    IsErrCounter[65]=1;
+    for(int i=0; i<8; i++) IsErrCounter[2+i]=1;
+    for(int i=0; i<8; i++) IsErrCounter[73+i]=1;
 
 }
 

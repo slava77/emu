@@ -1916,7 +1916,6 @@ std::string TMB::CounterName(int counter){
   // Note to TMB software developer:  When modifying the counters, do not forget to modify the 
   // index tags in TMB_constants.h...
   //
-  int adjustcounter = 2;
   std::string name = "Not defined";
   //
   if( counter == 0 ) name = "ALCT: alct0 valid pattern flag received                 ";
@@ -1945,7 +1944,7 @@ std::string TMB::CounterName(int counter){
     if( counter == 19) name = "CLCT: Pretrigger on CFEB5                               ";
     if( counter == 20) name = "CLCT: Pretrigger on CFEB6                               ";
   //
-  if( counter == 21 ) name =  "CLCT: Pretrigger on ME1A CFEB 4 only                    ";
+  if( counter == 21 ) name =  "CLCT: Pretrigger on ME1A CFEB 4-6 only                  ";
   if( counter == 22 ) name =  "CLCT: Pretrigger on ME1B CFEBs 0-3 only                 ";
   if( counter == 23 ) name =  "CLCT: Discarded, no wrbuf available, buffer stalled     ";
   if( counter == 24 ) name =  "CLCT: Discarded, no ALCT in window                      ";
@@ -2078,19 +2077,26 @@ int * TMB::NewCounters(){
       int write_value = ((counter << 9) & 0xfe00) | ((odd_even << 8) & 0x0100) | 0x0020;
       //
       write_later(cnt_ctrl_adr,write_value);
-      vme_delay(2);
+      vme_delay(10);
       //
       read_later(cnt_rdata_adr);
+      vme_delay(10);
     }
   }   
 
   // CFEB BadBits registers: 0x122->0x142, total 17 words => 9 counters (32-bit)
-  for(unsigned short add=0x122; add<=0x142; add+=2) read_later(add);
+  for(unsigned short add=0x122; add<=0x142; add+=2) 
+  {  read_later(add);
+     vme_delay(10);
+  }
   read_later(vme_dsn_adr); // adding one extra word to align the data at 32-bit
   //for 7DCFEB firmware
   if( GetHardwareVersion() == 2){  
     read_later(vme_dsn_adr); // adding one extra word to align the data at 32-bit; add another (7+1 words) 4 extra counters
-    for(unsigned short add=0x15c; add<=0x168; add+=2) read_later(add);
+    for(unsigned short add=0x15c; add<=0x168; add+=2) 
+    {   read_later(add);
+        vme_delay(10);
+    }
   }
   // time since last hard_reset (in seconds)
   read_now(0xE8, (char *)FinalCounter);

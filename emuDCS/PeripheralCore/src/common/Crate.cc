@@ -754,7 +754,7 @@ void Crate::MonitorTMB(int cycle, char * buf, unsigned mask)
   //                1   good reading
   //                0   bad reading or no reading (skipped/masked)
 
-  int MAX_TMB_COUNTERS=120;  // larger than TMB:89 and OTMB:102 
+  int MAX_TMB_COUNTERS=120;  // larger than TMB: 102 and OTMB:106 
   int * countbuf, *buf4;
   short *buf2, flag=0;
  
