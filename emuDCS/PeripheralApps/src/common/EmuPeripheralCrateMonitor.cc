@@ -2514,15 +2514,9 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
          }
       }
       int value;
-      if(myVector[tmb]->GetHardwareVersion()==2 )
-      { 
          int extraspace=0;
-         if(this_tcounter_>18) extraspace+=2;
-         if(this_tcounter_>78) extraspace+=11;
+         if(this_tcounter_>101 && myVector[tmb]->GetHardwareVersion()==2) extraspace+=4;  // OTMB has 4 extra counters
          value=myVector[tmb]->GetCounter(this_tcounter_+extraspace);
-      }
-      else 
-         value=myVector[tmb]->GetCounter(this_tcounter_);
       /* 0xBAADBAAD from VCC for a failed VME access */
       if (  value == 0x3fffffff || value < 0 )
       {
@@ -2676,9 +2670,9 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
 void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  int counter_idx[25]={ 0 ,  1,  2,  3,  7, 11, 13, 14, 15, 16,
-                        17, 18, 26, 30, 31, 32, 35, 41, 42, 48,
-                        50, 54, 57, 63, 88};
+  int counter_idx[29]={ 0 ,  1,  2,  3,  7, 11, 13, 14, 15, 16,
+                        17, 18, 19, 20, 29, 30, 31, 32, 50, 51,
+                        52, 53, 54, 55, 56, 57, 63, 79, 80};
 
   std::ostringstream output;
   *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
@@ -2731,7 +2725,7 @@ void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * 
   output <<cgicc::tr();
   //
   int count;
-  for (int idx=0; idx<25; idx++) {
+  for (int idx=0; idx<29; idx++) {
     count=counter_idx[idx];
     //
     for(unsigned int tmb=0; tmb<myVector.size(); tmb++) {
@@ -3123,9 +3117,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << i_value;
         *out << "\" lct=\"";
 //        *out << myVector[j]->GetCounter(13);
-        o_value = (*otmbdata)[j*MAX_TMB_COUNTERS+30+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        o_value = (*otmbdata)[j*MAX_TMB_COUNTERS+32];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+30+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+32];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // when a counter has error, should be -1
 
@@ -3134,9 +3128,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << i_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
-        o_value = (*otmbdata)[j*MAX_TMB_COUNTERS+54+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        o_value = (*otmbdata)[j*MAX_TMB_COUNTERS+56];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+54+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+56];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // counter error, set it to -1:
         i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(-1));
@@ -3144,9 +3138,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << i_value;
         *out << "\" rejected=\"";
 //        *out << myVector[j]->GetCounter(52);
-        o_value = (*otmbdata)[j*MAX_TMB_COUNTERS+52+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        o_value = (*otmbdata)[j*MAX_TMB_COUNTERS+54];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+52+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+54];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // counter error, set it to -1:
         i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(-1));
@@ -3187,19 +3181,19 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << n_value;
         *out << "\" lct=\"";
 //        *out << myVector[j]->GetCounter(13);
-        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+30+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+32];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
-        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+54+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+56];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
         *out << "\" rejected=\"";
 //        *out << myVector[j]->GetCounter(52);
-        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+52+((myVector[j]->GetHardwareVersion()==2)?2:0)];
+        n_value = (*tmbdata)[j*MAX_TMB_COUNTERS+54];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
@@ -4591,90 +4585,106 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.push_back( "CLCT: Pretrigger on CFEB2                               "); 
     TCounterName.push_back( "CLCT: Pretrigger on CFEB3                               ");
     TCounterName.push_back( "CLCT: Pretrigger on CFEB4                               ");
+
+    TCounterName.push_back( "CLCT: Pretrigger on CFEB5                               ");
+    TCounterName.push_back( "CLCT: Pretrigger on CFEB6                               "); // 20
+
     TCounterName.push_back( "CLCT: Pretrigger on ME1A CFEB 4 only                    ");
 
-    TCounterName.push_back( "CLCT: Pretrigger on ME1B CFEBs 0-3 only                 "); // 20
+    TCounterName.push_back( "CLCT: Pretrigger on ME1B CFEBs 0-3 only                 "); // 22
     TCounterName.push_back( "CLCT: Discarded, no wrbuf available, buffer stalled     "); 
     TCounterName.push_back( "CLCT: Discarded, no ALCT in window                      ");
     TCounterName.push_back( "CLCT: Discarded, CLCT0 invalid pattern after drift      ");
     TCounterName.push_back( "CLCT: CLCT0 pass hit thresh, fail pid_thresh_postdrift  ");
 
-    TCounterName.push_back( "CLCT: CLCT1 pass hit thresh, fail pid_thresh_postdrift  "); // 25
+    TCounterName.push_back( "CLCT: CLCT1 pass hit thresh, fail pid_thresh_postdrift  "); // 27
     TCounterName.push_back( "CLCT: BX pretrig waiting for triads to dissipate        "); 
     TCounterName.push_back( "CLCT: clct0 sent to TMB matching section                ");
     TCounterName.push_back( "CLCT: clct1 sent to TMB matching section                ");
     TCounterName.push_back( "TMB:  TMB accepted alct*clct, alct-only, or clct-only   ");
 
-    TCounterName.push_back( "TMB:  TMB clct*alct matched trigger                     "); // 30 --
+    TCounterName.push_back( "TMB:  TMB clct*alct matched trigger                     "); // 32 --
     TCounterName.push_back( "TMB:  TMB alct-only trigger                             "); 
     TCounterName.push_back( "TMB:  TMB clct-only trigger                             ");
     TCounterName.push_back( "TMB:  TMB match reject event                            ");
     TCounterName.push_back( "TMB:  TMB match reject event, queued for nontrig readout");
 
-    TCounterName.push_back( "TMB:  TMB matching discarded an ALCT pair               "); // 35
+    TCounterName.push_back( "TMB:  TMB matching discarded an ALCT pair               "); // 37
     TCounterName.push_back( "TMB:  TMB matching discarded a CLCT pair                "); 
     TCounterName.push_back( "TMB:  TMB matching discarded CLCT0 from ME1A            ");
     TCounterName.push_back( "TMB:  TMB matching discarded CLCT1 from ME1A            ");
     TCounterName.push_back( "TMB:  Matching found no ALCT                            ");
 
-    TCounterName.push_back( "TMB:  Matching found no CLCT                            "); // 40
+    TCounterName.push_back( "TMB:  Matching found no CLCT                            "); // 42
     TCounterName.push_back( "TMB:  Matching found one ALCT                           "); 
     TCounterName.push_back( "TMB:  Matching found one CLCT                           ");
     TCounterName.push_back( "TMB:  Matching found two ALCTs                          ");
     TCounterName.push_back( "TMB:  Matching found two CLCTs                          ");
 
-    TCounterName.push_back( "TMB:  ALCT0 copied into ALCT1 to make 2nd LCT           "); // 45
+    TCounterName.push_back( "TMB:  ALCT0 copied into ALCT1 to make 2nd LCT           "); // 47
     TCounterName.push_back( "TMB:  CLCT0 copied into CLCT1 to make 2nd LCT           "); 
     TCounterName.push_back( "TMB:  LCT1 has higher quality than LCT0 (ranking Error) ");
     TCounterName.push_back( "TMB:  Transmitted LCT0 to MPC                           ");
     TCounterName.push_back( "TMB:  Transmitted LCT1 to MPC                           ");
 
-    TCounterName.push_back( "TMB:  MPC accepted LCT0                                 "); // 50
+    TCounterName.push_back( "TMB:  MPC accepted LCT0                                 "); // 52
     TCounterName.push_back( "TMB:  MPC accepted LCT1                                 "); 
-    TCounterName.push_back( "TMB:  MPC rejected both LCT0 and LCT1                   ");
+    TCounterName.push_back( "TMB:  MPC rejected both LCT0 and LCT1                   "); // 54 --
     TCounterName.push_back( "L1A:  L1A received                                      ");
-    TCounterName.push_back( "L1A:  L1A received, TMB in L1A window                   "); // 54 --
+    TCounterName.push_back( "L1A:  L1A received, TMB in L1A window                   "); // 56 --
 
-    TCounterName.push_back( "L1A:  L1A received, no TMB in window                    "); // 55
+    TCounterName.push_back( "L1A:  L1A received, no TMB in window                    "); // 57
     TCounterName.push_back( "L1A:  TMB triggered, no L1A in window                   "); 
     TCounterName.push_back( "L1A:  TMB readouts completed                            ");
     TCounterName.push_back( "L1A:  TMB readouts lost by 1-event-per-L1A limit        ");
     TCounterName.push_back( "STAT: CLCT Triads skipped                               ");
 
-    TCounterName.push_back( "STAT: Raw hits buffer had to be reset                   "); // 60
+    TCounterName.push_back( "STAT: Raw hits buffer had to be reset                   "); // 62
     TCounterName.push_back( "STAT: TTC Resyncs received                              "); 
     TCounterName.push_back( "STAT: Sync Error, BC0/BXN=offset mismatch               "); 
     TCounterName.push_back( "STAT: Parity Error in CFEB or RPC raw hits RAM          ");
     TCounterName.push_back( "HDR:  Pretrigger counter                                ");
 
-    TCounterName.push_back( "HDR:  CLCT counter                                      "); // 65
+    TCounterName.push_back( "HDR:  CLCT counter                                      "); // 67
     TCounterName.push_back( "HDR:  TMB trigger counter                               ");
     TCounterName.push_back( "HDR:  ALCTs received counter                            ");
     TCounterName.push_back( "HDR:  L1As received counter (12 bits)                   ");
     TCounterName.push_back( "HDR:  Readout counter (12 bits)                         ");
 
-    TCounterName.push_back( "HDR:  Orbit counter                                     "); // 70
+    TCounterName.push_back( "HDR:  Orbit counter                                     "); // 72
     TCounterName.push_back( "ALCT:Struct Error, expect ALCT0[10:1]=0 when alct0vpf=0 "); 
     TCounterName.push_back( "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=0 ");
     TCounterName.push_back( "ALCT:Struct Error, expect ALCT0vpf=1 when alct1vpf=1    ");
     TCounterName.push_back( "ALCT:Struct Error, expect ALCT0[10:1]>0 when alct0vpf=1 ");
 
-    TCounterName.push_back( "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=1 "); // 75
+    TCounterName.push_back( "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=1 "); // 77
     TCounterName.push_back( "ALCT:Struct Error, expect ALCT1!=alct0 when alct0vpf=1  ");
     TCounterName.push_back( "CCB:  TTCrx lock lost                                   ");
-    TCounterName.push_back( "CCB:  qPLL lock lost                                    "); // last of real TMB counters
-    TCounterName.push_back( "TMB:  CFEB Bad Bits Control                             ");     
+    TCounterName.push_back( "CCB:  qPLL lock lost                                    "); // 80
+    TCounterName.push_back( "TMB: CLCT pre-trigger and L1A coincidence counter       ");
+    TCounterName.push_back( "TMB: CLCT pre-trigger and ALCT coincidence counter      ");
+    TCounterName.push_back( "CLCT: CFEB0 active flag sent to DMB for readout         ");
+    TCounterName.push_back( "CLCT: CFEB1 active flag sent to DMB for readout         ");
+    TCounterName.push_back( "CLCT: CFEB2 active flag sent to DMB for readout         "); // 85
+    TCounterName.push_back( "CLCT: CFEB3 active flag sent to DMB for readout         ");
+    TCounterName.push_back( "CLCT: CFEB4 active flag sent to DMB for readout         ");
+    TCounterName.push_back( "CLCT: CFEB5 active flag sent to DMB for readout         ");
+    TCounterName.push_back( "CLCT: CFEB6 active flag sent to DMB for readout         ");
+    TCounterName.push_back( "CLCT: CFEB active flag sent to DMB was on ME1A CFEB4-6  "); // 90
+    TCounterName.push_back( "CLCT: CFEB active flag sent to DMB was on ME1B CFEB0-3  ");
+    TCounterName.push_back( "CLCT: CFEB active flag sent to DMB was on any CFEB      "); // 92 last of real TMB counters
 
-    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 1                           "); // 80    
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Control                             ");     
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 1                           "); // 94    
     TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 2                           "); //    
     TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 3                           "); //    
     TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 4                           "); //    
     TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 5                           "); //    
-
-    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 6                           "); // 85   
-    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 7                           "); //     
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 6                           "); //   
+    TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 7                           "); // 100    
     TCounterName.push_back( "TMB:  CFEB Bad Bits Pattern 8                           "); //   
-    TCounterName.push_back( "TMB:  Time since last Hard Reset                        "); // 88
+
+    TCounterName.push_back( "TMB:  Time since last Hard Reset                        "); // 102==
 
     TOTAL_TMB_COUNTERS=TCounterName.size();
 
@@ -4743,7 +4753,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
 
     TCounterName2.push_back( "TMB:  MPC accepted LCT0                                 "); // 52
     TCounterName2.push_back( "TMB:  MPC accepted LCT1                                 "); 
-    TCounterName2.push_back( "TMB:  MPC rejected both LCT0 and LCT1                   ");
+    TCounterName2.push_back( "TMB:  MPC rejected both LCT0 and LCT1                   "); // 54 --
     TCounterName2.push_back( "L1A:  L1A received                                      ");
     TCounterName2.push_back( "L1A:  L1A received, TMB in L1A window                   "); // 56 --
 
@@ -4774,31 +4784,36 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName2.push_back( "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=1 "); // 77
     TCounterName2.push_back( "ALCT:Struct Error, expect ALCT1!=alct0 when alct0vpf=1  ");
     TCounterName2.push_back( "CCB:  TTCrx lock lost                                   ");
-    TCounterName2.push_back( "CCB:  qPLL lock lost                                    "); 
-    TCounterName2.push_back( "GTX:  Optical Receiver Error gtx_rx_err_count0          "); // 81 
-    TCounterName2.push_back( "GTX:  Optical Receiver Error gtx_rx_err_count1          "); 
-    TCounterName2.push_back( "GTX:  Optical Receiver Error gtx_rx_err_count2          "); 
-    TCounterName2.push_back( "GTX:  Optical Receiver Error gtx_rx_err_count3          "); 
-    TCounterName2.push_back( "GTX:  Optical Receiver Error gtx_rx_err_count4          "); 
-    TCounterName2.push_back( "GTX:  Optical Receiver Error gtx_rx_err_count5          "); 
-    TCounterName2.push_back( "GTX:  Optical Receiver Error gtx_rx_err_count6          "); // 87  last of real OTMB counters
+    TCounterName2.push_back( "CCB:  qPLL lock lost                                    "); // 80 
+    TCounterName2.push_back( "TMB: CLCT pre-trigger and L1A coincidence counter       ");
+    TCounterName2.push_back( "TMB: CLCT pre-trigger and ALCT coincidence counter      ");
+    TCounterName2.push_back( "CLCT: CFEB0 active flag sent to DMB for readout         ");
+    TCounterName2.push_back( "CLCT: CFEB1 active flag sent to DMB for readout         ");
+    TCounterName2.push_back( "CLCT: CFEB2 active flag sent to DMB for readout         "); // 85
+    TCounterName2.push_back( "CLCT: CFEB3 active flag sent to DMB for readout         ");
+    TCounterName2.push_back( "CLCT: CFEB4 active flag sent to DMB for readout         ");
+    TCounterName2.push_back( "CLCT: CFEB5 active flag sent to DMB for readout         ");
+    TCounterName2.push_back( "CLCT: CFEB6 active flag sent to DMB for readout         ");
+    TCounterName2.push_back( "CLCT: CFEB active flag sent to DMB was on ME1A CFEB4-6  "); // 90
+    TCounterName2.push_back( "CLCT: CFEB active flag sent to DMB was on ME1B CFEB0-3  ");
+    TCounterName2.push_back( "CLCT: CFEB active flag sent to DMB was on any CFEB      "); // 92 last of real TMB counters
 
     TCounterName2.push_back( "TMB:  CFEB Bad Bits Control                             ");     
-    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 1                           "); // 89    
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 1                           "); // 94    
     TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 2                           "); //    
     TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 3                           "); //    
     TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 4                           "); //    
     TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 5                           "); //    
 
-    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 6                           "); // 94   
-    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 7                           "); //     
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 6                           "); // 99   
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 7                           "); // 100    
     TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern 8                           "); //   
     TCounterName2.push_back( "TMB:  CFEB Bad Bits Control extension                   "); //     
     TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern extension 1                 "); //     
     TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern extension 2                 "); //     
-    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern extension 3                 "); // 100     
+    TCounterName2.push_back( "TMB:  CFEB Bad Bits Pattern extension 3                 "); // 105     
 
-    TCounterName2.push_back( "TMB:  Time since last Hard Reset                        "); // 101
+    TCounterName2.push_back( "TMB:  Time since last Hard Reset                        "); // 106==
 
     TOTAL_TMB_COUNTERS2=TCounterName2.size();
 
@@ -4902,15 +4917,6 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     IsErrCounter[75]=1;
     IsErrCounter[76]=1;
     for(int i=0; i<9; i++) IsErrCounter[78+i]=1;
-
-#if 0
-    IsErrCounter[8]=1;
-    IsErrCounter[9]=1;
-    IsErrCounter[11]=1;
-    IsErrCounter[12]=1;
-    IsErrCounter[26]=1;
-    IsErrCounter[27]=1;
-#endif
 
 }
 
