@@ -11530,7 +11530,7 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   //
   // if there is only typeA chambers in this crate, then a single broadcast will suffice...
   //
-  for (unsigned ntmb=0;ntmb<(tmbVector.size()<9 ? 9 : tmbVector.size());ntmb++) {
+  for (unsigned ntmb=0;ntmb<(tmbVector.size()<9 ? tmbVector.size() : 9);ntmb++) {
     //
     if (tmbVector[ntmb]->GetClctStagger()) {
       ntmb_typea = ntmb;
@@ -11563,7 +11563,7 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   thisCrate->deleteChamber();
   //
   if (!typeA_only) {
-    for (unsigned ntmb=0;ntmb<(tmbVector.size()<9 ? 9 : tmbVector.size());ntmb++) {
+    for (unsigned ntmb=0;ntmb<(tmbVector.size()<9 ? tmbVector.size() : 9);ntmb++) {
       //
       if (!tmbVector[ntmb]->GetClctStagger()) {
 	std::cout << "Loading TMB firmware " << TMBFirmware_[ntmb].toString()
