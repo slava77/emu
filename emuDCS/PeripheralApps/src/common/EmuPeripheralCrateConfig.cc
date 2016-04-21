@@ -486,6 +486,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadVirtex6TMBFirmware, "LoadVirtex6TMBFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadVirtex6TMBFPGA, "LoadVirtex6TMBFPGA");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadOTMBVirtex6Reg, "ReadOTMBVirtex6Reg");
+  xgi::bind(this,&EmuPeripheralCrateConfig::SerialLoadCrateTMBFirmware, "SerialLoadCrateTMBFirmware");
 
   //
   //----------------------------
@@ -1878,6 +1879,14 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
   std::string ProgramOdmbEpromsForCrate = toolbox::toString("/%s/ProgramOdmbEpromsForCrate",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ProgramOdmbEpromsForCrate) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Program all ODMB EPROMs in this crate") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td();
+  std::string SerialLoadTMBs = toolbox::toString("/%s/SerialLoadCrateTMBFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",SerialLoadTMBs) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Serially Program all TMB EPROMs in this crate") << std::endl ;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
@@ -11583,6 +11592,54 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   thisCCB->setCCBMode(CCB::DLOG);
   //
   this->TMBUtils(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::SerialLoadCrateTMBFirmware(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during TMB downloading...
+  thisCCB->setCCBMode(CCB::VMEFPGA);
+  //
+  std::cout << "Load TMB firmware in serial mode....." << std::endl;
+  ::sleep(5);
+  //
+  short unsigned BootReg;
+  for (unsigned ntmb=0;ntmb<tmbVector.size();ntmb++) {
+      //
+     if (tmbVector[ntmb]->GetHardwareVersion()<=1 && tmbVector[ntmb]->slot()<21)
+     {
+	std::cout << "Loading TMB firmware " << TMBFirmware_[ntmb].toString()
+		  << " to slot " << tmbVector[ntmb]->slot() << " ..." << std::endl;
+	//
+	tmbVector[ntmb]->SetXsvfFilename(TMBFirmware_[ntmb].toString().c_str());
+	tmbVector[ntmb]->ProgramTMBProms();
+	tmbVector[ntmb]->ClearXsvfFilename();
+	number_of_tmb_firmware_errors[ntmb] = tmbVector[ntmb]->GetNumberOfVerifyErrors();
+        if(number_of_tmb_firmware_errors[ntmb]>0)
+        {  
+          std::cout << "Verification error(s) detected at slot " << tmbVector[ntmb]->slot() << ". Abort..." << std::endl;
+          break;
+        }
+        thisCCB->hardReset();
+        tmbVector[ntmb]->tmb_get_boot_reg(&BootReg);
+        if (tmbVector[ntmb]->GetBootVMEReady() != 1) tmbVector[ntmb]->UnjamFPGA();;
+        tmbVector[ntmb]->tmb_get_boot_reg(&BootReg);
+        std::cout << "Boot register = 0x" << std::hex << BootReg << std::dec << std::endl;
+        if (tmbVector[ntmb]->GetBootVMEReady() != 1) 
+        {
+           std::cout << "TMB VME inactive after loading firmware at slot " << tmbVector[ntmb]->slot() << ". Abort..." << std::endl;
+           break;
+        }
+     }
+  }
+  //
+  // Put CCB back into DLOG mode to listen to TTC commands...
+  thisCCB->setCCBMode(CCB::DLOG);
+  //
+  this->CrateConfiguration(in,out);
   //
 }
 //

@@ -485,6 +485,7 @@ private:
   void TriggerTestInjectCLCT(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void OTMBLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void TMBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void SerialLoadCrateTMBFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   
   void TMBBPIReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void TMBBPIDisable(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
