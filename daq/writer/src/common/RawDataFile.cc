@@ -124,7 +124,7 @@ std::string emu::daq::writer::RawDataFile::nameStream(){
   else return streamName+string("20")+runStartTime_.substr(0,2);
 }
 
-emu::daq::writer::RawDataFile::RawDataFile(const uint32_t maxFileSize, 
+emu::daq::writer::RawDataFile::RawDataFile(const uint64_t maxFileSize, 
 					   const string pathToFile, 
 					   const string host, 
 					   const string appName, 

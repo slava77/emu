@@ -49,7 +49,7 @@ namespace emu { namespace daq { namespace writer {
   class RawDataFile{
 
   private:
-    uint32_t          maxFileSize_;	///< when exceeding this size [bytes], the file will be closed, and a new one opened
+    uint64_t          maxFileSize_;	///< when exceeding this size [bytes], the file will be closed, and a new one opened
     string            pathToFile_;	///< direcory where the file is to be written
     string            host_;          ///< host name
     string            appName_;	///< name of application producing the data
@@ -116,7 +116,7 @@ namespace emu { namespace daq { namespace writer {
     /// @param app name of application producing the data
     /// @param logger logger
     ///
-    RawDataFile(const uint32_t maxFileSize, 
+    RawDataFile(const uint64_t maxFileSize, 
 		const string pathToFile, 
 		const string host, 
 		const string appName, 
