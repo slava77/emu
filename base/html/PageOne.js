@@ -10,7 +10,7 @@ function onLoad() {
 	BlueM:    "http://csc-dcs-pc2.cms:20070/urn:xdaq-application:lid=70/ForEmuPage1",
 	PCMonP:   "http://csc-dcs-pc1.cms:20040/urn:xdaq-application:lid=30/ForEmuPage1",
 	PCMonM:   "http://csc-dcs-pc2.cms:20040/urn:xdaq-application:lid=30/ForEmuPage1",
-	DAQDisks: "http://srv-c2d04-25.cms:8845/urn:xdaq-application:lid=400/retrieveCollection",
+	DAQDisks: "http://pc-c2e11-25-01.cms:8845/urn:xdaq-application:lid=16/retrieveCollection",
 	CSCTF:    "http://l1ts-csctf.cms:5005/urn:xdaq-application:service=las/retrieveCollection",
 	TCDS:     "http://pc-c2e11-23-01.cms:9945/urn:xdaq-application:lid=16/retrieveCollection",
 	FED:      "http://csc-sv.cms:20101/urn:xdaq-application:lid=66/ForEmuPage1",
@@ -717,7 +717,7 @@ function Panel( name, refreshPeriod, dataURL ) {
 			if ( fsRow.fileSystem == '/data' ){
 			    try{
 				// Select local DAQ farm machines that read out DDUs
-				var matches = contextRow.context.match('^http://([cC][sS][cC]-[cC]2[dD]08-(0[1-9]|10)(.cms)?):[0-9]+');
+				var matches = contextRow.context.match('^http://([sS][rR][vV]-[cC]2[dD]08-(0[7-9]|1[0-9])-01(.cms)?):[0-9]+');
 				if ( matches.length > 1 ){
 				    disks.push( new Disk( matches[1], '/data', fsRow.sampleTime, fsRow.state, 
 							  fsRow.usePercent, (1.-0.01*fsRow.usePercent)*fsRow.totalMB ) );

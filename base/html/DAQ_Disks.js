@@ -22,10 +22,10 @@ function jsonToTable( jsonURL ){
 	  if ( fsRow.fileSystem == '/data' ){
 	    try{
 	      // Select local DAQ farm machines that read out DDUs
-	      var matches = contextRow.context.match('^http://([cC][sS][cC]-[cC]2[dD]08-(0[1-9]|10)(.cms)?):[0-9]+');
+	      var matches = contextRow.context.match('^http://([sS][rR][vV]-[cC]2[dD]08-(0[7-9]|1[0-9])-01(.cms)?):[0-9]+');
 	      if ( matches.length > 1 ){
-		disks.push( new Disk( matches[1], '/data', fsRow.sampleTime, fsRow.state, 
-				      fsRow.usePercent, (1.-0.01*fsRow.usePercent)*fsRow.totalMB ) );
+		  disks.push( new Disk( matches[1], '/data', fsRow.sampleTime, fsRow.state, 
+					fsRow.usePercent, (1.-0.01*fsRow.usePercent)*fsRow.totalMB ) );
 	      }
 	    }
 	    catch(e){}
