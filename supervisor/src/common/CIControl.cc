@@ -5,6 +5,10 @@ emu::supervisor::CIControl::CIControl( xdaq::Application *parent,
 				       xdata::String partition )
   : emu::supervisor::TCDSControl::TCDSControl( parent, tcdsApplicationDescriptor, partition, "CI" ){}
 
+emu::supervisor::CIControl& emu::supervisor::CIControl::setRunType( xdata::String& runType ){
+  this->emu::supervisor::TCDSControl::setRunType( runType );
+  return *this;
+}
 
 emu::supervisor::CIControl& emu::supervisor::CIControl::configureSequence(){
   // First of all, wait for CI to complete 'Configure' transition

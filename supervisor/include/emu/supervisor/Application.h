@@ -209,6 +209,7 @@ private: // XDAQ parameters
   //////////////////////////////////////////////////////////////
 
   bool skipTFCellConfiguration();
+  bool ignoreTFCell();
 
   bool waitForTFCellOpToReach( const string targetState, const unsigned int seconds );
 
@@ -236,7 +237,8 @@ private: // XDAQ parameters
 
   bool isUsingTCDS_;		///< Will be FALSE if a legacy TTCci application is found. Then the legacy TTC system will be used instead of TCDS.
 
-  xdata::Boolean isDAQResponsive_; ///< Will be FALSE once a SOAP exchange fails. This is to prevent a stuck local DAQ from holding up the run.
+  xdata::Boolean isTFCellResponsive_; ///< Will be FALSE once a SOAP exchange fails. This is to prevent a stuck TF Cell from holding up the global run.
+  xdata::Boolean isDAQResponsive_; ///< Will be FALSE once a SOAP exchange fails. This is to prevent a stuck local DAQ from holding up the global run.
 
 	xdata::Integer64 nevents_;
 	unsigned int step_counter_;

@@ -114,6 +114,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   pi_plus_(NULL), pi_minus_(NULL), pi_tf_(NULL),
   usePrimaryTCDS_( true ),
   isUsingTCDS_( true ),
+  isTFCellResponsive_( true ),
   isDAQResponsive_( true ),
   nevents_(-1),
   step_counter_(0),
@@ -154,8 +155,10 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   i->fireItemAvailable("ttsID", &tts_id_);
   i->fireItemAvailable("ttsBits", &tts_bits_);
 
-  i->fireItemAvailable("controlTFCellOp", &controlTFCellOp_);
-  i->fireItemAvailable("forceTFCellConf", &forceTFCellConf_);
+  i->fireItemAvailable("controlTFCellOp",    &controlTFCellOp_);
+  i->fireItemAvailable("forceTFCellConf",    &forceTFCellConf_);
+  i->fireItemAvailable("isTFCellResponsive", &isTFCellResponsive_);
+  i->fireItemAvailable("isDAQResponsive",    &isDAQResponsive_);
 
   i->fireItemAvailable("localDAQWriteBadEventsOnly", &localDAQWriteBadEventsOnly_);
 
@@ -1154,6 +1157,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
   LOG4CPLUS_INFO(getApplicationLogger(), "runtype: " << run_type_.toString()
 		 << " runnumber: " << run_number_ << " nevents: " << nevents_.toString());
   
+  xdata::Boolean isGlobalInControl( toolbox::tolower( run_type_.toString() ) == "global" );
 
   rcmsStateNotifier_.findRcmsStateListener();      	
   step_counter_ = 0;
@@ -1170,12 +1174,12 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     //
 
     bool skipTFCellConfig( skipTFCellConfiguration() );
-    if ( tf_descr_ != NULL && controlTFCellOp_.value_ && !skipTFCellConfig ){
+    if ( tf_descr_ != NULL && bool(controlTFCellOp_) && !skipTFCellConfig && !ignoreTFCell() ){
       TFCellOpState_ = OpGetStateCell();
-      if ( TFCellOpState_.toString() != "UNKNOWN" ){
+      if ( TFCellOpState_.toString() != "UNKNOWN" && !ignoreTFCell() ){
 	// Reset csctf-cell operation
 	OpResetCell();
-	waitForTFCellOpToReach("halted",60);
+	if ( !ignoreTFCell() ) waitForTFCellOpToReach("halted",5);
       }
     }
 
@@ -1227,8 +1231,6 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     // Keep the two parameters isGlobalInControl and writeBadEventsOnly separate 
     // as later we may need to write all events even when global DAQ is in control
     // (in centrally started calibration runs).
-    xdata::Boolean isGlobalInControl( true );
-    if ( isCalibrationMode() || bool( controlTFCellOp_ ) ) isGlobalInControl = false;
     try {
       if ( bool( isDAQResponsive_ ) ){
 	LOG4CPLUS_INFO( getApplicationLogger(), "Sending to emu::daq::manager::Application : maxNumberOfEvents " << nevents_ .toString() 
@@ -1290,9 +1292,9 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       if ( ci_minus_ ) ci_minus_->waitForState( "Configured", 30 );
       if ( ci_tf_    ) ci_tf_   ->waitForState( "Configured", 30 );
       // Configure PIs and wait for them to finish.
-      if ( pi_plus_  ) pi_plus_ ->setRunType( run_type_ ).configure( pi_conf );
-      if ( pi_minus_ ) pi_minus_->setRunType( run_type_ ).configure( pi_conf );
-      if ( pi_tf_    ) pi_tf_   ->setRunType( run_type_ ).configure( pi_conf );
+      if ( pi_plus_  ) pi_plus_ ->setRunType( run_type_ ).configure( pi_conf, usePrimaryTCDS_ );
+      if ( pi_minus_ ) pi_minus_->setRunType( run_type_ ).configure( pi_conf, usePrimaryTCDS_ );
+      if ( pi_tf_    ) pi_tf_   ->setRunType( run_type_ ).configure( pi_conf, usePrimaryTCDS_ );
       if ( pi_plus_  ) pi_plus_ ->waitForState( "Configured", 30 );
       if ( pi_minus_ ) pi_minus_->waitForState( "Configured", 30 );
       if ( pi_tf_    ) pi_tf_   ->waitForState( "Configured", 30 );
@@ -1322,6 +1324,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     } // if ( ! isUsingTCDS_ )
 
     m.setResponseTimeout( 600 ); // Allow PCrates ample time to be configured.
+    LOG4CPLUS_INFO( getApplicationLogger(), "Configuring PCrates." );
     if ( !isCalibrationMode() ) {
       m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "Configure" );
     }
@@ -1329,28 +1332,40 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       if ( isAlctCalibrationMode() ) m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "ConfigCalALCT" );
       else                           m.sendCommand( "emu::pc::EmuPeripheralCrateManager", "ConfigCalCFEB");
     }  
+    LOG4CPLUS_INFO( getApplicationLogger(), "Configured PCrates." );
     m.resetResponseTimeout(); // Reset response timeout to default value.
        
     // Configure TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ && !skipTFCellConfig ){
-      if ( waitForTFCellOpToReach("halted",60) ){
-	sendCommandCell("configure");
+      if ( !ignoreTFCell() && waitForTFCellOpToReach("halted",5) ){
+	if ( !ignoreTFCell() ){ 
+	  m.setResponseTimeout( 180 ); // Allow TF ample time to be configured.
+	  LOG4CPLUS_INFO( getApplicationLogger(), "Sending 'configure' to CSC TF Cell." );
+	  // For some reason, 'configure' SOAP to TF Cell times out after 30s despite m.setResponseTimeout( 180 )
+	  sendCommandCell("configure");
+	  LOG4CPLUS_INFO( getApplicationLogger(), "Sent 'configure' to CSC TF Cell." );
+	  m.resetResponseTimeout(); // Reset response timeout to default value.
+	}
 	// Allow more time for 'configure' after key change. With a new key, it may take a couple of minutes.
-	waitForTFCellOpToReach("configured",180);
+	// if ( !ignoreTFCell() ) waitForTFCellOpToReach("configured",5);
+	waitForTFCellOpToReach("configured",5); // This will time out max 5 times, each time after 30s.
       }
+      LOG4CPLUS_INFO( getApplicationLogger(), "isTFCellResponsive after 'configure' and wait? " << isTFCellResponsive_.toString() );
       if ( TFCellOpState_.toString() != "configured" ){
+	isTFCellResponsive_ =false;
 	stringstream ss;
 	ss << "TF Cell Operation \"" << TFCellOpName_.toString() 
 	   << "\" failed to reach configured state. Aborting.";
+	LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() );
 	XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss.str() );
 	this->notifyQualified( "error", eObj );
-	throw eObj;
+	// Don't throw if we're in global. Since the transition to EMTF, CSCTF has been running parasitically in global runs. 
+	if ( ! bool( isGlobalInControl ) ) throw eObj;
       } 
     }
 
-    xdata::String runType( "global" );
-    if      ( isCalibrationMode()     ) runType = "calibration";
-    else if ( controlTFCellOp_.value_ ) runType = "local";
+    xdata::String runType( toolbox::tolower( run_type_.toString() ) );
+    if ( isCalibrationMode() ) runType = "calibration";
     m.setParameters( "emu::fed::Manager", emu::soap::Parameters().add( "runType", &runType ) );
     // Configure FED
     m.sendCommand( "emu::fed::Manager", "Configure" );
@@ -1470,8 +1485,8 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
 
     // Enable TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
-      sendCommandCell("start");
-      waitForTFCellOpToReach("running",10);
+      if ( !ignoreTFCell() ) sendCommandCell("start");
+      if ( !ignoreTFCell() ) waitForTFCellOpToReach("running",5);
     }
 
     if ( isUsingTCDS_ ){
@@ -1501,7 +1516,7 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
   } catch ( xcept::Exception& e ) {
     XCEPT_RETHROW( toolbox::fsm::exception::Exception, "Enable transition failed.", e );
   } catch( std::exception& e ){
-    XCEPT_RAISE( toolbox::fsm::exception::Exception, string( "Enabley transition failed: " ) + e.what() );
+    XCEPT_RAISE( toolbox::fsm::exception::Exception, string( "Enable transition failed: " ) + e.what() );
   }
   
   if (isCalibrationMode()) {
@@ -1534,8 +1549,8 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
 
     // Stop TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
-      sendCommandCell("stop");
-      waitForTFCellOpToReach("configured",60);
+      if ( !ignoreTFCell() ) sendCommandCell("stop");
+      if ( !ignoreTFCell() ) waitForTFCellOpToReach("configured",5);
       cout << "    stop TFCellOp: " << sw.read() << endl;
     }
 
@@ -1641,13 +1656,13 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     // Reset TF Cell operation
     if ( tf_descr_ != NULL && controlTFCellOp_.value_ ){
       if ( bool(forceTFCellConf_) ){
-	OpResetCell();
+	if ( !ignoreTFCell() ) OpResetCell();
 	cout << "    reset TFCellOp: " << sw.read() << endl;
       }
       else{
 	 LOG4CPLUS_WARN( getApplicationLogger(), "\"forceTFCellConf\" is set to FALSE, therefore the TF Cell will not be 'reset' (to 'halted' state). Instead, it will be 'stopped' (to 'configured' state) so that it can be ready to start without being (re)configured if the correct key is already active." );
-	sendCommandCell("stop");
-	waitForTFCellOpToReach("configured",60);
+	if ( !ignoreTFCell() ) sendCommandCell("stop");
+	if ( !ignoreTFCell() ) waitForTFCellOpToReach("configured",5);
 	cout << "    stop TFCellOp: " << sw.read() << endl;
       }
     }
@@ -1887,8 +1902,10 @@ void emu::supervisor::Application::sendCommandCell(string command){
 		   .add( "cid"  , &cid   )
 		   .add( "sid"  , &sid   )
 		   );
+    isTFCellResponsive_ = true;
   } 
   catch( xcept::Exception& e ){
+    isTFCellResponsive_ = false;
     LOG4CPLUS_ERROR( getApplicationLogger(), "Failed to send command '" << command << "' to TF Cell " << xcept::stdformat_exception_history(e) );
   }
 }
@@ -1917,9 +1934,11 @@ std::string emu::supervisor::Application::OpGetStateCell(){
 						 ),
 				  emu::soap::Parameters().add( emu::soap::QualifiedName( "payload", "urn:ts-soap:3.0" ), &state )
 				  );
+    isTFCellResponsive_ = true;
     return ( state == "" ? "UNKNOWN" : state );
   } 
   catch( xcept::Exception& e ){
+    isTFCellResponsive_ = false;
     LOG4CPLUS_ERROR( getApplicationLogger(), "Failed to get state TF Cell Operation " << xcept::stdformat_exception_history(e) );
   }
   return "UNKNOWN";
@@ -1946,8 +1965,10 @@ void emu::supervisor::Application::OpResetCell(){
 		   .add( "cid"  , &cid   )
 		   .add( "sid"  , &sid   )
 		   );
+    isTFCellResponsive_ = true;
   } 
   catch( xcept::Exception& e ){
+    isTFCellResponsive_ = false;
     LOG4CPLUS_ERROR( getApplicationLogger(), "Failed to reset TF Cell Operation " << xcept::stdformat_exception_history(e) );
   }
 }
@@ -1976,8 +1997,10 @@ bool emu::supervisor::Application::skipTFCellConfiguration(){
   xdata::String keyInTF;
   try{
     emu::soap::Messenger( this ).getParameters( tf_descr_, emu::soap::Parameters().add( "key", &keyInTF ) );
+    isTFCellResponsive_ = true;
   } catch( xcept::Exception& e ){
     LOG4CPLUS_WARN( getApplicationLogger(), "Failed to get the active configuration key from TF Cell." << xcept::stdformat_exception_history(e) );
+    isTFCellResponsive_ = false;
     // Maybe the running version of the TF Cell doesn't export the 'key' yet? Anyway, we cannot tell how it's configured then.
     return false;
   }
@@ -2002,6 +2025,10 @@ bool emu::supervisor::Application::skipTFCellConfiguration(){
   }
 }
 
+bool emu::supervisor::Application::ignoreTFCell(){
+  // We should ignore the legacy TF Cell in global if it's unresponsive.
+  return toolbox::tolower( run_type_.toString() ) == "global" && !bool(isTFCellResponsive_);
+}
 
 bool emu::supervisor::Application::waitForTFCellOpToReach( const string targetState, const unsigned int seconds ){
   if ( tf_descr_ == NULL ) return false;
@@ -2029,11 +2056,10 @@ bool emu::supervisor::Application::waitForTFCellOpToReach( const string targetSt
   return false;
 }
 
-
 void emu::supervisor::Application::refreshConfigParameters()
 {
 	daq_mode_ = getDAQMode();
-	TFCellOpState_ = OpGetStateCell();
+	if ( !ignoreTFCell() ) TFCellOpState_ = OpGetStateCell();
 	ttc_source_ = getTTCciSource();
 }
 

@@ -21,7 +21,6 @@ namespace emu{
 		   string tcdsDeviceName );
       virtual ~TCDSControl();
       virtual TCDSControl& setRunType( xdata::String & runType );
-      virtual TCDSControl& setUsePrimaryTCDS( xdata::Boolean& usePrimaryTCDS ){ return *this; };
       // Individual commands implemented in the TCDS SOAP interface
       TCDSControl& configure( xdata::String& hardwareConfigurationString );
       TCDSControl& enable( xdata::UnsignedInteger& runNumber );
@@ -60,6 +59,7 @@ namespace emu{
       xdata::String hardwareConfiguration_;
       xdata::String partition_;
       xdata::String actionRequestorId_;
+      xdata::String fedEnableMask_;
       xdaq::ApplicationDescriptor* const tcdsApplicationDescriptor_;
       RunType_t runType_;
       auto_ptr<TCDSHardwareLease> hardwareLease_;

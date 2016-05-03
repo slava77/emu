@@ -10,7 +10,9 @@ namespace emu{
       PIControl( xdaq::Application *parent, 
 		 xdaq::ApplicationDescriptor* tcdsApplicationDescriptor, 
 		 xdata::String partition );
-      TCDSControl& setUsePrimaryTCDS( xdata::Boolean& usePrimaryTCDS );
+      PIControl& setRunType( xdata::String & runType );
+      PIControl& configure( xdata::String& hardwareConfigurationString, xdata::Boolean& usePrimaryTCDS );
+
     };
   }
 }

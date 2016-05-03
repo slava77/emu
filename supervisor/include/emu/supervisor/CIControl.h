@@ -10,6 +10,7 @@ namespace emu{
       CIControl( xdaq::Application *parent, 
 		 xdaq::ApplicationDescriptor* tcdsApplicationDescriptor, 
 		 xdata::String partition );
+      CIControl& setRunType( xdata::String & runType );
       CIControl& configureSequence();
       CIControl& enableSequence   ();
       CIControl& stopSequence     ();
