@@ -178,7 +178,7 @@ typedef struct GainData
   int Nlayers;
 //	dac_step content[2][2][2][2];
 //        pulse_fit fit[2][2][2];
-  dac_step content[DAC_STEPS][NLAYERS][MAX_STRIPS][NSAMPLES];
+  dac_step content[DAC_STEPS][NLAYERS][MAX_STRIPS][NSAMPLES+1];
   pulse_fit fit[DAC_STEPS][NLAYERS][MAX_STRIPS];
 } GainData;
 
