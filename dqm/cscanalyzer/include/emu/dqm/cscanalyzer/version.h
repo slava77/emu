@@ -6,7 +6,7 @@
 namespace emudqmcscanalyzer
 {
 const std::string package     = "emudqmcscanalyzer";
-const std::string versions    = "12.08.00";
+const std::string versions    = "12.08.02";
 const std::string description = "EMU CSC Data Analyzer Module";
 const std::string link = "http://www.phys.ufl.edu/cms/emu/dqm";
 const std::string authors = "Victor Barashko <barvic@ufl.edu>";
