@@ -86,6 +86,9 @@ namespace emu {
 			/** Reads from method DDU::readFFError() **/
 			std::map<std::string, std::string> FFError(const uint16_t &stat);
 			
+			/** Debugger tool for special decode bits of F20[11:0] **/
+			std::map<std::string, std::string> TransFPGAHistory(const uint16_t &stat);
+
 			/** Reads from method DDU::readMaxTimeoutCount() **/
 			std::map<std::string, std::string> MaxTimeoutCount(const uint16_t &stat);
 			

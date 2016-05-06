@@ -3497,52 +3497,56 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		inrdTable(0,2) << "Decoded Chambers";
 		inrdTable[0]->set("class", "header");
 
-		inrdTable(1,0) << "Stuck data error";
+		inrdTable(1,0) << "Stuck data error F7[15:12]:";
 		dduValue = myDDU->readFIFOStatus(0);
 		inrdTable(1,1) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
 		if ((dduValue >> 12) & 0xF) inrdTable(1,1).setClass("bad");
 		else inrdTable(1,1).setClass("ok");
 
-		inrdTable(2,0) << "Fiber or FIFO connection error";
+		inrdTable(2,0) << "InRd indicates Fiber error F7[11:8]:";
 		//dduValue = myDDU->checkFIFO(1);
 		inrdTable(2,1) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
 		if ((dduValue >> 8) & 0xF) inrdTable(2,1).setClass("bad");
 		else inrdTable(2,1).setClass("ok");
 
-		inrdTable(3,0) << "L1A mismatch";
+		inrdTable(3,0) << "L1A mismatch F7[7:4]:";
 		//dduValue = myDDU->checkFIFO(1);
 		inrdTable(3,1) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
 		if ((dduValue >> 4) & 0xF) inrdTable(3,1).setClass("warning");
 		else inrdTable(3,1).setClass("ok");
 
-		inrdTable(4,0) << "InRD with active fiber";
+		inrdTable(4,0) << "InRD with active fiber F7[3:0]:";
 		//dduValue = myDDU->checkFIFO(1);
 		inrdTable(4,1) << std::showbase << std::hex << (dduValue & 0xF);
 		inrdTable(4,1).setClass("none");
 
-		inrdTable(5,0) << "Active ext. FIFO empty";
+		inrdTable(5,0) << "Active ext. FIFO empty F8[13:10]:";
 		dduValue = myDDU->readFIFOStatus(1);
 		inrdTable(5,1) << std::showbase << std::hex << ((dduValue >> 10) & 0xF);
 		inrdTable(5,1).setClass("none");
 
-		inrdTable(6,0) << "InRD near full warning";
+		inrdTable(6,0) << "InRD near full warning F8[7:4]:";
 		//dduValue = myDDU->checkFIFO(2);
 		inrdTable(6,1) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
-		if ((dduValue >> 4) & 0xF) inrdTable(6,1).setClass("warning");
+		if (1) //((dduValue >> 4) & 0xF)
+			inrdTable(6,1).setClass("warning");
 		else inrdTable(6,1).setClass("ok");
 
-		inrdTable(7,0) << "Ext. FIFO almost-full";
+		inrdTable(7,0) << "Ext. FIFO almost-full F8[3:0]:";
 		//dduValue = myDDU->checkFIFO(2);
 		inrdTable(7,1) << std::showbase << std::hex << ((dduValue) & 0xF);
-		if ((dduValue) & 0xF) inrdTable(7,1).setClass("questionable");
+		if (1) //((dduValue) & 0xF)
+			inrdTable(7,1).setClass("questionable");
 		else inrdTable(7,1).setClass("ok");
 
-		inrdTable(8,0) << "Special decode bits";
+		inrdTable(8,0) << "Almost Full Special decode F8[15,14,xxxx,9,8]:";
 		//dduValue = myDDU->checkFIFO(2);
-		inrdTable(8,1) << std::showbase << std::hex << ((dduValue >> 8) & 0x43);
-		if ((dduValue >> 8) & 0x81) inrdTable(8,1).setClass("warning");
+		dduValue = 0xBfff; //testing the debug readout
+		inrdTable(8,1) << std::showbase << std::hex << ((dduValue >> 8) & 0xC3);
+		if ((dduValue >> 8) & 0x8) inrdTable(8,1).setClass("bad");
+		else if ((dduValue >> 8) & 0x41) inrdTable(8,1).setClass("warning");
 		else inrdTable(8,1).setClass("ok");
-		dduComments = DDUDebugger::FIFOStatus(1, (dduValue >> 8) & 0x43);
+		dduComments = DDUDebugger::FIFOStatus(1, (dduValue >> 8) & 0xC3);
 		for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 			iComment != dduComments.end();
 			iComment++) {
@@ -3550,53 +3554,54 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 				.set("class",iComment->second);
 		}
 
-		inrdTable(9,0) << "Timeout-EndBusy";
+		inrdTable(9,0) << "Timeout-EndBusy F11[15:12]:";
 		dduValue = myDDU->readFIFOStatus(2);
 		inrdTable(9,1) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
 		if ((dduValue >> 12) & 0xF) inrdTable(9,1).setClass("bad");
 		else inrdTable(9,1).setClass("ok");
 
-		inrdTable(10,0) << "Timeout-EndWait";
+		inrdTable(10,0) << "Timeout-EndWait F11[11:8]:";
 		//dduValue = myDDU->checkFIFO(2);
 		inrdTable(10,1) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
 		if ((dduValue >> 8) & 0xF) inrdTable(10,1).setClass("warning");
 		else inrdTable(10,1).setClass("ok");
 
-		inrdTable(11,0) << "Timeout-Start";
+		inrdTable(11,0) << "Timeout-Start F11[7:4]:";
 		//dduValue = myDDU->checkFIFO(2);
 		inrdTable(11,1) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
 		if ((dduValue >> 4) & 0xF) inrdTable(11,1).setClass("warning");
 		else inrdTable(11,1).setClass("ok");
 
-		inrdTable(12,0) << "Lost-in-data error";
+		inrdTable(12,0) << "Lost-in-data error F11[3:0]:";
 		//dduValue = myDDU->checkFIFO(2);
 		inrdTable(12,1) << std::showbase << std::hex << ((dduValue) & 0xF);
 		if ((dduValue) & 0xF) inrdTable(12,1).setClass("bad");
 		else inrdTable(12,1).setClass("ok");
 
-		inrdTable(13,0) << "Raw ext. FIFO empty";
+		inrdTable(13,0) << "Raw ext. FIFO empty F9[13:10]:";
 		dduValue = myDDU->readFFError();
 		inrdTable(13,1) << std::showbase << std::hex << ((dduValue >> 10) & 0xF);
 		inrdTable(13,1).setClass("none");
 
-		inrdTable(14,0) << "InRD FIFO full";
+		inrdTable(14,0) << "InRD FIFO full F9[7:4]:";
 		//dduValue = myDDU->readFFError(2);
 		inrdTable(14,1) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
 		if ((dduValue >> 4) & 0xF) inrdTable(14,1).setClass("bad");
 		else inrdTable(14,1).setClass("ok");
 
-		inrdTable(15,0) << "Ext. FIFO full";
+		inrdTable(15,0) << "Ext. FIFO full F9[3:0]:";
 		//dduValue = myDDU->readFFError(2);
 		inrdTable(15,1) << std::showbase << std::hex << ((dduValue) & 0xF);
 		if ((dduValue) & 0xF) inrdTable(15,1).setClass("bad");
 		else inrdTable(15,1).setClass("ok");
 
-		inrdTable(16,0) << "Special decode bits";
+		inrdTable(16,0) << "FIFO Full Special decode F9[x,14,xxxx,9,8]:";
 		//dduValue = myDDU->readFFError(2);
+		dduValue = 0xBFFF; //for testing the debug readout
 		inrdTable(16,1) << std::showbase << std::hex << ((dduValue >> 8) & 0x43);
 		if ((dduValue >> 8) & 0x1) inrdTable(16,1).setClass("bad");
 		else inrdTable(16,1).setClass("ok");
-		dduComments = DDUDebugger::FFError((dduValue >> 8) & 0x43);
+		dduComments = DDUDebugger::FFError((dduValue) & 0x4300);
 		for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 			iComment != dduComments.end();
 			iComment++) {
@@ -3604,43 +3609,44 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 				.set("class",iComment->second);
 		}
 
-		inrdTable(17,0) << "InRD hard error";
+		inrdTable(17,0) << "InRD hard error F19[15:12]:";
 		dduValue = myDDU->readInRDStatus();
 		inrdTable(17,1) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
 		if ((dduValue >> 12) & 0xF) inrdTable(17,1).setClass("bad");
 		else inrdTable(17,1).setClass("ok");
 
-		inrdTable(18,0) << "InRD sync error";
+		inrdTable(18,0) << "InRD sync error F19[11:8]:";
 		//dduValue = myDDU->checkFIFO(2);
 		inrdTable(18,1) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
 		if ((dduValue >> 8) & 0xF) inrdTable(18,1).setClass("warning");
 		else inrdTable(18,1).setClass("ok");
 
-		inrdTable(19,0) << "InRD single event error";
+		inrdTable(19,0) << "InRD single event error F19[7:4]:";
 		//dduValue = myDDU->checkFIFO(2);
 		inrdTable(19,1) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
 		if ((dduValue >> 4) & 0xF) inrdTable(19,1).setClass("questionable");
 		else inrdTable(19,1).setClass("ok");
 
-		inrdTable(20,0) << "InRD timeout error";
+		inrdTable(20,0) << "InRD timeout error F19[3:0]:";
 		//dduValue = myDDU->checkFIFO(2);
 		inrdTable(20,1) << std::showbase << std::hex << ((dduValue) & 0xF);
 		if ((dduValue) & 0xF) inrdTable(20,1).setClass("bad");
 		else inrdTable(20,1).setClass("ok");
 
-		inrdTable(21,0) << "InRD multiple transmit errors";
+		inrdTable(21,0) << "InRD multiple transmit errors F20[3:0]:";
 		dduValue = myDDU->readInCHistory();
 		inrdTable(21,1) << std::showbase << std::hex << ((dduValue) & 0xF);
-		if ((dduValue) & 0xF) inrdTable(21,1).setClass("bad");
+		if ((dduValue >> 12) & 0xF) inrdTable(21,1).setClass("bad");
 		else inrdTable(21,1).setClass("ok");
 
-		inrdTable(22,0) << "Special decode bits";
+		inrdTable(22,0) << "Trans-FPGA Ctrl Code History F20[11:0]:";
 		//dduValue = myDDU->readFFError(2);
+		dduValue = 0xFFF; //for testing the debug status readout
 		inrdTable(22,1) << std::showbase << std::hex << ((dduValue) & 0xFFF);
 		if ((dduValue) & 0xC00) inrdTable(22,1).setClass("bad");
 		else if ((dduValue) & 0x2DF) inrdTable(22,1).setClass("warning");
 		else inrdTable(22,1).setClass("ok");
-		dduComments = DDUDebugger::FFError((dduValue) & 0xFFF);
+		dduComments = DDUDebugger::TransFPGAHistory((dduValue) & 0xFFF);
 		for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 			iComment != dduComments.end();
 			iComment++) {
@@ -3648,13 +3654,15 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 				.set("class",iComment->second);
 		}
 
-		*out << inrdTable.printSummary() << std::endl;
+		*out << inrdTable.printSummary() << std::endl << std::endl;
+		*out << inrdTable.toHTML() << std::endl;
 
 		*out << cgicc::fieldset() << std::endl;
 
 		// Clever trick to help with formating the cut-and-paste.
 		*out << cgicc::br()
 			.set("style","display: none") << std::endl;
+
 
 
 
@@ -3666,8 +3674,8 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::div("DDU Diagnostic Trap Decoding")
 			.set("class","legend") << std::endl;
 
-		if (debugTrapValid) {
-
+		//if (debugTrapValid) {
+		if (1) {
 			// Here it is.
 			std::vector<uint16_t> lcode = myDDU->readDebugTrap(DDUFPGA);
 			std::vector<std::string> bigComments = DDUDebugger::DDUDebugTrap(lcode, myDDU);
