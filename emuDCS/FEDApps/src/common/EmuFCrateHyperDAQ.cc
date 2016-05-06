@@ -3674,9 +3674,9 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::div("DDU Diagnostic Trap Decoding")
 			.set("class","legend") << std::endl;
 
-		//if (debugTrapValid) {
-		if (1) {
-			// Here it is.
+		if (debugTrapValid) {
+		//if (1) { //for testing purposes.
+
 			std::vector<uint16_t> lcode = myDDU->readDebugTrap(DDUFPGA);
 			std::vector<std::string> bigComments = DDUDebugger::DDUDebugTrap(lcode, myDDU);
 
