@@ -1095,6 +1095,34 @@ void EmuPeripheralCrateConfig::CCBTests(xgi::Input * in, xgi::Output * out )
     *out << cgicc::form() << FirmwareDir_+"ccb/gem_ohv2.mcs" << std::endl;
     *out << cgicc::br() << cgicc::hr() << std::endl;
     //
+    std::string GEMprogramPROM = toolbox::toString("/%s/GEMProgramEPROM",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("action", GEMprogramPROM) << std::endl;
+  
+    *out << "Choose GEM: " << std::endl;
+    *out << cgicc::select().set("name", "GEM") << std::endl;
+  
+    for (unsigned i = 1; i < 8; ++i) {
+      sprintf(sbuf,"%d",i);
+      if (i == iSelectedGEM) {
+        *out << cgicc::option()
+	.set("value", sbuf)
+	.set("selected", "");
+      } else {
+      *out << cgicc::option()
+	.set("value", sbuf);
+      }
+      if( i==7)
+        *out << "Broadcast" << cgicc::option() << std::endl;
+      else
+        *out << "GEM " << i << cgicc::option() << std::endl;
+    }
+    *out << cgicc::select() << std::endl;
+    *out << cgicc::input().set("type", "submit")
+    .set("name", "command")
+    .set("value", "Load firmware to OptoHybrid board's EPROM") << std::endl;
+    *out << cgicc::form() << FirmwareDir_+"ccb/gem_ohv2.svf" << std::endl;
+    *out << cgicc::br() << cgicc::hr() << std::endl;
+    //
     std::string GEMhardreset = toolbox::toString("/%s/GEMHardreset",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("action", GEMhardreset) << std::endl;
       *out << cgicc::input().set("type", "submit")
@@ -1109,7 +1137,7 @@ void EmuPeripheralCrateConfig::CCBTests(xgi::Input * in, xgi::Output * out )
     *out << cgicc::form().set("action", GEMsetMUX) << std::endl;
     *out << cgicc::input().set("type", "submit")
     .set("name", "command")
-    .set("value", "Set MUX bit HIGH") << std::endl;
+    .set("value", "Set MUX bit to GBT") << std::endl;
     *out << cgicc::input().set("type","hidden").set("value","1").set("name","bitv");
     *out << cgicc::form() << std::endl;
     *out << cgicc::td();          
@@ -1118,7 +1146,7 @@ void EmuPeripheralCrateConfig::CCBTests(xgi::Input * in, xgi::Output * out )
     *out << cgicc::form().set("action", GEMsetMUX) << std::endl;
     *out << cgicc::input().set("type", "submit")
     .set("name", "command")
-    .set("value", "Set MUX bit LOW") << std::endl;
+    .set("value", "Set MUX bit to CCB") << std::endl;
     *out << cgicc::input().set("type","hidden").set("value","0").set("name","bitv");
     *out << cgicc::form() << std::endl;
     *out << cgicc::td();          
@@ -1373,10 +1401,10 @@ void EmuPeripheralCrateConfig::GEMProgramEPROM(xgi::Input * in, xgi::Output * ou
   {
     iSelectedGEM=gem;
              //
-    std::string mcsfile = FirmwareDir_+"ccb/gem_ohv2.mcs";
+    std::string svffile = FirmwareDir_+"ccb/gem_ohv2.svf";
     std::cout << getLocalDateTime() << " Loading firmware to OH board's EPROM for GEM #" << gem << std::endl;
-    std::cout << "Using mcs file: " << mcsfile << std::endl;
-//    thisCCB->gem_program_virtex6(mcsfile.c_str(), gem);
+    std::cout << "Using SVF file: " << svffile << std::endl;
+    thisCCB->gem_SVFLoad(gem, svffile.c_str(), 0, 0);
     std::cout << getLocalDateTime() << " Finished loading firmware to EPROM." << std::endl;
   }
   //

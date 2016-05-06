@@ -375,6 +375,7 @@ public:
   void gem_virtex6_writereg(int reg, unsigned value, int gem);
   std::vector<float> gem_virtex6_monitor(int gem);
   int gem_virtex6_dna(void *dna, int gem);
+  int gem_SVFLoad(int gem, const char *fn, int db, int verify);
 
 public:
   //
