@@ -1038,7 +1038,7 @@ void EmuPeripheralCrateConfig::CCBTests(xgi::Input * in, xgi::Output * out )
     *out << cgicc::select() << std::endl;
     *out << cgicc::input().set("type", "submit")
     .set("name", "command")
-    .set("value", "Read IDCode from OptoHybrid board's FPGA") << std::endl;
+    .set("value", "Read FPGA IDCode & Status from OptoHybrid board") << std::endl;
     *out << cgicc::form() << std::endl;
     *out << cgicc::br() << cgicc::hr() << std::endl;
     //
@@ -1335,6 +1335,8 @@ void EmuPeripheralCrateConfig::GEMreadFPGAid(xgi::Input * in, xgi::Output * out 
              //
     thisCCB->RedirectOutput(&OutputCCBTests[current_crate_]);
     thisCCB->gem_FPGA_IDCode(gem);
+//    thisCCB->gem_FPGA_UserCode(gem);
+    thisCCB->gem_FPGA_Status(gem);
     thisCCB->RedirectOutput(&std::cout);
   }
   //

@@ -370,11 +370,13 @@ public:
   void gem_scan(int reg,const char *snd,int cnt,char *rcv,int ird, int gem);   
   void gem_RestoreIdle(int gem);
   unsigned gem_FPGA_IDCode(int gem);
+  unsigned gem_FPGA_UserCode(int gem);
   void gem_program_virtex6(const char *mcsfile, int gem);
   unsigned gem_virtex6_readreg(int reg, int gem);
   void gem_virtex6_writereg(int reg, unsigned value, int gem);
   std::vector<float> gem_virtex6_monitor(int gem);
   int gem_virtex6_dna(void *dna, int gem);
+  unsigned gem_FPGA_Status(int gem);
   int gem_SVFLoad(int gem, const char *fn, int db, int verify);
 
 public:

@@ -2046,6 +2046,22 @@ unsigned CCB::gem_FPGA_IDCode(int gem)
      return tout;
 }
 
+unsigned CCB::gem_FPGA_UserCode(int gem)
+{
+     unsigned short comd;
+     unsigned ttt=0, tout=0;
+     if(hardware_version_<=1) return 0;
+   
+     //restore idle;
+     gem_RestoreIdle(gem);
+
+     comd=VTX6_USERCODE;
+     gem_scan(0, (char *)&comd, 10, rcvbuf, 0, gem);
+     gem_scan(1, (char *)&ttt, 32, (char *)&tout, 1, gem);     
+     (*MyOutput_) << "FPGA USERCODE=" << std::hex << tout << std::dec << std::endl;
+     return tout;
+}
+
 void CCB::gem_program_virtex6(const char *mcsfile, int gem)
 {
    if(hardware_version_<=1) return;
@@ -2300,6 +2316,16 @@ int CCB::gem_virtex6_dna(void *dna, int gem)
      gem_scan(2, (char *)&comd, 128, rcvbuf, 0, gem);
      udelay(100000);
      return rtv;
+}
+
+
+unsigned CCB::gem_FPGA_Status(int gem)
+{
+     if(hardware_version_<=1) return 0;
+   
+     unsigned tout=gem_virtex6_readreg(VTX6_REG_STAT, gem);
+     (*MyOutput_) << "FPGA STATUS=" << std::hex << tout << ", Done bit=" << ((tout&0x4000)?"1":"0") << std::dec << std::endl;
+     return tout;
 }
 
 
