@@ -1403,9 +1403,6 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FFError(const uint16_t
 {
 	std::map<std::string, std::string> returnMe;
 	
-	if (stat & 0x3b00) {
-		returnMe["Raw Ext. FIFO empty: " + decodeInRD((stat >> 10) & 0xf)] = "none";
-	}
 	if (stat & 0x00f0) {
 		returnMe["InRD FIFO full: " + decodeInRD((stat >> 4) & 0xf)] = "red";
 	}
@@ -1413,13 +1410,35 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FFError(const uint16_t
 		returnMe["Ext. FIFO full: " + decodeInRD(stat & 0xf)] = "red";
 	}
 	
-	if (0x4000 & stat) returnMe["L1A FIFO Empty"] = "none";
-	if ( (0x4000 & stat) == 0) returnMe["L1A FIFO Not Empty"] = "none";
+	if (0x4000 & stat) returnMe["L1A FIFO Empty"] = "blue";
+	if ( (0x4000 & stat) == 0) returnMe["L1A FIFO Not Empty"] = "blue";
 	if (0x0200 & stat) returnMe["GbE FIFO Full occurred"] = "yellow";
 	if (0x0100 & stat) returnMe["L1A FIFO Full occurred"] = "red";
 	
 	return returnMe;
 }
+/////////////////////////////
+std::map<std::string, std::string> emu::fed::DDUDebugger::TransFPGAHistory(const uint16_t &stat)
+{
+	std::map<std::string, std::string> returnMe;
+
+	if (0x0800 & stat) returnMe["trans-FPGA Ctrl Code err occurred (end)"] = "red";
+	if (0x0400 & stat) returnMe["trans-FPGA Ctrl Code err occurred (begin)"] = "red";
+	if (0x0200 & stat) returnMe["InRd MultL1Aerr was set"] = "red";
+	if (0x0100 & stat) returnMe["InRd found DMB_L1Aerr"] = "red";
+	if (0x0080 & stat) returnMe["InRd HardErr was set"] = "red";
+	if (0x0040 & stat) returnMe["InRd SyncErr was set"] = "red";
+	if (0x0020 & stat) returnMe["InRd SingleErr was set"] = "yellow";
+	if (0x0010 & stat) returnMe["InRd MEMerr was set"] = "red";
+	if (0x0008 & stat) returnMe["InRd FiberErr was set"] = "red";
+	if (0x0004 & stat) returnMe["InRd MultiXmitErr was set"] = "red";
+	if (0x0002 & stat) returnMe["InRd StuckDat was set"] = "red";
+	if (0x0001 & stat) returnMe["InRd Timeout occurred"] = "red";
+	return returnMe;
+}
+////////////////
+
+
 
 
 
@@ -1454,7 +1473,8 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStatus(const enum 
 	std::map<std::string, std::string> returnMe;
 	
 	if (dev == DDUFPGA) {
-		
+
+
 		switch (fifo) {
 		case 0:
 			if (stat & 0xf000) {
@@ -1472,16 +1492,21 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStatus(const enum 
 			break;
 			
 		case 1:
-			if (stat & 0x3b00) {
-				returnMe["Active ext. FIFO empty: " + decodeInRD((stat >> 10) & 0xf)] = "none";
-			}
+			if (stat & 0x3b00) returnMe["Active ext. FIFO empty: " + decodeInRD((stat >> 10) & 0xf)] = "none";
+			if (0x0080 & stat) returnMe["trans-FPGA-L1A_HadMismatch (wrong L1# in C-code)"] = "red";
+			if (0x0040 & stat) returnMe["L1A FIFO Empty"] = "blue";
+			if ( (0x0040 & stat) == 0) returnMe["L1A FIFO Not Empty"] = "blue";
+			if (0x0002 & stat) returnMe["GbE FIFO Almost-Full occurred"] = "yellow";
+			if (0x0001 & stat) returnMe["L1A FIFO Almost-Full occurred"] = "yellow";
+
+			/*
 			if (stat & 0x00f0) {
 				returnMe["InRD near-full warning: " + decodeInRD((stat >> 4) & 0xf)] = "orange";
 			}
 			if (stat & 0x000f) {
 				returnMe["Ext. FIFO almost full: " + decodeInRD(stat & 0xf)] = "blue";
 			}
-
+			*/
 			if (stat & 0xb300) {
 
 				if (0x0040 & stat) returnMe["L1A FIFO Empty"] = "none";
