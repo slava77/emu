@@ -8502,6 +8502,10 @@ void EmuPeripheralCrateConfig::RATStatus(xgi::Input * in, xgi::Output * out )
 //////////////////////////////////////////////////////////////////////////////
 void EmuPeripheralCrateConfig::TMBTests(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   //
   cgicc::Cgicc cgi(in);
   //
@@ -8515,6 +8519,11 @@ void EmuPeripheralCrateConfig::TMBTests(xgi::Input * in, xgi::Output * out )
   } else {
     std::cout << "TMBTests: No tmb" << std::endl ;
     tmb = TMB_;
+  }
+  //
+  if(tmb<0 || tmb>=tmbVector.size())
+  {  this->Default(in,out);
+     return;
   }
   //
   TMB * thisTMB = tmbVector[tmb];
@@ -9040,6 +9049,10 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   } else {
     std::cout << "TMBStatus: No TMB" << std::endl ;
     tmb = TMB_;
+  }
+  if(tmb<0 || tmb>=tmbVector.size())
+  {  this->Default(in,out);
+     return;
   }
   //
   TMB * thisTMB = tmbVector[tmb];
@@ -9732,6 +9745,11 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   } else {
     std::cout << "TMBUtils:  No TMB" << std::endl ;
     tmb = TMB_;
+  }
+  //
+  if(tmb<0 || tmb>=tmbVector.size())
+  {  this->Default(in,out);
+     return;
   }
   //
   TMB * thisTMB = tmbVector[tmb];

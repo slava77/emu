@@ -36,6 +36,11 @@ void EmuPeripheralCrateConfig::DMBTests(xgi::Input * in, xgi::Output * out )
     dmb = DMB_;
   }
   //
+  if(dmb<0 || dmb>=dmbVector.size())
+  {  this->Default(in,out);
+     return;
+  }
+  //
   DAQMB * thisDMB = dmbVector[dmb];
   //
   Chamber * thisChamber = chamberVector[dmb];
@@ -1849,6 +1854,11 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
     dmb = DMB_;
   }
   //
+  if(dmb<0 || dmb>=dmbVector.size())
+  {  this->Default(in,out);
+     return;
+  }
+  //
   DAQMB * thisDMB = dmbVector[dmb];
   //
   Chamber * thisChamber = chamberVector[dmb];
@@ -3266,6 +3276,11 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   } else {
     std::cout << "Not dmb" << std::endl ;
     dmb = DMB_;
+  }
+  //
+  if(dmb<0 || dmb>=dmbVector.size())
+  {  this->Default(in,out);
+     return;
   }
   //
   DAQMB * thisDMB = dmbVector[dmb];
