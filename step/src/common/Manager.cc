@@ -472,25 +472,38 @@ string emu::step::Manager::checkDataCompleteness( const string& testId ){
     //
     // Get number events read by each RUI (DDU) and check if they complete the test.
     //
-    xdata::Vector<xdata::UnsignedInteger64> rui_counts;
-    xdata::Vector<xdata::UnsignedInteger32> rui_instances;
-    xdata::String xs;
-    emu::soap::extractParameters( m.sendCommand( "emu::daq::manager::Application", 0, "QueryRunSummary" ), 
-    				  emu::soap::Parameters()
-				  .add( "rui_instances", &rui_instances )
-				  .add( "rui_counts"   , &rui_counts    )                                 );
-    for ( size_t i = 0; i < rui_counts.elements(); i++ ){
-      // Only consider RUIs that are actually supposed to read data:
-      if ( ruisToReadData_.size() == 0 ||
-	   ruisToReadData_.find( *(uint32_t*)( dynamic_cast<xdata::UnsignedInteger32*>( rui_instances.elementAt( i ) ) ) ) != ruisToReadData_.end() ){
-	// In timed tests, where the number of events to take is not predefined (and nEvents=0), 
-	// we cannot tell if the data file is complete.
-	if ( *testsNEvents.begin() != 0 ){
-	  if ( *testsNEvents.begin() != *dynamic_cast<xdata::UnsignedInteger64*>( rui_counts.elementAt( i ) ) ){
-	    oss << "RUI "         << ( dynamic_cast<xdata::UnsignedInteger32*>( rui_instances.elementAt( i ) ) )->toString()
-		<< " read "       << ( dynamic_cast<xdata::UnsignedInteger64*>(    rui_counts.elementAt( i ) ) )->toString()
-		<< " of "         << *testsNEvents.begin() 
-		<< " events. \n";
+    if ( (bool) isCurrentTestDurationUndefined_ ){
+      xdata::Integer64 maxNumberOfEvents;
+      xdata::UnsignedInteger64 STEPCount;
+      m.getParameters( "emu::daq::manager::Application", 0, 
+		       emu::soap::Parameters()
+		       .add( "maxNumberOfEvents", &maxNumberOfEvents )
+		       .add( "STEPCount"        , &STEPCount         ) );
+      if ( (int64_t) STEPCount.value_ < maxNumberOfEvents.value_ ){
+	oss << "Lowest recorded event count: " << STEPCount.toString() << " out of " << maxNumberOfEvents.toString() << " requested.";
+      }
+    }
+    else{ // if ( (bool) isCurrentTestDurationUndefined_ )
+      xdata::Vector<xdata::UnsignedInteger64> rui_counts;
+      xdata::Vector<xdata::UnsignedInteger32> rui_instances;
+      xdata::String xs;
+      emu::soap::extractParameters( m.sendCommand( "emu::daq::manager::Application", 0, "QueryRunSummary" ), 
+				    emu::soap::Parameters()
+				    .add( "rui_instances", &rui_instances )
+				    .add( "rui_counts"   , &rui_counts    )                                 );
+      for ( size_t i = 0; i < rui_counts.elements(); i++ ){
+	// Only consider RUIs that are actually supposed to read data:
+	if ( ruisToReadData_.size() == 0 ||
+	     ruisToReadData_.find( *(uint32_t*)( dynamic_cast<xdata::UnsignedInteger32*>( rui_instances.elementAt( i ) ) ) ) != ruisToReadData_.end() ){
+	  // In timed tests, where the number of events to take is not predefined (and nEvents=0), 
+	  // we cannot tell if the data file is complete.
+	  if ( *testsNEvents.begin() != 0 ){
+	    if ( *testsNEvents.begin() != *dynamic_cast<xdata::UnsignedInteger64*>( rui_counts.elementAt( i ) ) ){
+	      oss << "RUI "         << ( dynamic_cast<xdata::UnsignedInteger32*>( rui_instances.elementAt( i ) ) )->toString()
+		  << " read "       << ( dynamic_cast<xdata::UnsignedInteger64*>(    rui_counts.elementAt( i ) ) )->toString()
+		  << " of "         << *testsNEvents.begin() 
+		  << " events. \n";
+	    }
 	  }
 	}
       }
@@ -858,8 +871,8 @@ void emu::step::Manager::waitForTestsToFinish( const bool isTestDurationUndefine
 	}
 	configuration_->setTestProgress( groupsProgress );
       }
-      allFinished = ( (int64_t) STEPCount.value_ >= maxNumberOfEvents );
-      if ( allFinished ){ LOG4CPLUS_INFO( logger_, "STEP is done."); }
+      allFinished = ( (int64_t) STEPCount.value_ >= maxNumberOfEvents.value_ );
+      if ( allFinished ){ LOG4CPLUS_INFO( logger_, "STEP is done. Requested " << maxNumberOfEvents.toString() << ", collected " << STEPCount.toString() << " events."); }
     }
     else{
       // Query the Tester apps
