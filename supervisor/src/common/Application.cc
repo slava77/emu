@@ -322,41 +322,63 @@ void emu::supervisor::Application::getAppDescriptors(){
 }
 
 void emu::supervisor::Application::getTCDSAppDescriptors(){
+  // First try to find the primary or secondary system.
+  if ( getTCDSAppDescriptors( true ) ) return;
+  // Looks like it was not found. Try to find the default system (i.e. service names with no system switch tag).
+  getTCDSAppDescriptors( false );
+}
+
+bool emu::supervisor::Application::getTCDSAppDescriptors( bool useSystemSwitchTag ){
+  bool areAllFound = true;
+
+  string systemSwitchTag( "" );
+  // If two systems exist for redundancy, the service names have "-pri" or "-sec" appended to them, 
+  // indicating primary or secondary TCDS system.
+  if ( useSystemSwitchTag ) systemSwitchTag = ( (bool)( usePrimaryTCDS_ ) ? "-pri" : "-sec" );
+
+  string service;
+
   //
   // PI apps
   //
 
   try {
-    pi_plus_descr_ = findAppDescriptor("tcds::pi::PIController", "pi-cscp");
+    service = "pi-cscp" + systemSwitchTag;
+    pi_plus_descr_ = findAppDescriptor("tcds::pi::PIController", service);
     if ( pi_plus_descr_ == NULL ) XCEPT_RAISE( xdaq::exception::ApplicationDescriptorNotFound, "No such application." );
     pi_plus_ = new PIControl( this, pi_plus_descr_, "ME+" );
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
+    areAllFound = false;
     stringstream ss;
-    ss << "Failed to get application descriptor for tcds::pi::PIController, service pi-cscp ";
+    ss << "Failed to get application descriptor for tcds::pi::PIController, service " << service << ". ";
     LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e) );
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
   }
 
   try {
-    pi_minus_descr_ = findAppDescriptor("tcds::pi::PIController", "pi-cscm");
+    service = "pi-cscm" + systemSwitchTag;
+    pi_minus_descr_ = findAppDescriptor("tcds::pi::PIController", service);
     if ( pi_minus_descr_ == NULL )  XCEPT_RAISE( xdaq::exception::ApplicationDescriptorNotFound, "No such application." );
     pi_minus_ = new PIControl( this, pi_minus_descr_, "ME-" );
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
+    areAllFound = false;
     stringstream ss;
-    ss << "Failed to get application descriptor for tcds::pi::PIController, service pi-cscm ";
+    ss << "Failed to get application descriptor for tcds::pi::PIController, service " << service << ". ";
     LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e) );
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
   }
 
   try {
-    pi_tf_descr_ = findAppDescriptor("tcds::pi::PIController", "pi-csctf");
+    service = "pi-csctf" + systemSwitchTag;
+    pi_tf_descr_ = findAppDescriptor("tcds::pi::PIController", service);
     if ( pi_tf_descr_ == NULL )  XCEPT_RAISE( xdaq::exception::ApplicationDescriptorNotFound, "No such application." );
     pi_tf_ = new PIControl( this, pi_tf_descr_, "TF" );
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
+    areAllFound = false;
     stringstream ss;
-    ss << "Failed to get application descriptor for tcds::pi::PIController, service pi-csctf ";
+    ss << "Failed to get application descriptor for tcds::pi::PIController, service " << service << ". ";
     LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e) );
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
@@ -367,36 +389,42 @@ void emu::supervisor::Application::getTCDSAppDescriptors(){
   //
 
   try {
-    ci_plus_descr_ = findAppDescriptor("tcds::ici::ICIController", "ici-cscp");
+    service = "ici-cscp" + systemSwitchTag;
+    ci_plus_descr_ = findAppDescriptor("tcds::ici::ICIController", service);
     if ( ci_plus_descr_ == NULL ) XCEPT_RAISE( xdaq::exception::ApplicationDescriptorNotFound, "No such application." );
     ci_plus_ = new CIControl( this, ci_plus_descr_, "ME+" );
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
+    areAllFound = false;
     stringstream ss;
-    ss << "Failed to get application descriptor for tcds::ici::ICIController, service ici-cscp ";
+    ss << "Failed to get application descriptor for tcds::ici::ICIController, service " << service << ". ";
     LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e) );
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
   }
 
   try {
-    ci_minus_descr_ = findAppDescriptor("tcds::ici::ICIController", "ici-cscm");
+    service = "ici-cscm" + systemSwitchTag;
+    ci_minus_descr_ = findAppDescriptor("tcds::ici::ICIController", service);
     if ( ci_minus_descr_ == NULL )  XCEPT_RAISE( xdaq::exception::ApplicationDescriptorNotFound, "No such application." );
     ci_minus_ = new CIControl( this, ci_minus_descr_, "ME-" );
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
+    areAllFound = false;
     stringstream ss;
-    ss << "Failed to get application descriptor for tcds::ici::ICIController, service ici-cscm ";
+    ss << "Failed to get application descriptor for tcds::ici::ICIController, service " << service << ". ";
     LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e) );
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
   }
 
   try {
-    ci_tf_descr_ = findAppDescriptor("tcds::ici::ICIController", "ici-csctf");
+    service = "ici-csctf" + systemSwitchTag;
+    ci_tf_descr_ = findAppDescriptor("tcds::ici::ICIController", service);
     if ( ci_tf_descr_ == NULL )  XCEPT_RAISE( xdaq::exception::ApplicationDescriptorNotFound, "No such application." );
     ci_tf_ = new CIControl( this, ci_tf_descr_, "TF" );
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
+    areAllFound = false;
     stringstream ss;
-    ss << "Failed to get application descriptor for tcds::ici::ICIController, service ici-csctf ";
+    ss << "Failed to get application descriptor for tcds::ici::ICIController, service " << service << ". ";
     LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e) );
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
@@ -407,26 +435,43 @@ void emu::supervisor::Application::getTCDSAppDescriptors(){
   //
 
   try {
-    pm_descr_ = findAppDescriptor("tcds::lpm::LPMController", "lpm-csc");
+    service = "lpm-csc" + systemSwitchTag;
+    pm_descr_ = findAppDescriptor("tcds::lpm::LPMController", service);
     if ( pm_descr_ == NULL ) XCEPT_RAISE( xdaq::exception::ApplicationDescriptorNotFound, "No such application." );
     pm_ = new PMControl( this, pm_descr_, "ME" );
   } catch (xdaq::exception::ApplicationDescriptorNotFound& e) {
+    areAllFound = false;
     stringstream ss;
-    ss << "Failed to get application descriptor for tcds::lpm::LPMController, service lpm-csc ";
+    ss << "Failed to get application descriptor for tcds::lpm::LPMController, service " << service << ". ";
     LOG4CPLUS_ERROR( getApplicationLogger(), ss.str() << xcept::stdformat_exception_history(e) );
     XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss.str(), e );
     this->notifyQualified( "error", eObj );
   }
 
+  return areAllFound;
 }
 
 xoap::MessageReference emu::supervisor::Application::onConfigure(xoap::MessageReference message)
   throw (xoap::exception::Exception)
 {
+  string msg;
+  message->writeTo( msg );
+  LOG4CPLUS_INFO( getApplicationLogger(), "Received 'Configure' SOAP command:\n" << msg );
+
+  // Extract parameters (if any). The Function Manager should include them in the command message.
+  try{
+    emu::soap::extractParameters( message, emu::soap::Parameters()
+				  .add( "usePrimaryTCDS", &usePrimaryTCDS_ )
+				  .add( "RunType"       , &run_type_       ) );
+  }
+  catch( xcept::Exception &e ){
+    LOG4CPLUS_WARN( getApplicationLogger(), "Failed to extract parameters from 'Configure' SOAP command. Not a problem unless it was sent by the Function Manager."  << xcept::stdformat_exception_history(e) );
+  }
+
   isCommandFromWeb_ = false;
   run_number_ = 1;
   nevents_ = -1;
-  
+
   submit(configure_signature_);
   
   return createReply(message);
@@ -435,6 +480,18 @@ xoap::MessageReference emu::supervisor::Application::onConfigure(xoap::MessageRe
 xoap::MessageReference emu::supervisor::Application::onStart(xoap::MessageReference message)
   throw (xoap::exception::Exception)
 {
+  string msg;
+  message->writeTo( msg );
+  LOG4CPLUS_INFO( getApplicationLogger(), "Received 'Start' SOAP command:\n" << msg );
+
+  // Extract parameters (if any). The Function Manager should include them in the command message.
+  try{
+    emu::soap::extractParameters( message, emu::soap::Parameters().add( "RunNumber", &run_number_ ) );
+  }
+  catch( xcept::Exception &e ){
+    LOG4CPLUS_WARN( getApplicationLogger(), "Failed to extract parameters from 'Start' SOAP command. Not a problem unless it was sent by the Function Manager. " << xcept::stdformat_exception_history(e) );
+  }
+
   isCommandFromWeb_ = false;
   submit(start_signature_);
   
@@ -1555,13 +1612,13 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     }
 
     if ( ! isUsingTCDS_ ){
-      if (state_table_.getState("ttc::LTCControl", 0) != "halted") {
-	m.sendCommand( "ttc::LTCControl", "reset" );
-	cout << "    Halt (reset) ttc::LTCControl: " << sw.read() << endl;
+      if (state_table_.getState("ttc::LTCControl", 0) != "configured") {
+	m.sendCommand( "ttc::LTCControl", "stop" );
+	cout << "    Stop ttc::LTCControl: " << sw.read() << endl;
       }
-      if (state_table_.getState("ttc::TTCciControl", 0) != "halted") {
-	m.sendCommand( "ttc::TTCciControl", "reset" );
-	cout << "    Halt (reset) ttc::TTCciControl: " << sw.read() << endl;
+      if (state_table_.getState("ttc::TTCciControl", 0) != "configured") {
+	m.sendCommand( "ttc::TTCciControl", "stop" );
+	cout << "    Stop ttc::TTCciControl: " << sw.read() << endl;
       }
     }
         
@@ -2124,6 +2181,8 @@ int emu::supervisor::Application::keyToIndex(const string name)
 			break;
 		}
 	}
+
+	LOG4CPLUS_INFO( getApplicationLogger(), "Run type " << name << " has index " << result ); 
 
 	return result;
 }

@@ -196,6 +196,7 @@ private: // XDAQ parameters
         xdaq::ApplicationDescriptor* findAppDescriptor( const string& klass, const string& service );
         void getAppDescriptors();
         void getTCDSAppDescriptors();
+        bool getTCDSAppDescriptors( bool useSystemSwitchTag );
 
   void setUpLogger();
 
