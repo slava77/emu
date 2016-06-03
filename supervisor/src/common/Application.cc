@@ -1645,6 +1645,10 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     cout << "    Disable emu::pc::EmuPeripheralCrateManager: " << sw.read() << endl;
 
     if ( ! isUsingTCDS_ ){
+      m.sendCommand( "ttc::LTCControl", "reset" );
+      cout << "    Halt (reset) ttc::LTCControl: " << sw.read() << endl;
+      m.sendCommand( "ttc::TTCciControl", "reset" );
+      cout << "    Halt (reset) ttc::TTCciControl: " << sw.read() << endl;
       m.sendCommand( "ttc::TTCciControl", "configure" );
       cout << "    Configure TTCci: " << sw.read() << endl;
       m.sendCommand( "ttc::LTCControl", "configure" );
